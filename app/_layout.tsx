@@ -1,37 +1,53 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useFonts } from 'expo-font'
+import { router, Stack } from 'expo-router'
+import * as SplashScreen from 'expo-splash-screen'
+import { useEffect, useState } from 'react'
+import { defaultOptions, ReadingContext } from '../controllers/context'
+import { DeviceEventEmitter } from 'react-native'
+import { MMKVStorage } from '../controllers/mmkv'
+import { GToastComponent } from '@/components/GToast'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const [readingValue, setReadingValue] = useState<Options>(defaultOptions)
+
+  const [loaded] = useFonts({})
+
+  useEffect(() => {
+    const t = DeviceEventEmitter.addListener('setReadingValue', (data) => {
+      console.log(data)
+      setReadingValue((prev) => ({...prev, ...data}))
+      MMKVStorage.set('app-reading', data)
+    })
+    return () => t.remove()
+  }, [])
+
+  useEffect(() => {
+    const output: Options = MMKVStorage.get('app-reading').value
+    if (output?.font && output?.size) {
+      setReadingValue(output)
+      if (output.isReading) router.navigate('/reading')
+    }
+  }, [])
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync()
     }
-  }, [loaded]);
+  }, [loaded])
 
   if (!loaded) {
-    return null;
+    return null
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
+    <ReadingContext.Provider value={readingValue}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
       </Stack>
-    </ThemeProvider>
-  );
+      <GToastComponent />
+    </ReadingContext.Provider>
+  )
 }
