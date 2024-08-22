@@ -25,7 +25,6 @@ const SheetBookInfo = ({
   onClose: () => void
 }) => {
   const reading = useReading()
-  console.log(bookId)
 
   const setFont = (font: string) => {
     setReadingContext({ ...reading, font })

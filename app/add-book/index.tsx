@@ -30,7 +30,6 @@ const AddBook = (props: any) => {
     const fileUri = getPathSaveZipBook(filename)
     downloadFile(linkDownload, fileUri)
       .then((uri) => {
-        console.log(uri)
         unzipBook(uri)
       })
       .catch((error) => {
