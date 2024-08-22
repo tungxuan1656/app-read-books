@@ -8,7 +8,8 @@ import { getBookChapterContent, getChapterHtml, showToastError } from '../../uti
 import { setReadingContext, useReading } from '../../controllers/context'
 import SheetBookInfo from '@/components/SheetBookInfo'
 import RenderHTML from 'react-native-render-html'
-import { AppConst } from '@/constants'
+import { AppConst, MMKVKeys } from '@/constants'
+import { MMKVStorage } from '@/controllers/mmkv'
 
 const Reading = () => {
   const params = useLocalSearchParams<{ bookId: string }>()
@@ -19,38 +20,53 @@ const Reading = () => {
   const reading = useReading()
   const bookId = reading.currentBook
   const refScroll = useRef<ScrollView | null>(null)
+  const [font, setFont] = useState(MMKVStorage.get(MMKVKeys.CURRENT_FONT) ?? 'Inter-Regular')
+  const [fontSize, setFontSize] = useState(MMKVStorage.get(MMKVKeys.CURRENT_FONT_SIZE) ?? 24)
+  const [lineHeight, setLineHeight] = useState(MMKVStorage.get(MMKVKeys.CURRENT_LINE_HEIGHT) ?? 1.5)
+
+  useEffect(() => {
+    MMKVStorage.set(MMKVKeys.CURRENT_FONT, font)
+  }, [font])
+
+  useEffect(() => {
+    MMKVStorage.set(MMKVKeys.CURRENT_FONT_SIZE, fontSize)
+  }, [fontSize])
+
+  useEffect(() => {
+    MMKVStorage.set(MMKVKeys.CURRENT_LINE_HEIGHT, lineHeight)
+  }, [lineHeight])
 
   const chapterHtml = useMemo(() => {
+    if (!chapterContent) return ''
     return getChapterHtml(chapterContent)
-  }, [chapterContent, reading])
+  }, [chapterContent])
 
   useEffect(() => {
     const newId = params.bookId ? params.bookId : reading.currentBook
-    if (!reading.books[newId]?.chapter) {
+    if (!reading.books[newId]) {
       const books = { ...reading.books }
-      books[newId] = { chapter: 1, offset: 0 }
+      books[newId] = 1
       setReadingContext({
-        ...reading,
-        isReading: true,
         currentBook: newId,
         books,
       })
     } else {
       setReadingContext({
         ...reading,
-        isReading: true,
         currentBook: newId,
       })
     }
 
+    MMKVStorage.set(MMKVKeys.IS_READING, true)
+
     return () => {
-      setReadingContext({ ...reading, isReading: false })
+      MMKVStorage.set(MMKVKeys.IS_READING, false)
     }
   }, [])
 
   useEffect(() => {
     const book = reading.currentBook
-    const chapter = reading.books[book]?.chapter
+    const chapter = reading.books[book] ?? 1
     if (chapter) {
       getBookChapterContent(reading.currentBook, chapter)
         .then((c) => setChapterContent(c))
@@ -60,7 +76,7 @@ const Reading = () => {
 
   useEffect(() => {
     setTimeout(() => {
-      const offset = reading.books[reading.currentBook]?.offset
+      const offset = MMKVStorage.get(MMKVKeys.CURRENT_READING_OFFSET)
       if (offset) {
         refScroll.current?.scrollTo({ y: offset, animated: false })
       }
@@ -71,7 +87,7 @@ const Reading = () => {
     clearTimeout(refTimeout.current)
     refTimeout.current = setTimeout(() => {
       const books = { ...reading.books }
-      books[reading.currentBook].chapter = books[reading.currentBook].chapter + 1
+      books[reading.currentBook] = books[reading.currentBook] + 1
       setReadingContext({ ...reading, books })
       refScroll.current?.scrollTo({ y: 0, animated: false })
     }, 500)
@@ -80,7 +96,7 @@ const Reading = () => {
     clearTimeout(refTimeout.current)
     refTimeout.current = setTimeout(() => {
       const books = { ...reading.books }
-      books[reading.currentBook].chapter = Math.max(books[reading.currentBook].chapter - 1, 0)
+      books[reading.currentBook] = Math.max(books[reading.currentBook] - 1, 0)
       setReadingContext({ ...reading, books })
     }, 500)
   }
@@ -88,11 +104,7 @@ const Reading = () => {
   const saveOffset = (offset: number) => {
     clearTimeout(refTimeoutSave.current)
     refTimeoutSave.current = setTimeout(() => {
-      const books = { ...reading.books }
-      if (books[reading.currentBook].offset !== offset) {
-        books[reading.currentBook].offset = offset
-        setReadingContext({ ...reading, books })
-      }
+      MMKVStorage.set(MMKVKeys.CURRENT_READING_OFFSET, offset)
     }, 500)
   }
 
@@ -102,21 +114,23 @@ const Reading = () => {
         style={{ flex: 1 }}
         ref={refScroll}
         scrollEventThrottle={300}
+        contentContainerStyle={{ paddingVertical: 44 }}
         onScroll={(event) => {
           const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent
           const offset = Math.round(contentOffset.y + layoutMeasurement.height)
           const contentHeight = Math.round(contentSize.height)
           saveOffset(contentOffset.y)
-          console.log(contentOffset.y)
-          if (offset > contentHeight + 100) nextChapter()
-          if (contentOffset.y < -100) previousChapter()
+          if (offset > contentHeight + 60) nextChapter()
+          if (contentOffset.y < -60) previousChapter()
         }}>
-        <ContentDisplay
-          chapterHtml={chapterHtml}
-          font={reading.font}
-          line={reading.line}
-          size={reading.size}
-        />
+        {chapterHtml !== '' ? (
+          <ContentDisplay
+            chapterHtml={chapterHtml}
+            font={font}
+            lineHeight={lineHeight}
+            fontSize={fontSize}
+          />
+        ) : null}
       </ScrollView>
       <VectorIcon
         name="circle-chevron-left"
@@ -138,6 +152,12 @@ const Reading = () => {
         bookId={bookId}
         isVisible={visibleSheet}
         onClose={() => setVisibleSheet(false)}
+        font={font}
+        setFont={setFont}
+        fontSize={fontSize}
+        setFontSize={setFontSize}
+        lineHeight={lineHeight}
+        setLineHeight={setLineHeight}
       />
     </Screen.Container>
   )
@@ -149,13 +169,13 @@ const ContentDisplay = React.memo(
   ({
     chapterHtml,
     font,
-    line,
-    size,
+    lineHeight,
+    fontSize,
   }: {
     chapterHtml: string
     font: string
-    line: number
-    size: number
+    lineHeight: number
+    fontSize: number
   }) => {
     return (
       <RenderHTML
@@ -173,8 +193,8 @@ const ContentDisplay = React.memo(
           'WorkSans-Regular',
         ]}
         tagsStyles={{
-          body: { fontFamily: font, lineHeight: size * line, fontSize: size },
-          h2: { fontSize: size * 1.5 },
+          body: { fontFamily: font, lineHeight: fontSize * lineHeight, fontSize: fontSize },
+          h2: { fontSize: fontSize * 1.5 },
         }}
       />
     )

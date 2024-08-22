@@ -53,3 +53,12 @@ export const AppRadius = {
 export const AppSize = {
   custom: (n: number) => n,
 }
+
+export const MMKVKeys = {
+  READING_OPTION: 'READING_OPTION',
+  IS_READING: 'IS_READING',
+  CURRENT_READING_OFFSET: 'CURRENT_READING_OFFSET',
+  CURRENT_FONT: 'CURRENT_FONT',
+  CURRENT_FONT_SIZE: 'CURRENT_FONT_SIZE',
+  CURRENT_LINE_HEIGHT: 'CURRENT_LINE_HEIGHT',
+}

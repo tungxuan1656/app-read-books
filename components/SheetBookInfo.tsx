@@ -1,6 +1,5 @@
 import { AppPalette } from '@/assets'
 import { AppStyles, AppTypo } from '@/constants'
-import { setReadingContext, useReading } from '@/controllers/context'
 import { getListFonts } from '@/utils'
 import { VectorIcon } from '@/components/Icon'
 import { router } from 'expo-router'
@@ -15,21 +14,29 @@ import {
   View,
 } from 'react-native'
 
+type SheetBookInfoProps = {
+  bookId: string
+  isVisible: boolean
+  onClose: () => void
+  font: string
+  setFont: React.Dispatch<React.SetStateAction<string>>
+  fontSize: number
+  setFontSize: React.Dispatch<React.SetStateAction<number>>
+  lineHeight: number
+  setLineHeight: React.Dispatch<React.SetStateAction<number>>
+}
+
 const SheetBookInfo = ({
   isVisible,
   onClose,
   bookId,
-}: {
-  bookId: string
-  isVisible: boolean
-  onClose: () => void
-}) => {
-  const reading = useReading()
-
-  const setFont = (font: string) => {
-    setReadingContext({ ...reading, font })
-  }
-
+  font,
+  setFont,
+  fontSize,
+  setFontSize,
+  lineHeight,
+  setLineHeight,
+}: SheetBookInfoProps) => {
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible}>
       <View style={{ flex: 1, backgroundColor: 'transparent' }}>
@@ -56,7 +63,7 @@ const SheetBookInfo = ({
                 <TouchableOpacity
                   key={f}
                   onPress={() => setFont(f)}
-                  style={[styles.viewItemFont, reading.font === f && styles.viewItemSelected]}>
+                  style={[styles.viewItemFont, font === f && styles.viewItemSelected]}>
                   <Text style={styles.textItemFont}>{f}</Text>
                 </TouchableOpacity>
               ))}
@@ -68,17 +75,17 @@ const SheetBookInfo = ({
                 font="FontAwesome6"
                 color={AppPalette.gray300}
                 size={20}
-                onPress={() => setReadingContext({ ...reading, size: reading.size - 1 })}
+                onPress={() => setFontSize((s) => s - 1)}
               />
               <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
-                {reading.size}
+                {fontSize}
               </Text>
               <VectorIcon
                 name="circle-plus"
                 font="FontAwesome6"
                 color={AppPalette.gray300}
                 size={20}
-                onPress={() => setReadingContext({ ...reading, size: reading.size + 1 })}
+                onPress={() => setFontSize((s) => s + 1)}
               />
             </View>
             <Text style={styles.titleSection}>{'Chiều cao dòng'}</Text>
@@ -88,17 +95,17 @@ const SheetBookInfo = ({
                 font="FontAwesome6"
                 color={AppPalette.gray300}
                 size={20}
-                onPress={() => setReadingContext({ ...reading, line: reading.line - 0.1 })}
+                onPress={() => setLineHeight((h) => (h * 10 - 1) / 10)}
               />
               <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
-                {Math.round(reading.line * 10) / 10}
+                {Math.round(lineHeight * 10) / 10}
               </Text>
               <VectorIcon
                 name="circle-plus"
                 font="FontAwesome6"
                 color={AppPalette.gray300}
                 size={20}
-                onPress={() => setReadingContext({ ...reading, line: reading.line + 0.1 })}
+                onPress={() => setLineHeight((h) => (h * 10 + 1) / 10)}
               />
             </View>
           </View>

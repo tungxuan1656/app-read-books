@@ -2,12 +2,8 @@ import { createContext, useContext } from 'react'
 import { DeviceEventEmitter } from 'react-native'
 
 export const defaultOptions: Options = {
-  font: 'Noto Sans',
-  size: 24,
   currentBook: '',
   books: {},
-  isReading: false,
-  line: 1.5,
 }
 
 export const ReadingContext = createContext(defaultOptions)

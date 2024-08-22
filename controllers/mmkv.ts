@@ -32,14 +32,16 @@ const set = (key: string, value: any) => {
 
 const get = (key: string) => {
   if (!key || typeof key !== 'string' || !storage.contains(`MMKV-${key}`)) {
-    return generateOuput(null, 'Key is invalid!', false)
+    console.log('Key is invalid!', key)
+    return null
   }
   try {
     const jsonValue = storage.getString(`MMKV-${key}`)
     const value = JSON.parse(jsonValue ?? '')
-    return generateOuput(value, '', true)
+    return value
   } catch (error) {
-    return generateOuput(null, `Reading error: ${JSON.stringify(error)}`, false)
+    console.log(`Reading error: ${JSON.stringify(error)}`)
+    return null
   }
 }
 

@@ -6,6 +6,7 @@ import { defaultOptions, ReadingContext } from '../controllers/context'
 import { DeviceEventEmitter } from 'react-native'
 import { MMKVStorage } from '../controllers/mmkv'
 import { GToastComponent } from '@/components/GToast'
+import { MMKVKeys } from '@/constants'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
@@ -17,19 +18,19 @@ export default function RootLayout() {
 
   useEffect(() => {
     const t = DeviceEventEmitter.addListener('setReadingValue', (data) => {
-      console.log(data)
-      setReadingValue((prev) => ({...prev, ...data}))
-      MMKVStorage.set('app-reading', data)
+      setReadingValue((prev) => ({ ...prev, ...data }))
+      MMKVStorage.set(MMKVKeys.READING_OPTION, data)
     })
     return () => t.remove()
   }, [])
 
   useEffect(() => {
-    const output: Options = MMKVStorage.get('app-reading').value
-    if (output?.font && output?.size) {
+    const output: Options = MMKVStorage.get(MMKVKeys.READING_OPTION)
+    if (output?.currentBook && output?.books) {
       setReadingValue(output)
-      if (output.isReading) router.navigate('/reading')
     }
+    const IS_READING = MMKVStorage.get(MMKVKeys.IS_READING)
+    if (IS_READING) router.navigate('/reading')
   }, [])
 
   useEffect(() => {

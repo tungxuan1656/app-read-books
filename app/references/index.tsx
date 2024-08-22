@@ -20,7 +20,7 @@ const References = () => {
 
   const setChapter = (chapter: number) => {
     const books = { ...reading.books }
-    books[reading.currentBook].chapter = chapter
+    books[reading.currentBook] = chapter
     setReadingContext({ ...reading, books })
     router.back()
   }
@@ -40,7 +40,7 @@ const References = () => {
                 numberOfLines={1}
                 style={[
                   AppTypo.body.regular,
-                  reading.books[reading.currentBook]?.chapter === index + 1 && AppTypo.body.semiBold,
+                  reading.books[reading.currentBook] === index + 1 && AppTypo.body.semiBold,
                 ]}>
                 {item}
               </Text>

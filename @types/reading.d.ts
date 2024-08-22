@@ -1,15 +1,6 @@
 interface Options {
-  font: string
-  size: number
-  line: number
   currentBook: string
-  books: {
-    [k: string]: {
-      chapter: number
-      offset: number
-    }
-  }
-  isReading: boolean
+  books: { [k: string]: number }
 }
 
 interface Book {
