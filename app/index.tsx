@@ -7,15 +7,17 @@ import { AppTypo } from '../constants'
 import { readFolderBooks } from '../utils'
 import { GToast } from '@/components/GToast'
 import { VectorIcon } from '@/components/Icon'
+import { useIsFocused } from '@react-navigation/native'
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([])
+  const isFocused = useIsFocused()
 
   useEffect(() => {
     readFolderBooks()
       .then((output) => setBooks(output))
       .catch((error) => GToast.error({ message: JSON.stringify(error) }))
-  }, [])
+  }, [isFocused])
 
   const onSelectBook = (book: Book) => {
     router.navigate({ pathname: '/reading', params: { bookId: book.id } })
@@ -30,7 +32,7 @@ export default function Home() {
         contentContainerStyle={{ paddingVertical: 0 }}>
         <FlatList
           data={books}
-          ItemSeparatorComponent={() => <Divider style={{ marginLeft: 64 }} />}
+          ItemSeparatorComponent={() => <Divider />}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.item}
