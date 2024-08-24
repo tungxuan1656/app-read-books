@@ -1,14 +1,15 @@
 import { Screen } from '@/components/Screen'
 import { router, Stack } from 'expo-router'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native'
-import { AppTypo } from '../../constants'
+import { AppConst, AppTypo } from '../../constants'
 import { setReadingContext, useReading } from '../../controllers/context'
 import { getBook, getFolderBooks, showToastError } from '@/utils'
 
 const References = () => {
   const reading = useReading()
   const [book, setBook] = useState<Book>()
+  const refList = useRef<FlatList | null>(null)
 
   useEffect(() => {
     getBook(getFolderBooks() + reading.currentBook)
@@ -17,6 +18,16 @@ const References = () => {
       })
       .catch(showToastError)
   }, [reading])
+
+  useEffect(() => {
+    const references = book?.references ?? []
+    const currentChapter = reading.books[reading.currentBook]
+    setTimeout(() => {
+      if (Array.isArray(references) && references.length > 0) {
+        refList.current?.scrollToIndex({ animated: true, index: currentChapter - 1 })
+      }
+    }, 500)
+  }, [reading, book])
 
   const setChapter = (chapter: number) => {
     const books = { ...reading.books }
@@ -32,6 +43,7 @@ const References = () => {
       />
       <Screen.Content>
         <FlatList
+          ref={refList}
           data={book?.references ?? []}
           contentContainerStyle={{ paddingVertical: 20 }}
           renderItem={({ item, index }) => (
@@ -46,6 +58,11 @@ const References = () => {
               </Text>
             </TouchableOpacity>
           )}
+          getItemLayout={(data, index) => ({
+            length: AppConst.windowWidth(),
+            index,
+            offset: index * 36,
+          })}
         />
       </Screen.Content>
     </Screen.Container>

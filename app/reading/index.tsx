@@ -1,6 +1,13 @@
 import { Screen } from '@/components/Screen'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { ScrollView, StyleSheet } from 'react-native'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import { VectorIcon } from '@/components/Icon'
 import { AppPalette } from '../../assets'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -8,7 +15,7 @@ import { getBookChapterContent, getChapterHtml, showToastError } from '../../uti
 import { setReadingContext, useReading } from '../../controllers/context'
 import SheetBookInfo from '@/components/SheetBookInfo'
 import RenderHTML from 'react-native-render-html'
-import { AppConst, MMKVKeys } from '@/constants'
+import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
 
 const Reading = () => {
@@ -23,6 +30,7 @@ const Reading = () => {
   const [font, setFont] = useState(MMKVStorage.get(MMKVKeys.CURRENT_FONT) ?? 'Inter-Regular')
   const [fontSize, setFontSize] = useState(MMKVStorage.get(MMKVKeys.CURRENT_FONT_SIZE) ?? 24)
   const [lineHeight, setLineHeight] = useState(MMKVStorage.get(MMKVKeys.CURRENT_LINE_HEIGHT) ?? 1.5)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     MMKVStorage.set(MMKVKeys.CURRENT_FONT, font)
@@ -78,7 +86,7 @@ const Reading = () => {
     setTimeout(() => {
       const offset = MMKVStorage.get(MMKVKeys.CURRENT_READING_OFFSET)
       if (offset) {
-        refScroll.current?.scrollTo({ y: offset, animated: false })
+        refScroll.current?.scrollTo({ y: offset, animated: true })
       }
     }, 500)
   }, [])
@@ -86,6 +94,7 @@ const Reading = () => {
   const nextChapter = () => {
     clearTimeout(refTimeout.current)
     refTimeout.current = setTimeout(() => {
+      setIsLoading(true)
       const books = { ...reading.books }
       books[reading.currentBook] = books[reading.currentBook] + 1
       setReadingContext({ ...reading, books })
@@ -95,6 +104,7 @@ const Reading = () => {
   const previousChapter = () => {
     clearTimeout(refTimeout.current)
     refTimeout.current = setTimeout(() => {
+      setIsLoading(true)
       const books = { ...reading.books }
       books[reading.currentBook] = Math.max(books[reading.currentBook] - 1, 0)
       setReadingContext({ ...reading, books })
@@ -108,6 +118,13 @@ const Reading = () => {
     }, 500)
   }
 
+  const onLoaded = useCallback(() => {
+    console.log('onloaded')
+    setTimeout(() => {
+      setIsLoading(false)
+    }, 100)
+  }, [])
+
   return (
     <Screen.Container safe={'all'} style={{ backgroundColor: '#F5F1E5' }}>
       <ScrollView
@@ -120,8 +137,8 @@ const Reading = () => {
           const offset = Math.round(contentOffset.y + layoutMeasurement.height)
           const contentHeight = Math.round(contentSize.height)
           saveOffset(contentOffset.y)
-          if (offset > contentHeight + 60) nextChapter()
-          if (contentOffset.y < -60) previousChapter()
+          if (offset > contentHeight + 40) nextChapter()
+          if (contentOffset.y < -40) previousChapter()
         }}>
         {chapterHtml !== '' ? (
           <ContentDisplay
@@ -129,7 +146,22 @@ const Reading = () => {
             font={font}
             lineHeight={lineHeight}
             fontSize={fontSize}
+            onLoaded={onLoaded}
           />
+        ) : null}
+        {isLoading ? (
+          <View
+            style={[
+              {
+                height: AppConst.windowHeight(),
+                backgroundColor: '#F5F1E5',
+                justifyContent: 'center',
+                alignItems: 'center',
+              },
+              AppStyles.view.absoluteFill,
+            ]}>
+            <ActivityIndicator />
+          </View>
         ) : null}
       </ScrollView>
       <VectorIcon
@@ -171,11 +203,13 @@ const ContentDisplay = React.memo(
     font,
     lineHeight,
     fontSize,
+    onLoaded,
   }: {
     chapterHtml: string
     font: string
     lineHeight: number
     fontSize: number
+    onLoaded: () => void
   }) => {
     return (
       <RenderHTML
@@ -196,6 +230,7 @@ const ContentDisplay = React.memo(
           body: { fontFamily: font, lineHeight: fontSize * lineHeight, fontSize: fontSize },
           h2: { fontSize: fontSize * 1.5 },
         }}
+        onHTMLLoaded={onLoaded}
       />
     )
   },

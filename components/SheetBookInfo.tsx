@@ -58,7 +58,10 @@ const SheetBookInfo = ({
           </View>
           <View>
             <Text style={styles.titleSection}>{'Font chữ'}</Text>
-            <ScrollView horizontal contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
+            <ScrollView
+              horizontal
+              contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+              showsHorizontalScrollIndicator={false}>
               {getListFonts().map((f) => (
                 <TouchableOpacity
                   key={f}
