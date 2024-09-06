@@ -122,7 +122,7 @@ const Reading = () => {
     console.log('onloaded')
     setTimeout(() => {
       setIsLoading(false)
-    }, 100)
+    }, 150)
   }, [])
 
   return (
@@ -137,7 +137,7 @@ const Reading = () => {
           const offset = Math.round(contentOffset.y + layoutMeasurement.height)
           const contentHeight = Math.round(contentSize.height)
           saveOffset(contentOffset.y)
-          if (offset > contentHeight + 40) nextChapter()
+          if (offset > contentHeight + 30) nextChapter()
           if (contentOffset.y < -40) previousChapter()
         }}>
         {chapterHtml !== '' ? (
