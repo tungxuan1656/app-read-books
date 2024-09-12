@@ -1,9 +1,16 @@
 import { router } from 'expo-router'
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import {
+  DeviceEventEmitter,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import { useEffect, useState } from 'react'
 import { Divider, Screen } from '@/components/Screen'
 import { Button } from '@/components/Button'
-import { AppTypo } from '../constants'
+import { AppTypo, EventKeys } from '../constants'
 import { readFolderBooks } from '../utils'
 import { GToast } from '@/components/GToast'
 import { VectorIcon } from '@/components/Icon'
@@ -15,7 +22,10 @@ export default function Home() {
 
   useEffect(() => {
     readFolderBooks()
-      .then((output) => setBooks(output))
+      .then((output) => {
+        setBooks(output)
+        DeviceEventEmitter.emit(EventKeys.SET_BOOKS_CONTEXT, output)
+      })
       .catch((error) => GToast.error({ message: JSON.stringify(error) }))
   }, [isFocused])
 

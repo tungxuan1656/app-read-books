@@ -12,7 +12,7 @@ import { VectorIcon } from '@/components/Icon'
 import { AppPalette } from '../../assets'
 import { router, useLocalSearchParams } from 'expo-router'
 import { getBookChapterContent, getChapterHtml, showToastError } from '../../utils'
-import { setReadingContext, useReading } from '../../controllers/context'
+import { setReadingContext, useBookInfo, useReading } from '../../controllers/context'
 import SheetBookInfo from '@/components/SheetBookInfo'
 import RenderHTML from 'react-native-render-html'
 import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
@@ -31,6 +31,16 @@ const Reading = () => {
   const [fontSize, setFontSize] = useState(MMKVStorage.get(MMKVKeys.CURRENT_FONT_SIZE) ?? 24)
   const [lineHeight, setLineHeight] = useState(MMKVStorage.get(MMKVKeys.CURRENT_LINE_HEIGHT) ?? 1.5)
   const [isLoading, setIsLoading] = useState(true)
+
+  const bookInfo = useBookInfo(bookId)
+
+  const currentChapter = useMemo(() => {
+    if (bookInfo && reading.books) {
+      const bookId = reading.currentBook
+      const chapter = reading.books[bookId] ?? 1
+      return bookInfo.references?.[chapter]
+    }
+  }, [bookInfo, reading])
 
   useEffect(() => {
     MMKVStorage.set(MMKVKeys.CURRENT_FONT, font)
@@ -127,6 +137,9 @@ const Reading = () => {
 
   return (
     <Screen.Container safe={'all'} style={{ backgroundColor: '#F5F1E5' }}>
+      <Text style={[AppTypo.mini.regular, { marginHorizontal: 16 }]} numberOfLines={1}>
+        {currentChapter}
+      </Text>
       <ScrollView
         style={{ flex: 1 }}
         ref={refScroll}
@@ -252,5 +265,6 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     position: 'absolute',
     left: 10,
+    top: 12,
   },
 })

@@ -2,24 +2,32 @@ import { useFonts } from 'expo-font'
 import { router, Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useState } from 'react'
-import { defaultOptions, ReadingContext } from '../controllers/context'
+import { defaultOptions, ReadingContext, BooksContext } from '../controllers/context'
 import { DeviceEventEmitter } from 'react-native'
 import { MMKVStorage } from '../controllers/mmkv'
 import { GToastComponent } from '@/components/GToast'
-import { MMKVKeys } from '@/constants'
+import { EventKeys, MMKVKeys } from '@/constants'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
   const [readingValue, setReadingValue] = useState<Options>(defaultOptions)
+  const [books, setBooks] = useState<Book[]>([])
 
   const [loaded] = useFonts({})
 
   useEffect(() => {
-    const t = DeviceEventEmitter.addListener('setReadingValue', (data) => {
+    const t = DeviceEventEmitter.addListener(EventKeys.SET_READING_CONTEXT, (data) => {
       setReadingValue((prev) => ({ ...prev, ...data }))
       MMKVStorage.set(MMKVKeys.READING_OPTION, data)
+    })
+    return () => t.remove()
+  }, [])
+
+  useEffect(() => {
+    const t = DeviceEventEmitter.addListener(EventKeys.SET_BOOKS_CONTEXT, (data) => {
+      setBooks(data)
     })
     return () => t.remove()
   }, [])
@@ -44,11 +52,13 @@ export default function RootLayout() {
   }
 
   return (
-    <ReadingContext.Provider value={readingValue}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-      </Stack>
-      <GToastComponent />
-    </ReadingContext.Provider>
+    <BooksContext.Provider value={books}>
+      <ReadingContext.Provider value={readingValue}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+        </Stack>
+        <GToastComponent />
+      </ReadingContext.Provider>
+    </BooksContext.Provider>
   )
 }

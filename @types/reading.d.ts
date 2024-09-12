@@ -10,3 +10,7 @@ interface Book {
   references: string[]
   id: string
 }
+
+interface Books {
+  books: Book[]
+}
