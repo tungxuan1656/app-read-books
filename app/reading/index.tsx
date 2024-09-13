@@ -38,7 +38,7 @@ const Reading = () => {
     if (bookInfo && reading.books) {
       const bookId = reading.currentBook
       const chapter = reading.books[bookId] ?? 1
-      return bookInfo.references?.[chapter]
+      return bookInfo.references?.[chapter - 1]
     }
   }, [bookInfo, reading])
 
