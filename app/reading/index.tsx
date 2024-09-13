@@ -4,9 +4,7 @@ import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+  Text, View
 } from 'react-native'
 import { VectorIcon } from '@/components/Icon'
 import { AppPalette } from '../../assets'
@@ -96,9 +94,9 @@ const Reading = () => {
     setTimeout(() => {
       const offset = MMKVStorage.get(MMKVKeys.CURRENT_READING_OFFSET)
       if (offset) {
-        refScroll.current?.scrollTo({ y: offset, animated: true })
+        refScroll.current?.scrollTo({ y: offset, animated: false })
       }
-    }, 500)
+    }, 200)
   }, [])
 
   const nextChapter = () => {
@@ -162,21 +160,21 @@ const Reading = () => {
             onLoaded={onLoaded}
           />
         ) : null}
-        {isLoading ? (
-          <View
-            style={[
-              {
-                height: AppConst.windowHeight(),
-                backgroundColor: '#F5F1E5',
-                justifyContent: 'center',
-                alignItems: 'center',
-              },
-              AppStyles.view.absoluteFill,
-            ]}>
-            <ActivityIndicator />
-          </View>
-        ) : null}
       </ScrollView>
+      {isLoading ? (
+        <View
+          style={[
+            {
+              height: AppConst.windowHeight(),
+              backgroundColor: '#F5F1E5',
+              justifyContent: 'center',
+              alignItems: 'center',
+            },
+            AppStyles.view.absoluteFill,
+          ]}>
+          <ActivityIndicator />
+        </View>
+      ) : null}
       <VectorIcon
         name="circle-chevron-left"
         font="FontAwesome6"
