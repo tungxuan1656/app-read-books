@@ -23,7 +23,11 @@ const References = () => {
     const references = book?.references ?? []
     const currentChapter = reading.books[reading.currentBook]
     setTimeout(() => {
-      if (Array.isArray(references) && references.length > 0) {
+      if (
+        Array.isArray(references) &&
+        references.length > 0 &&
+        currentChapter - 1 < references.length - 1
+      ) {
         refList.current?.scrollToIndex({ animated: true, index: currentChapter - 1 })
       }
     }, 500)

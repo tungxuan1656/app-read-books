@@ -1,11 +1,6 @@
 import { Screen } from '@/components/Screen'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text, View
-} from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { VectorIcon } from '@/components/Icon'
 import { AppPalette } from '../../assets'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -86,7 +81,12 @@ const Reading = () => {
     if (chapter) {
       getBookChapterContent(reading.currentBook, chapter)
         .then((c) => setChapterContent(c))
-        .catch(showToastError)
+        .catch((error) => {
+          showToastError(error)
+          const books = { ...reading.books }
+          books[reading.currentBook] = 1
+          setReadingContext({ ...reading, books })
+        })
     }
   }, [reading])
 
@@ -162,16 +162,7 @@ const Reading = () => {
         ) : null}
       </ScrollView>
       {isLoading ? (
-        <View
-          style={[
-            {
-              height: AppConst.windowHeight(),
-              backgroundColor: '#F5F1E5',
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-            AppStyles.view.absoluteFill,
-          ]}>
+        <View style={[styles.viewLoading, AppStyles.view.absoluteFill]}>
           <ActivityIndicator />
         </View>
       ) : null}
@@ -264,5 +255,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 10,
     top: 12,
+  },
+  viewLoading: {
+    height: AppConst.windowHeight(),
+    backgroundColor: '#F5F1E5',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 })

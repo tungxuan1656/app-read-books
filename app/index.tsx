@@ -23,6 +23,8 @@ export default function Home() {
   useEffect(() => {
     readFolderBooks()
       .then((output) => {
+        output.sort((a, b) => a.name.localeCompare(b.name))
+
         setBooks(output)
         DeviceEventEmitter.emit(EventKeys.SET_BOOKS_CONTEXT, output)
       })

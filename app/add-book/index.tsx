@@ -3,7 +3,7 @@ import { Divider, Screen } from '@/components/Screen'
 import { Stack } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native'
-import { AppColors } from '../../assets'
+import { AppColors, AppPalette } from '../../assets'
 import { AppStyles, AppTypo } from '../../constants'
 import {
   deleteDownloadFile,
@@ -15,9 +15,7 @@ import { unzip } from 'react-native-zip-archive'
 import { createFolderBooks, getFolderBooks, getPathSaveZipBook, showToastError } from '../../utils'
 
 const AddBook = (props: any) => {
-  const [linkDownload, setLinkDownload] = useState(
-    'https://gitlab.com/tungxuan1656/file-storages/-/raw/main/books/ta-tro-thanh-phu-nhi-dai-phan-phai.zip',
-  )
+  const [linkDownload, setLinkDownload] = useState('')
   const [processing, setProcessing] = useState('')
 
   useEffect(() => {
@@ -60,6 +58,15 @@ const AddBook = (props: any) => {
       />
       <Divider />
       <Screen.Content useScroll>
+        <Text
+          style={[
+            AppTypo.caption.regular,
+            { color: AppPalette.gray200, marginTop: 20, marginHorizontal: 20 },
+          ]}>
+          {
+            'Ví dụ: https://gitlab.com/tungxuan1656/file-storages/-/raw/main/books/ta-tro-thanh-phu-nhi-dai-phan-phai.zip'
+          }
+        </Text>
         <TextInput
           placeholder="Nhập link tải truyện"
           value={linkDownload}
