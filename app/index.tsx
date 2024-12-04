@@ -1,5 +1,6 @@
 import { router } from 'expo-router'
 import {
+  Alert,
   DeviceEventEmitter,
   FlatList,
   StyleSheet,
@@ -11,10 +12,11 @@ import { useEffect, useState } from 'react'
 import { Divider, Screen } from '@/components/Screen'
 import { Button } from '@/components/Button'
 import { AppTypo, EventKeys } from '../constants'
-import { readFolderBooks } from '../utils'
+import { deleteBook, getFolderBooks, readFolderBooks } from '../utils'
 import { GToast } from '@/components/GToast'
 import { VectorIcon } from '@/components/Icon'
 import { useIsFocused } from '@react-navigation/native'
+import { AppPalette } from '@/assets'
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([])
@@ -35,13 +37,24 @@ export default function Home() {
     router.navigate({ pathname: '/reading', params: { bookId: book.id } })
   }
 
+  const onLongSelectBook = (book: Book) => {
+    Alert.alert('Xoá truyện', 'Bạn có chắc chắn muốn xoá bộ truyện này?', [
+      {
+        text: 'Đồng ý',
+        style: 'destructive',
+        onPress: () => {
+          deleteBook(getFolderBooks() + book.id)
+        },
+      },
+      { text: 'Huỷ', style: 'cancel' },
+    ])
+  }
+
   return (
     <Screen.Container safe={'all'}>
       <Text style={[AppTypo.h2.semiBold, { margin: 16 }]}>{'Danh sách truyện'}</Text>
       <Divider />
-      <Screen.Content
-        style={{ paddingHorizontal: 16 }}
-        contentContainerStyle={{ paddingVertical: 0 }}>
+      <Screen.Content style={{}} contentContainerStyle={{ paddingVertical: 0 }}>
         <FlatList
           data={books}
           ItemSeparatorComponent={() => <Divider />}
@@ -49,18 +62,20 @@ export default function Home() {
             <TouchableOpacity
               style={styles.item}
               key={item.name}
+              onLongPress={() => onLongSelectBook(item)}
               onPress={() => onSelectBook(item)}>
-              <View style={{ gap: 4 }}>
-                <Text style={[AppTypo.headline.medium]} numberOfLines={1}>
+              <View style={{ gap: 4, flex: 1 }}>
+                <Text style={[AppTypo.body.medium]} numberOfLines={1}>
                   {item.name}
                 </Text>
-                <Text style={[AppTypo.caption.regular]}>
+                <Text style={[AppTypo.caption.regular, { color: AppPalette.gray700 }]}>
                   {`${item.author || '#'} - ${item.count} chương`}
                 </Text>
               </View>
-              <VectorIcon name="chevron-right" font="FontAwesome5" />
+              <VectorIcon name="chevron-right" font="FontAwesome5" size={12} />
             </TouchableOpacity>
           )}
+          ListFooterComponent={<View style={{ height: 44 }} />}
         />
       </Screen.Content>
       <Button
@@ -75,8 +90,9 @@ export default function Home() {
 const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
-    height: 80,
+    height: 72,
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 16,
   },
 })

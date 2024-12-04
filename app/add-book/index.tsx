@@ -2,7 +2,14 @@ import { Button } from '@/components/Button'
 import { Divider, Screen } from '@/components/Screen'
 import { Stack } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native'
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import { AppColors, AppPalette } from '../../assets'
 import { AppStyles, AppTypo } from '../../constants'
 import {
@@ -13,6 +20,8 @@ import {
 } from '../../services/download-file'
 import { unzip } from 'react-native-zip-archive'
 import { createFolderBooks, getFolderBooks, getPathSaveZipBook, showToastError } from '../../utils'
+import * as WebBrowser from 'expo-web-browser'
+import { GToast } from '@/components/GToast'
 
 const AddBook = (props: any) => {
   const [linkDownload, setLinkDownload] = useState('')
@@ -27,12 +36,8 @@ const AddBook = (props: any) => {
     const filename = getFilenameOfUrl(linkDownload)
     const fileUri = getPathSaveZipBook(filename)
     downloadFile(linkDownload, fileUri)
-      .then((uri) => {
-        unzipBook(uri)
-      })
-      .catch((error) => {
-        showToastError(error)
-      })
+      .then(unzipBook)
+      .catch(showToastError)
       .finally(() => setProcessing(''))
   }
 
@@ -44,11 +49,15 @@ const AddBook = (props: any) => {
       .then((path) => {
         console.log(`unzip completed at ${path}`)
         deleteDownloadFile(uri)
+        GToast.success({ message: 'Tải truyện thành công!' })
       })
-      .catch((error) => {
-        showToastError(error)
-      })
+      .catch(showToastError)
       .finally(() => setProcessing(''))
+  }
+
+  const onPressLinkSource = async () => {
+    const res = await WebBrowser.openBrowserAsync('https://tx-book-source.web.app/')
+    console.log(res)
   }
 
   return (
@@ -57,16 +66,22 @@ const AddBook = (props: any) => {
         options={{ title: 'Thêm truyện mới', headerBackTitleVisible: false, headerShown: true }}
       />
       <Divider />
-      <Screen.Content useScroll>
-        <Text
-          style={[
-            AppTypo.caption.regular,
-            { color: AppPalette.gray200, marginTop: 20, marginHorizontal: 20 },
-          ]}>
+      <Screen.Content useScroll contentContainerStyle={{ padding: 20, gap: 20 }}>
+        <TouchableOpacity onPress={onPressLinkSource}>
+          <Text
+            style={[
+              AppTypo.headline.semiBold,
+              { color: AppPalette.blue500, textDecorationLine: 'underline' },
+            ]}>
+            {'https://tx-book-source.web.app/'}
+          </Text>
+        </TouchableOpacity>
+        <Text style={[AppTypo.caption.regular, { color: AppPalette.gray200 }]}>
           {
             'Ví dụ: https://gitlab.com/tungxuan1656/file-storages/-/raw/main/books/ta-tro-thanh-phu-nhi-dai-phan-phai.zip'
           }
         </Text>
+
         <TextInput
           placeholder="Nhập link tải truyện"
           value={linkDownload}
@@ -77,7 +92,7 @@ const AddBook = (props: any) => {
       </Screen.Content>
       <Button title={'Tải xuống'} style={{ marginHorizontal: 16 }} onPress={downloadBook} />
       {processing ? (
-        <View style={[AppStyles.view.absoluteFill, AppStyles.view.contentCenter, { gap: 10 }]}>
+        <View style={[AppStyles.view.absoluteFill, AppStyles.view.contentCenter, { gap: 10, backgroundColor: '#fefefeaa' }]}>
           <ActivityIndicator />
           <Text style={[AppTypo.caption.semiBold]}>{processing}</Text>
         </View>
@@ -92,8 +107,6 @@ const styles = StyleSheet.create({
   input: {
     height: 48,
     borderRadius: 16,
-    marginHorizontal: 16,
-    marginTop: 20,
     borderWidth: 1,
     borderColor: AppColors.strokeExtra,
     paddingHorizontal: 16,

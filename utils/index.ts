@@ -51,6 +51,8 @@ export const getPathSaveBook = (name: string) => {
 
 export const readFolderBooks = async () => {
   const entries = await FileSystem.readDirectoryAsync(getFolderBooks())
+
+  console.log(entries)
   const listPathBooks = entries.map((n) => getFolderBooks() + n)
 
   const books = []
@@ -77,6 +79,15 @@ export const getBook = async (bookPath: string) => {
     }
   }
   return null
+}
+
+export const deleteBook = async (bookPath: string) => {
+  console.log(bookPath)
+  FileSystem.deleteAsync(bookPath)
+    .then(() => {
+      GToast.success({ message: 'Xoá thành công!' })
+    })
+    .catch(showToastError)
 }
 
 export const getBookChapterContent = async (bookId: string, chapter: number) => {
