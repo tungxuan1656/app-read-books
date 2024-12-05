@@ -1,6 +1,13 @@
 import { Screen } from '@/components/Screen'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
+import {
+  ActivityIndicator,
+  DeviceEventEmitter,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { VectorIcon } from '@/components/Icon'
 import { AppPalette } from '../../assets'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -78,15 +85,10 @@ const Reading = () => {
   useEffect(() => {
     const book = reading.currentBook
     const chapter = reading.books[book] ?? 1
-    if (chapter) {
+    if (chapter && reading.currentBook) {
       getBookChapterContent(reading.currentBook, chapter)
         .then((c) => setChapterContent(c))
-        .catch((error) => {
-          showToastError(error)
-          const books = { ...reading.books }
-          books[reading.currentBook] = 1
-          setReadingContext({ ...reading, books })
-        })
+        .catch(showToastError)
     }
   }, [reading])
 
@@ -97,6 +99,16 @@ const Reading = () => {
         refScroll.current?.scrollTo({ y: offset, animated: false })
       }
     }, 200)
+  }, [])
+
+  useEffect(() => {
+    const e1 = DeviceEventEmitter.addListener('READING_SCROLL_TO_BOTTOM', () => {
+      refScroll.current?.scrollToEnd({ animated: true })
+    })
+
+    return () => {
+      e1.remove()
+    }
   }, [])
 
   const nextChapter = () => {

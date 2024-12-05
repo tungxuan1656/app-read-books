@@ -2,7 +2,7 @@ import { Screen } from '@/components/Screen'
 import { router, Stack } from 'expo-router'
 import React, { useEffect, useRef, useState } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native'
-import { AppConst, AppTypo } from '../../constants'
+import { AppTypo } from '../../constants'
 import { setReadingContext, useReading } from '../../controllers/context'
 import { getBook, getFolderBooks, showToastError } from '@/utils'
 
@@ -62,8 +62,8 @@ const References = () => {
               </Text>
             </TouchableOpacity>
           )}
-          getItemLayout={(data, index) => ({
-            length: AppConst.windowWidth(),
+          getItemLayout={(_, index) => ({
+            length: 36,
             index,
             offset: index * 36,
           })}

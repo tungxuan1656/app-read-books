@@ -1,10 +1,11 @@
-import { AppPalette } from '@/assets'
+import { AppColors, AppPalette } from '@/assets'
 import { AppStyles, AppTypo } from '@/constants'
 import { getListFonts } from '@/utils'
 import { VectorIcon } from '@/components/Icon'
 import { router } from 'expo-router'
 import React from 'react'
 import {
+  DeviceEventEmitter,
   Modal,
   ScrollView,
   StyleSheet,
@@ -111,6 +112,16 @@ const SheetBookInfo = ({
                 onPress={() => setLineHeight((h) => (h * 10 + 1) / 10)}
               />
             </View>
+            <TouchableOpacity
+              style={[styles.viewRow, { marginVertical: 20 }]}
+              onPress={() => {
+                DeviceEventEmitter.emit('READING_SCROLL_TO_BOTTOM')
+                onClose()
+              }}>
+              <Text style={[AppTypo.body.medium, { color: AppColors.buttonFocus }]}>
+                {'Cuộn xuống cuối'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -122,7 +133,7 @@ export default SheetBookInfo
 
 const styles = StyleSheet.create({
   modalContent: {
-    height: 300,
+    height: 340,
     width: '100%',
     backgroundColor: AppPalette.white,
     borderTopRightRadius: 24,
