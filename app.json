@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "rn-read-books",
-    "slug": "rn-read-books",
+    "name": "Truyện",
+    "slug": "tx-truyen",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
