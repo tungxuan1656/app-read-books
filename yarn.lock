@@ -6874,10 +6874,15 @@ react-native-toast-message@^2.2.0:
   resolved "https://registry.yarnpkg.com/react-native-toast-message/-/react-native-toast-message-2.2.0.tgz#c53a4746b15616858a7d61c4386b92cbe9fbf911"
   integrity sha512-AFti8VzUk6JvyGAlLm9/BknTNDXrrhqnUk7ak/pM7uCTxDPveAu2ekszU0on6vnUPFnG04H/QfYE2IlETqeaWw==
 
-react-native-zip-archive@6.1.1:
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/react-native-zip-archive/-/react-native-zip-archive-6.1.1.tgz#91e51dc07820f2fc7299ec258076566c2d2ecdaa"
-  integrity sha512-CY1na9M8xMblF8Dq8xsxeexjdszCUyn9I0BPotK380GfMGkGwfWqEwt2403rqvUEnHoRnWtIVxtlKb72h1LB3w==
+react-native-track-player@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/react-native-track-player/-/react-native-track-player-4.1.1.tgz#96f8688f270c5a01bc597b6331843b191402502b"
+  integrity sha512-E5N/eK/+HtAVJUAzXpm1cWz8ROheV9jb0TI6h2bM+333U+DWibTTnT2T1122FkCoXLXIYavtm2FR2if+5jH8cA==
+
+react-native-zip-archive@^7.0.1:
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/react-native-zip-archive/-/react-native-zip-archive-7.0.1.tgz#d682a208de72da6d3609d7a3a60d65465dfc6f83"
+  integrity sha512-Zd3TDVCUQkAC3jjvmFjjJHOoig+ryYcOMrh7iLiwQCqe8TgrGJm3rhDNDgpfHKdLRMlIletvz2sh9OOttb0dZQ==
 
 react-native@0.74.5:
   version "0.74.5"

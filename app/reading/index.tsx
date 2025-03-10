@@ -17,6 +17,7 @@ import SheetBookInfo from '@/components/SheetBookInfo'
 import RenderHTML from 'react-native-render-html'
 import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
+import PlayTTS, { PlayTTSRef } from './PlayTTS'
 
 const Reading = () => {
   const params = useLocalSearchParams<{ bookId: string }>()
@@ -31,6 +32,8 @@ const Reading = () => {
   const [fontSize, setFontSize] = useState(MMKVStorage.get(MMKVKeys.CURRENT_FONT_SIZE) ?? 24)
   const [lineHeight, setLineHeight] = useState(MMKVStorage.get(MMKVKeys.CURRENT_LINE_HEIGHT) ?? 1.5)
   const [isLoading, setIsLoading] = useState(true)
+  const [showPlayer, setShowPlayer] = useState(false)
+  const refPlayTTS = useRef<PlayTTSRef>()
 
   const bookInfo = useBookInfo(bookId)
 
@@ -112,6 +115,7 @@ const Reading = () => {
   }, [])
 
   const nextChapter = () => {
+    refPlayTTS.current?.hide?.()
     clearTimeout(refTimeout.current)
     refTimeout.current = setTimeout(() => {
       setIsLoading(true)
@@ -122,6 +126,7 @@ const Reading = () => {
     }, 500)
   }
   const previousChapter = () => {
+    refPlayTTS.current?.hide?.()
     clearTimeout(refTimeout.current)
     refTimeout.current = setTimeout(() => {
       setIsLoading(true)
@@ -139,9 +144,9 @@ const Reading = () => {
   }
 
   const onLoaded = useCallback(() => {
-    console.log('onloaded')
     setTimeout(() => {
       setIsLoading(false)
+      refPlayTTS.current?.hide?.()
     }, 150)
   }, [])
 
@@ -189,10 +194,24 @@ const Reading = () => {
       <VectorIcon
         name="book"
         font="FontAwesome6"
-        size={24}
+        size={20}
         buttonStyle={{ ...styles.buttonInfo }}
         color={AppPalette.gray600}
         onPress={() => setVisibleSheet(true)}
+      />
+      <VectorIcon
+        name={showPlayer ? 'stop' : 'play'}
+        font="FontAwesome6"
+        size={20}
+        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 }}
+        color={AppPalette.gray600}
+        onPress={() => (showPlayer ? refPlayTTS.current?.hide?.() : refPlayTTS.current?.show?.())}
+      />
+      <PlayTTS
+        name={bookId + reading.books[reading.currentBook]}
+        chapterHtml={chapterHtml}
+        innerRef={refPlayTTS}
+        onChange={setShowPlayer}
       />
       <SheetBookInfo
         bookId={bookId}
@@ -252,13 +271,13 @@ const ContentDisplay = React.memo(
 
 const styles = StyleSheet.create({
   buttonInfo: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 40,
     backgroundColor: AppPalette.gray100,
     position: 'absolute',
-    right: 16,
-    bottom: 16,
+    right: 12,
+    bottom: 12,
   },
   buttonBack: {
     width: 44,

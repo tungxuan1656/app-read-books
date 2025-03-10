@@ -7,6 +7,10 @@ import { DeviceEventEmitter } from 'react-native'
 import { MMKVStorage } from '../controllers/mmkv'
 import { GToastComponent } from '@/components/GToast'
 import { EventKeys, MMKVKeys } from '@/constants'
+import TrackPlayer from 'react-native-track-player'
+import { PlaybackService } from '@/services/track-player-playback-service'
+
+TrackPlayer.registerPlaybackService(() => PlaybackService)
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
@@ -45,6 +49,9 @@ export default function RootLayout() {
     if (loaded) {
       SplashScreen.hideAsync()
     }
+    TrackPlayer.setupPlayer({
+      maxCacheSize: 1024 * 100,
+    })
   }, [loaded])
 
   if (!loaded) {
