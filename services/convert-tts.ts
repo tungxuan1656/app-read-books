@@ -15,7 +15,7 @@ export const convertTTS = async (text: string) => {
   myHeaders.append('Cache-Control', 'no-cache')
 
   const details: { [key: string]: string } = {
-    globalSpeed: '110%',
+    globalSpeed: '120%',
     globalVolume: '0dB',
     narrationStyle: 'regular',
     platform: 'landing_demo',

@@ -186,15 +186,33 @@ const Reading = () => {
       <VectorIcon
         name="circle-chevron-left"
         font="FontAwesome6"
-        size={20}
+        size={22}
         buttonStyle={{ ...styles.buttonBack }}
         color={AppPalette.gray400}
         onPress={router.back}
       />
+      <View style={styles.viewNavigate}>
+        <VectorIcon
+          name="arrow-left"
+          font="FontAwesome6"
+          size={14}
+          buttonStyle={{ width: 28, height: 28 }}
+          color={AppPalette.white}
+          onPress={previousChapter}
+        />
+        <VectorIcon
+          name="arrow-right"
+          font="FontAwesome6"
+          size={14}
+          buttonStyle={{ width: 28, height: 28 }}
+          color={AppPalette.white}
+          onPress={nextChapter}
+        />
+      </View>
       <VectorIcon
         name="book"
         font="FontAwesome6"
-        size={20}
+        size={18}
         buttonStyle={{ ...styles.buttonInfo }}
         color={AppPalette.gray600}
         onPress={() => setVisibleSheet(true)}
@@ -202,7 +220,7 @@ const Reading = () => {
       <VectorIcon
         name={showPlayer ? 'stop' : 'play'}
         font="FontAwesome6"
-        size={20}
+        size={18}
         buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 }}
         color={AppPalette.gray600}
         onPress={() => (showPlayer ? refPlayTTS.current?.hide?.() : refPlayTTS.current?.show?.())}
@@ -286,6 +304,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 10,
     top: 12,
+  },
+  viewNavigate: {
+    flexDirection: 'row',
+    height: 28,
+    paddingHorizontal: 2,
+    position: 'absolute',
+    right: 10,
+    top: 16,
+    backgroundColor: AppPalette.gray400,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   viewLoading: {
     height: AppConst.windowHeight(),
