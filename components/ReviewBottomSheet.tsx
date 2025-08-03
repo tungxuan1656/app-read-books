@@ -19,6 +19,86 @@ import { ContentDisplay } from './ContentDisplay'
 import { convertTTSCapcut, splitContentToParagraph } from '@/services/convert-tts'
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio'
 import * as FileSystem from 'expo-file-system'
+import { MMKV } from 'react-native-mmkv'
+
+// Helper function to check if text contains letters
+const hasLetters = (text: string): boolean => {
+  return /[a-zA-ZàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđĐ]/.test(text)
+}
+
+// Function to break summary into shorter lines
+const breakSummaryIntoLines = (summary: string): string[] => {
+  if (!summary) return []
+  
+  // Initial split by lines
+  const arrLines = summary.split('\n').filter(line => line.trim())
+  
+  // First pass: split by periods and handle long lines
+  const newArrLines: string[] = []
+  for (const line of arrLines) {
+    const arr = line.split('.').filter((line) => hasLetters(line))
+    for (const item of arr) {
+      if (item.length > 100) {
+        const arr2 = item.split(': "').filter((line) => hasLetters(line))
+        newArrLines.push(arr2[0].trim() + '.')
+        for (const item2 of arr2.slice(1)) {
+          newArrLines.push('"' + item2.trim() + '.')
+        }
+      } else {
+        newArrLines.push(item.trim() + '.')
+      }
+    }
+  }
+
+  // Second pass: split by commas for long lines
+  const newArrLines2: string[] = []
+  for (const line of newArrLines) {
+    if (line.length > 100 && line.includes(',')) {
+      const arr = line.split(',')
+      let temp = ''
+      for (let i = 0; i < arr.length; i++) {
+        if (temp.length > 20) {
+          newArrLines2.push(temp.trim())
+          temp = ''
+        }
+        temp += arr[i] + ','
+      }
+      if (temp.trim()) {
+        newArrLines2.push(temp.trim())
+      }
+    } else {
+      newArrLines2.push(line.trim())
+    }
+  }
+
+  // Filter out empty lines and lines that are too short
+  return newArrLines2.filter(line => line.trim().length > 5)
+}
+
+// Cache storage for summaries
+const summaryCache = new MMKV({
+  id: 'summary-cache',
+  encryptionKey: 'chapter-summaries',
+})
+
+// Helper functions for summary cache
+const getSummaryCacheKey = (bookId: string, chapterNumber: number): string => {
+  return `summary_${bookId}_${chapterNumber}`
+}
+
+const getCachedSummary = (bookId: string, chapterNumber: number): string | null => {
+  const cacheKey = getSummaryCacheKey(bookId, chapterNumber)
+  return summaryCache.getString(cacheKey) || null
+}
+
+const setCachedSummary = (bookId: string, chapterNumber: number, summary: string): void => {
+  const cacheKey = getSummaryCacheKey(bookId, chapterNumber)
+  summaryCache.set(cacheKey, summary)
+}
+
+const clearSummaryCache = (): void => {
+  summaryCache.clearAll()
+}
 
 export interface ReviewBottomSheetRef {
   present: () => void
@@ -92,10 +172,25 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         setCurrentAudioIndex(0)
         setIsPlaylistMode(false)
 
+        // Check if we have cached summary before loading content
+        console.log('📝 [Summary Cache] Checking cache during chapter load')
+        const cachedSummary = getCachedSummary(currentBookId, currentChapterNumber)
+        if (cachedSummary) {
+          console.log('📝 [Summary Cache] Found cached summary during load, will use it after content loads')
+        }
+
         getBookChapterContent(currentBookId, currentChapterNumber)
           .then((content: string) => {
             setChapterContent(content)
             setIsLoading(false)
+            
+            // If we have cached summary, set it immediately without waiting for chapterHtml effect
+            if (cachedSummary) {
+              console.log('📝 [Summary Cache] Setting cached summary immediately')
+              setSummarizedContent(cachedSummary)
+              // Generate TTS from cached summary
+              generateTTSFromSummary(cachedSummary)
+            }
           })
           .catch((error: any) => {
             showToastError(error)
@@ -104,12 +199,19 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       }
     }, [currentBookId, currentChapterNumber])
 
-    // Summarize chapter when content is loaded
+    // Summarize chapter when content is loaded (only if no cached summary and no current summary)
     useEffect(() => {
-      if (chapterHtml && !summarizedContent && !isSummarizing) {
-        handleSummarize()
+      if (chapterHtml && !summarizedContent && !isSummarizing && currentBookId && currentChapterNumber) {
+        // Check cache one more time before calling API
+        const cachedSummary = getCachedSummary(currentBookId, currentChapterNumber)
+        if (!cachedSummary) {
+          console.log('📝 [Summary Cache] No cache in useEffect, calling handleSummarize')
+          handleSummarize()
+        } else {
+          console.log('📝 [Summary Cache] Found cache in useEffect, skipping auto-summarize')
+        }
       }
-    }, [chapterHtml])
+    }, [chapterHtml, summarizedContent, isSummarizing, currentBookId, currentChapterNumber])
 
     // Auto-play next audio when current finishes
     useEffect(() => {
@@ -140,19 +242,43 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         return
       }
 
+      console.log('📝 [Summary Cache] Checking cache for:', { bookId: currentBookId, chapter: currentChapterNumber })
+
+      // Check cache first
+      if (currentBookId && currentChapterNumber) {
+        const cachedSummary = getCachedSummary(currentBookId, currentChapterNumber)
+        if (cachedSummary) {
+          console.log('📝 [Summary Cache] Found cached summary, using cached version')
+          setSummarizedContent(cachedSummary)
+          // Auto-generate TTS after setting cached summary
+          await generateTTSFromSummary(cachedSummary)
+          return
+        } else {
+          console.log('📝 [Summary Cache] No cached summary found, generating new one')
+        }
+      }
+
       setIsSummarizing(true)
       try {
+        console.log('📝 [Summary Cache] Calling Gemini API for new summary')
         const summary = await summarizeChapter({
           chapterHtml,
           bookTitle: bookInfo?.name,
         })
 
+        console.log('📝 [Summary Cache] Received summary from API:', summary.substring(0, 100) + '...')
         setSummarizedContent(summary)
+        
+        // Cache the new summary
+        if (currentBookId && currentChapterNumber) {
+          console.log('📝 [Summary Cache] Caching new summary')
+          setCachedSummary(currentBookId, currentChapterNumber, summary)
+        }
         
         // Auto-generate TTS after summarizing
         await generateTTSFromSummary(summary)
       } catch (error) {
-        console.error('Error summarizing:', error)
+        console.error('📝 [Summary Cache] Error summarizing:', error)
         Alert.alert(
           'Lỗi tóm tắt',
           error instanceof Error ? error.message : 'Có lỗi xảy ra khi tóm tắt chương truyện',
@@ -160,46 +286,60 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       } finally {
         setIsSummarizing(false)
       }
-    }, [chapterHtml, bookInfo])
+    }, [chapterHtml, bookInfo, currentBookId, currentChapterNumber])
 
     const generateTTSFromSummary = useCallback(async (content: string) => {
       if (!content) return
 
+      console.log('🎵 [TTS Debug] Starting TTS generation...')
+      console.log('🎵 [TTS Debug] Content length:', content.length)
+      
       setIsGeneratingTTS(true)
       try {
-        // Split content into sentences
-        const sentences = splitContentToParagraph(content)
-        if (sentences.length === 0) return
-
-        // Create temporary folder for this summary
-        const tempFolder = `${FileSystem.cacheDirectory}tts_summary_${Date.now()}/`
-        await FileSystem.makeDirectoryAsync(tempFolder, { intermediates: true })
-
-        // Generate TTS for all sentences
-        const success = await convertTTSCapcut(sentences, tempFolder, { voice: 'BV421_vivn_streaming' })
+        // Break summary into shorter lines for better TTS
+        const sentences = breakSummaryIntoLines(content).slice(0, 20) // Limit to 20 lines for TTS
+        console.log('🎵 [TTS Debug] Broke into lines:', sentences.length)
+        sentences.forEach((sentence, index) => {
+          console.log(`🎵 [TTS Debug] Line ${index + 1} (${sentence.length} chars): ${sentence.substring(0, 100)}...`)
+        })
         
-        if (success) {
-          // Get all generated audio file paths
-          const files = await FileSystem.readDirectoryAsync(tempFolder)
-          const audioPaths = files
-            .filter(file => file.endsWith('.mp3'))
-            .sort()
-            .map(file => `${tempFolder}${file}`)
-          
+        if (sentences.length === 0) {
+          console.log('🎵 [TTS Debug] No lines found, returning')
+          return
+        }
+
+        console.log('🎵 [TTS Debug] Calling convertTTSCapcut with:', {
+          linesCount: sentences.length,
+          voice: 'BV421_vivn_streaming'
+        })
+
+        // Generate TTS for all lines using the updated function
+        const audioPaths = await convertTTSCapcut(sentences, { voice: 'BV421_vivn_streaming' })
+        
+        console.log('🎵 [TTS Debug] convertTTSCapcut returned:', {
+          audioPathsCount: audioPaths.length,
+          audioPaths: audioPaths
+        })
+        
+        if (audioPaths.length > 0) {
           setAudioFilePaths(audioPaths)
           setCurrentAudioIndex(0)
+          console.log('🎵 [TTS Debug] TTS generation completed successfully')
+        } else {
+          console.log('🎵 [TTS Debug] No audio paths returned')
         }
       } catch (error) {
-        console.error('Error generating TTS:', error)
+        console.error('🎵 [TTS Debug] Error generating TTS:', error)
         Alert.alert('Lỗi TTS', 'Không thể tạo audio từ nội dung tóm tắt')
       } finally {
         setIsGeneratingTTS(false)
+        console.log('🎵 [TTS Debug] TTS generation process finished')
       }
     }, [])
 
     const handlePlayPause = useCallback(() => {
+    console.log('currentAudioPath:', currentAudioPath, status?.playing)
       if (!currentAudioPath) return
-      
       if (status?.playing) {
         player.pause()
       } else {
@@ -427,6 +567,14 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
 )
 
 ReviewBottomSheet.displayName = 'ReviewBottomSheet'
+
+// Export cache management functions
+export const SummaryCacheManager = {
+  clearCache: clearSummaryCache,
+  getCachedSummary,
+  setCachedSummary,
+  getSummaryCacheKey,
+}
 
 export default ReviewBottomSheet
 
