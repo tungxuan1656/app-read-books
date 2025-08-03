@@ -1,104 +1,23 @@
+import { AppPalette } from '@/assets'
+import { VectorIcon } from '@/components/Icon'
+import { AppTypo } from '@/constants'
+import { useBookInfo, useReading } from '@/controllers/context'
+import { convertTTSCapcut } from '@/services/convert-tts'
+import { summarizeChapter, validateGeminiApiKey } from '@/services/gemini-service'
+import { getBookChapterContent, getChapterHtml, showToastError } from '@/utils'
+import { getCachedSummary, setCachedSummary } from '@/utils/summary-cache'
+import { breakSummaryIntoLines } from '@/utils/string-helpers'
+import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet'
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio'
 import React, {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useState,
-  forwardRef,
-  useImperativeHandle,
 } from 'react'
-import { ActivityIndicator, StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native'
-import BottomSheet, { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet'
-import { VectorIcon } from '@/components/Icon'
-import { AppPalette } from '@/assets'
-import { getBookChapterContent, getChapterHtml, showToastError } from '@/utils'
-import { useBookInfo, useReading } from '@/controllers/context'
-import RenderHTML from 'react-native-render-html'
-import { AppConst, AppTypo } from '@/constants'
-import { summarizeChapter, validateGeminiApiKey, extractKeyPoints } from '@/services/gemini-service'
-import { ContentDisplay } from './ContentDisplay'
-import { convertTTSCapcut, splitContentToParagraph } from '@/services/convert-tts'
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio'
-import * as FileSystem from 'expo-file-system'
-import { MMKV } from 'react-native-mmkv'
-
-// Helper function to check if text contains letters
-const hasLetters = (text: string): boolean => {
-  return /[a-zA-ZàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđĐ]/.test(text)
-}
-
-// Function to break summary into shorter lines
-const breakSummaryIntoLines = (summary: string): string[] => {
-  if (!summary) return []
-  
-  // Initial split by lines
-  const arrLines = summary.split('\n').filter(line => line.trim())
-  
-  // First pass: split by periods and handle long lines
-  const newArrLines: string[] = []
-  for (const line of arrLines) {
-    const arr = line.split('.').filter((line) => hasLetters(line))
-    for (const item of arr) {
-      if (item.length > 100) {
-        const arr2 = item.split(': "').filter((line) => hasLetters(line))
-        newArrLines.push(arr2[0].trim() + '.')
-        for (const item2 of arr2.slice(1)) {
-          newArrLines.push('"' + item2.trim() + '.')
-        }
-      } else {
-        newArrLines.push(item.trim() + '.')
-      }
-    }
-  }
-
-  // Second pass: split by commas for long lines
-  const newArrLines2: string[] = []
-  for (const line of newArrLines) {
-    if (line.length > 100 && line.includes(',')) {
-      const arr = line.split(',')
-      let temp = ''
-      for (let i = 0; i < arr.length; i++) {
-        if (temp.length > 20) {
-          newArrLines2.push(temp.trim())
-          temp = ''
-        }
-        temp += arr[i] + ','
-      }
-      if (temp.trim()) {
-        newArrLines2.push(temp.trim())
-      }
-    } else {
-      newArrLines2.push(line.trim())
-    }
-  }
-
-  // Filter out empty lines and lines that are too short
-  return newArrLines2.filter(line => line.trim().length > 5)
-}
-
-// Cache storage for summaries
-const summaryCache = new MMKV({
-  id: 'summary-cache',
-  encryptionKey: 'chapter-summaries',
-})
-
-// Helper functions for summary cache
-const getSummaryCacheKey = (bookId: string, chapterNumber: number): string => {
-  return `summary_${bookId}_${chapterNumber}`
-}
-
-const getCachedSummary = (bookId: string, chapterNumber: number): string | null => {
-  const cacheKey = getSummaryCacheKey(bookId, chapterNumber)
-  return summaryCache.getString(cacheKey) || null
-}
-
-const setCachedSummary = (bookId: string, chapterNumber: number, summary: string): void => {
-  const cacheKey = getSummaryCacheKey(bookId, chapterNumber)
-  summaryCache.set(cacheKey, summary)
-}
-
-const clearSummaryCache = (): void => {
-  summaryCache.clearAll()
-}
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export interface ReviewBottomSheetRef {
   present: () => void
@@ -297,9 +216,9 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       setIsGeneratingTTS(true)
       try {
         // Break summary into shorter lines for better TTS
-        const sentences = breakSummaryIntoLines(content).slice(0, 20) // Limit to 20 lines for TTS
+        const sentences = breakSummaryIntoLines(content).slice(0, 5) // Limit to 5 lines for TTS
         console.log('🎵 [TTS Debug] Broke into lines:', sentences.length)
-        sentences.forEach((sentence, index) => {
+        sentences.forEach((sentence: string, index: number) => {
           console.log(`🎵 [TTS Debug] Line ${index + 1} (${sentence.length} chars): ${sentence.substring(0, 100)}...`)
         })
         
@@ -567,14 +486,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
 )
 
 ReviewBottomSheet.displayName = 'ReviewBottomSheet'
-
-// Export cache management functions
-export const SummaryCacheManager = {
-  clearCache: clearSummaryCache,
-  getCachedSummary,
-  setCachedSummary,
-  getSummaryCacheKey,
-}
 
 export default ReviewBottomSheet
 
