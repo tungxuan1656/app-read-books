@@ -1,8 +1,7 @@
 import TrackPlayer, {
   AppKilledPlaybackBehavior,
   Capability,
-  RepeatMode,
-  Event,
+  RepeatMode
 } from 'react-native-track-player'
 
 class TrackPlayerService {
@@ -85,7 +84,6 @@ class TrackPlayerService {
       if (queue.length > 0) {
         try {
           const activeTrack = await TrackPlayer.getActiveTrack()
-          console.log('🎵 [TrackPlayer] Active track:', activeTrack)
         } catch (error) {
           console.log('🎵 [TrackPlayer] No active track yet')
         }

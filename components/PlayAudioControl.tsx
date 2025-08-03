@@ -1,28 +1,24 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { AppPalette } from '@/assets'
+import { VectorIcon } from '@/components/Icon'
+import { AppTypo } from '@/constants'
+import { cancelTTSConversion, convertTTSCapcut, resetTTSCancellation } from '@/services/convert-tts'
+import TrackPlayerService from '@/services/track-player-service'
+import { breakSummaryIntoLines } from '@/utils/string-helpers'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   DeviceEventEmitter,
-  EmitterSubscription,
   StyleSheet,
   Text,
-  View,
+  View
 } from 'react-native'
 import TrackPlayer, {
   Event,
-  State,
-  useTrackPlayerEvents,
-  usePlaybackState,
   RepeatMode,
   useIsPlaying,
+  useTrackPlayerEvents
 } from 'react-native-track-player'
-import { AppPalette } from '@/assets'
-import { VectorIcon } from '@/components/Icon'
-import { AppTypo } from '@/constants'
-import TrackPlayerService from '@/services/track-player-service'
-import { convertTTSCapcut, cancelTTSConversion, resetTTSCancellation } from '@/services/convert-tts'
-import { breakSummaryIntoLines } from '@/utils/string-helpers'
-import { showToastError } from '@/utils'
 
 interface PlayAudioControlProps {
   bookId?: string
@@ -90,6 +86,7 @@ export default function PlayAudioControl({
             setCurrentAudioIndex(0)
             await trackPlayerService.setRepeatMode(RepeatMode.Off)
             await trackPlayerService.skipToTrack(0)
+            TrackPlayer.setRate(1.5)
             // Start playing immediately when first track is ready
             setTimeout(async () => {
               try {
