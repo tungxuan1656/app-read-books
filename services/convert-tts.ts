@@ -63,7 +63,7 @@ function createCapcutMessage(sentence: string, options: { voice: string }) {
     appkey: 'ddjeqjLGMn',
     event: 'StartTask',
     namespace: 'TTS',
-    payload: `{"audio_config":{"bit_rate":64000,"format":"ogg_opus","sample_rate":24000},"speaker":"${
+    payload: `{"audio_config":{"bit_rate":64000,"format":"mp3","sample_rate":24000},"speaker":"${
       options.voice
     }","text":"${preprocessSentence(sentence)}"}`,
     token:
@@ -222,7 +222,7 @@ export const convertTTSCapcut = async (
 
   for (let index = 0; index < sentences.length; index++) {
     const sentence = sentences[index]
-    const outputFilePath = `${outputFolder}/audio_${index.toString().padStart(3, '0')}.ogg`
+    const outputFilePath = `${outputFolder}/audio_${index.toString().padStart(3, '0')}.mp3`
 
     console.log(`${index + 1}/${sentences.length}: ${sentence}`)
 
