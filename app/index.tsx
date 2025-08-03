@@ -1,4 +1,4 @@
-import { router } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import {
   Alert,
   DeviceEventEmitter,
@@ -8,30 +8,30 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Divider, Screen } from '@/components/Screen'
 import { Button } from '@/components/Button'
 import { AppTypo, EventKeys } from '../constants'
 import { deleteBook, getFolderBooks, readFolderBooks } from '../utils'
 import { GToast } from '@/components/GToast'
 import { VectorIcon } from '@/components/Icon'
-import { useIsFocused } from '@react-navigation/native'
 import { AppPalette } from '@/assets'
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([])
-  const isFocused = useIsFocused()
 
-  useEffect(() => {
-    readFolderBooks()
-      .then((output) => {
-        output.sort((a, b) => a.name.localeCompare(b.name))
+  useFocusEffect(
+    useCallback(() => {
+      readFolderBooks()
+        .then((output) => {
+          output.sort((a, b) => a.name.localeCompare(b.name))
 
-        setBooks(output)
-        DeviceEventEmitter.emit(EventKeys.SET_BOOKS_CONTEXT, output)
-      })
-      .catch((error) => GToast.error({ message: JSON.stringify(error) }))
-  }, [isFocused])
+          setBooks(output)
+          DeviceEventEmitter.emit(EventKeys.SET_BOOKS_CONTEXT, output)
+        })
+        .catch((error) => GToast.error({ message: JSON.stringify(error) }))
+    }, [])
+  )
 
   const onSelectBook = (book: Book) => {
     router.navigate({ pathname: '/reading', params: { bookId: book.id } })
