@@ -35,26 +35,20 @@ export default function PlayAudioControl({
   chapterNumber,
   bookName,
 }: PlayAudioControlProps) {
-  // States
   const [audioFilePaths, setAudioFilePaths] = useState<string[]>([])
   const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
   const [isTTSGenerating, setIsTTSGenerating] = useState(false)
-  const [ttsProgress, setTtsProgress] = useState({ current: 0, total: 0 })
 
-  // Refs
   const ttsEventSubscription = useRef<EmitterSubscription | null>(null)
   const summaryEventSubscription = useRef<EmitterSubscription | null>(null)
 
-  // Hooks
   const trackPlayerService = TrackPlayerService.getInstance()
-  const playbackState = usePlaybackState()
   const isPlaying = useIsPlaying()
 
-  // Event listeners setup
+  console.log(bookId, chapterNumber)
+
   useEffect(() => {
     if (!bookId || !chapterNumber) return
-
-    // Summary ready listener
     summaryEventSubscription.current = DeviceEventEmitter.addListener(
       `summary_ready_${bookId}_${chapterNumber}`,
       (data: { content: string }) => {
@@ -63,7 +57,6 @@ export default function PlayAudioControl({
       },
     )
 
-    // Cancel audio listener
     const cancelSubscription = DeviceEventEmitter.addListener(`cancel_audio_${bookId}`, () => {
       console.log('🎵 [Audio] Cancel audio event received')
       handleCancelAudio()
@@ -75,14 +68,11 @@ export default function PlayAudioControl({
     }
   }, [bookId, chapterNumber])
 
-  // TTS audio ready listener
   useEffect(() => {
     ttsEventSubscription.current = DeviceEventEmitter.addListener(
       'tts_audio_ready',
       async (data: { filePath: string; sentenceIndex: number }) => {
         try {
-          setTtsProgress((prev) => ({ ...prev, current: prev.current + 1 }))
-
           const track = {
             id: `tts-${bookId}-${chapterNumber}-${data.sentenceIndex}`,
             url: data.filePath.startsWith('file://') ? data.filePath : `file://${data.filePath}`,
@@ -122,12 +112,12 @@ export default function PlayAudioControl({
     return () => ttsEventSubscription.current?.remove()
   }, [bookId, chapterNumber, bookName])
 
-  // Track change listener
   useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], (event) => {
     if (event.type === Event.PlaybackActiveTrackChanged && event.index !== undefined) {
       setCurrentAudioIndex(event.index)
     }
-  }) // Generate TTS from summary
+  })
+
   const generateTTSFromSummary = useCallback(
     async (content: string) => {
       if (!content || !bookId || !chapterNumber) return
@@ -138,14 +128,9 @@ export default function PlayAudioControl({
       try {
         const sentences = breakSummaryIntoLines(content).slice(0, 5)
         if (sentences.length === 0) return
-
-        setTtsProgress({ current: 0, total: sentences.length })
         await trackPlayerService.reset()
         setAudioFilePaths([])
         setCurrentAudioIndex(null)
-
-        console.log('🎵 [TTS] Starting conversion for', sentences.length, 'sentences')
-
         await convertTTSCapcut(sentences, {
           voice: 'BV421_vivn_streaming',
           bookId,
@@ -166,7 +151,6 @@ export default function PlayAudioControl({
     if (isTTSGenerating) {
       cancelTTSConversion()
       setIsTTSGenerating(false)
-      setTtsProgress({ current: 0, total: 0 })
     }
     await trackPlayerService.reset()
     setAudioFilePaths([])
@@ -175,39 +159,15 @@ export default function PlayAudioControl({
 
   // Handle play/pause
   const handlePlayPause = useCallback(async () => {
-    if (currentAudioIndex === null || audioFilePaths.length === 0) {
-      console.log('🎵 [PlayPause] No audio available')
-      return
-    }
-
-    try {
-      const currentState = playbackState.state
-
-      if (currentState === State.Error) {
-        // Reload tracks on error
-        console.log('🎵 [PlayPause] Recovering from error state...')
-        await trackPlayerService.reset()
-
-        const tracks = audioFilePaths.map((path, index) => ({
-          id: `tts-${bookId}-${chapterNumber}-${index}`,
-          url: path.startsWith('file://') ? path : `file://${path}`,
-          title: `Part ${index + 1}`,
-          artist: bookName || 'Unknown',
-        }))
-
-        await trackPlayerService.addTracks(tracks)
-        await trackPlayerService.skipToTrack(currentAudioIndex)
-        await trackPlayerService.play()
-      } else if (currentState === State.Playing) {
-        await trackPlayerService.pause()
-      } else {
-        await trackPlayerService.play()
+    if (isPlaying) {
+      await trackPlayerService.pause()
+    } else {
+      if (currentAudioIndex === null && audioFilePaths.length > 0) {
+        await trackPlayerService.skipToTrack(0)
       }
-    } catch (error) {
-      console.error('🎵 [PlayPause] Error:', error)
-      showToastError('Lỗi khi phát/dừng audio.')
+      await trackPlayerService.play()
     }
-  }, [currentAudioIndex, audioFilePaths, playbackState.state, bookId, chapterNumber, bookName])
+  }, [isPlaying, currentAudioIndex, audioFilePaths])
 
   // Navigation handlers
   const handlePrevious = useCallback(async () => {
@@ -235,7 +195,7 @@ export default function PlayAudioControl({
     <View style={styles.ttsContainer}>
       <Text style={[AppTypo.caption.medium, styles.progressText]}>
         {currentAudioIndex !== null ? currentAudioIndex + 1 : '-'} /{' '}
-        {audioFilePaths.length || (isTTSGenerating ? ttsProgress.total : 0)}
+        {audioFilePaths.length || (isTTSGenerating ? audioFilePaths.length : 0)}
       </Text>
       {audioFilePaths.length === 0 ? (
         <ActivityIndicator size={'small'} color={'#FFF'} style={{ paddingVertical: 4 }} />

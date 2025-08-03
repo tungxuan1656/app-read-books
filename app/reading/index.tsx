@@ -157,8 +157,12 @@ const Reading = () => {
   }, [])
 
   const openReviewBottomSheet = useCallback(() => {
-    reviewBottomSheetRef.current?.present()
-  }, [])
+    reviewBottomSheetRef.current?.present({
+      content: chapterContent,
+      bookId: bookId,
+      chapterNumber: reading.books[reading.currentBook],
+    })
+  }, [chapterContent, bookId, reading])
 
   return (
     <Screen.Container safe={'all'} style={{ backgroundColor: '#F5F1E5' }}>
@@ -256,9 +260,6 @@ const Reading = () => {
       />
       <ReviewBottomSheet
         ref={reviewBottomSheetRef}
-        bookId={bookId}
-        bookInfo={bookInfo as Book}
-        chapterNumber={reading.books[reading.currentBook]}
         onNavigateToChapter={handleNavigateFromReview}
         font={font}
         lineHeight={lineHeight}
