@@ -559,19 +559,13 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           </View>
         </View>
         <BottomSheetScrollView style={{ backgroundColor: '#F5F1E5' }}>
-          {loadingState !== 'idle' ? (
+          {loadingState !== 'idle' && loadingState !== 'generatingTTS' ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color={AppPalette.blue500} />
               <Text style={[AppTypo.body.regular, styles.loadingText]}>
                 {loadingState === 'loadingChapter' && 'Đang tải nội dung chương...'}
                 {loadingState === 'summarizing' && 'Đang tóm tắt nội dung...'}
-                {loadingState === 'generatingTTS' && 'Đang tạo audio...'}
               </Text>
-              {loadingState === 'generatingTTS' && ttsProgress.total > 0 && (
-                <Text style={[AppTypo.mini.regular, styles.loadingSubtext]}>
-                  {ttsProgress.current}/{ttsProgress.total} file đã hoàn thành
-                </Text>
-              )}
               {loadingState === 'summarizing' && (
                 <Text style={[AppTypo.mini.regular, styles.loadingSubtext]}>
                   Quá trình này có thể mất vài giây
@@ -580,39 +574,42 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
             </View>
           ) : summarizedContent.current ? (
             <View style={styles.contentContainer}>
-              {/* TTS Controls */}
-              {audioFilePaths.length > 0 && (
-                <View style={styles.ttsContainer}>
-                  <Text style={[AppTypo.caption.medium, styles.progressText]}>
-                    {currentAudioIndex !== null ? currentAudioIndex + 1 : '-'} /{' '}
-                    {audioFilePaths.length}
-                  </Text>
-                  <VectorIcon
-                    name={'backward'}
-                    font="FontAwesome6"
-                    size={16}
-                    buttonStyle={{ width: 32, height: 32 }}
-                    color={AppPalette.white}
-                    onPress={handlePrevious}
-                  />
-                  <VectorIcon
-                    name={isPlaying.playing ? 'pause' : 'play'}
-                    font="FontAwesome6"
-                    size={16}
-                    buttonStyle={{ width: 32, height: 32 }}
-                    color={AppPalette.white}
-                    onPress={handlePlayPause}
-                  />
-                  <VectorIcon
-                    name={'forward'}
-                    font="FontAwesome6"
-                    size={16}
-                    buttonStyle={{ width: 32, height: 32 }}
-                    color={AppPalette.white}
-                    onPress={handleNext}
-                  />
-                </View>
-              )}
+              <View style={styles.ttsContainer}>
+                <Text style={[AppTypo.caption.medium, styles.progressText]}>
+                  {currentAudioIndex !== null ? currentAudioIndex + 1 : '-'} /{' '}
+                  {audioFilePaths.length}
+                </Text>
+                {audioFilePaths.length === 0 ? (
+                  <ActivityIndicator size={'small'} color={'#FFF'} style={{ paddingVertical: 4 }} />
+                ) : (
+                  <>
+                    <VectorIcon
+                      name={'backward'}
+                      font="FontAwesome6"
+                      size={16}
+                      buttonStyle={{ width: 32, height: 32 }}
+                      color={AppPalette.white}
+                      onPress={handlePrevious}
+                    />
+                    <VectorIcon
+                      name={isPlaying.playing ? 'pause' : 'play'}
+                      font="FontAwesome6"
+                      size={16}
+                      buttonStyle={{ width: 32, height: 32 }}
+                      color={AppPalette.white}
+                      onPress={handlePlayPause}
+                    />
+                    <VectorIcon
+                      name={'forward'}
+                      font="FontAwesome6"
+                      size={16}
+                      buttonStyle={{ width: 32, height: 32 }}
+                      color={AppPalette.white}
+                      onPress={handleNext}
+                    />
+                  </>
+                )}
+              </View>
 
               {/* Summary Content */}
               <View style={styles.summaryHeader}>
@@ -625,25 +622,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
                   />
                   <Text style={[AppTypo.body.semiBold, styles.summaryTitle]}>Tóm tắt nội dung</Text>
                 </View>
-
-                {audioFilePaths.length === 0 && !isTTSGenerating && (
-                  <TouchableOpacity
-                    onPress={() => generateTTSFromSummary(summarizedContent.current)}
-                    style={styles.generateTTSButton}>
-                    <VectorIcon
-                      name="volume-high"
-                      font="FontAwesome6"
-                      size={14}
-                      color={AppPalette.blue500}
-                    />
-                    <Text
-                      style={[AppTypo.mini.medium, { color: AppPalette.blue500, marginLeft: 4 }]}>
-                      Tạo Audio
-                    </Text>
-                  </TouchableOpacity>
-                )}
               </View>
-
               <Text
                 style={{
                   fontFamily: font || 'Inter-Regular',
@@ -824,7 +803,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     marginBottom: 16,
-    gap: 8
+    gap: 8,
   },
   ttsHeader: {
     flexDirection: 'row',
