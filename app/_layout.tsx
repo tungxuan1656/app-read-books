@@ -8,6 +8,7 @@ import { MMKVStorage } from '../controllers/mmkv'
 import { GToastComponent } from '@/components/GToast'
 import { EventKeys, MMKVKeys } from '@/constants'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { initializeTTSCache } from '../controllers/tts-cache'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
@@ -40,6 +41,9 @@ export default function RootLayout() {
     }
     const IS_READING = MMKVStorage.get(MMKVKeys.IS_READING)
     if (IS_READING) router.navigate('/reading')
+
+    // Initialize TTS cache on app start
+    initializeTTSCache()
   }, [])
 
   useEffect(() => {
