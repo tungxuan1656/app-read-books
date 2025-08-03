@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tungxuan.rnreadbooks",
+      "bundleIdentifier": "com.tungxuan.readbooks",
       "buildNumber": "0",
       "infoPlist": {
         "UIBackgroundModes": [
@@ -27,7 +27,7 @@
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tungxuan.rnreadbooks",
+      "package": "com.tungxuan.readbooks",
       "versionCode": 1
     },
     "plugins": [

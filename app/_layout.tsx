@@ -10,6 +10,7 @@ import { EventKeys, MMKVKeys } from '@/constants'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { initializeTTSCache } from '../controllers/tts-cache'
 import TrackPlayerService from '../services/track-player-service'
+import TrackPlayer from 'react-native-track-player'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
@@ -44,14 +45,18 @@ export default function RootLayout() {
     // Initialize TTS cache on app start
     initializeTTSCache()
 
-    // Initialize TrackPlayer on app start
+    // Initialize TrackPlayer and register service on app start
     const initTrackPlayer = async () => {
       try {
+        // Register playback service
+        TrackPlayer.registerPlaybackService(() => require('../services/playback-service'))
+        console.log('🎵 [App] TrackPlayer service registered')
+        
         const trackPlayerService = TrackPlayerService.getInstance()
         await trackPlayerService.setupPlayer()
-        console.log('TrackPlayer initialized successfully')
+        console.log('🎵 [App] TrackPlayer initialized successfully')
       } catch (error) {
-        console.error('Failed to initialize TrackPlayer:', error)
+        console.error('🎵 [App] Failed to initialize TrackPlayer:', error)
       }
     }
     initTrackPlayer()

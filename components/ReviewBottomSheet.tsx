@@ -168,17 +168,25 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
 
     // TrackPlayer events for auto-play
     useTrackPlayerEvents([Event.PlaybackTrackChanged], async (event) => {
+      console.log('🎵 [Event] PlaybackTrackChanged:', event)
       if (event.type === Event.PlaybackTrackChanged && event.nextTrack !== undefined) {
+        console.log('🎵 [Event] Setting current audio index to:', event.nextTrack)
         setCurrentAudioIndex(event.nextTrack)
       }
     })
 
     useTrackPlayerEvents([Event.PlaybackQueueEnded], async () => {
+      console.log('🎵 [Event] PlaybackQueueEnded, playlist mode:', isPlaylistMode)
       if (isPlaylistMode) {
         // Restart from beginning if playlist mode is enabled
+        console.log('🎵 [Event] Restarting playlist from beginning')
         await trackPlayerService.skipToTrack(0)
         await trackPlayerService.play()
       }
+    })
+
+    useTrackPlayerEvents([Event.PlaybackState], async (event) => {
+      console.log('🎵 [Event] PlaybackState changed:', event.state)
     })
 
     const playAudioAtIndex = useCallback(
@@ -301,22 +309,44 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           })
 
           if (audioPaths.length > 0) {
+            console.log('🎵 [TTS Debug] Processing audio paths for TrackPlayer...')
+            
+            // First reset the player to clear any existing tracks
+            await trackPlayerService.reset()
+            
             // Prepare tracks for TrackPlayer
-            const tracks = audioPaths.map((path, index) => ({
-              id: `tts-${index}`,
-              url: path,
-              title: `TTS Part ${index + 1}`,
-              artist: bookInfo?.name || 'Unknown',
-            }))
+            const tracks = audioPaths.map((path, index) => {
+              // Check if path already has file:// prefix to avoid double prefix
+              const normalizedPath = path.startsWith('file://') ? path : `file://${path}`
+              console.log('🎵 [TTS Debug] Original path:', path)
+              console.log('🎵 [TTS Debug] Normalized path:', normalizedPath)
+              
+              return {
+                id: `tts-${currentBookId}-${currentChapterNumber}-${index}`,
+                url: normalizedPath,
+                title: `TTS Part ${index + 1}`,
+                artist: bookInfo?.name || 'Unknown',
+              }
+            })
 
+            console.log('🎵 [TTS Debug] Prepared tracks:', tracks)
+
+            // Add tracks to TrackPlayer
             await trackPlayerService.addTracks(tracks)
+            
+            // Update state
             setAudioFilePaths(audioPaths)
             setCurrentAudioIndex(0)
             
             // Set repeat mode based on playlist mode
             if (isPlaylistMode) {
               await trackPlayerService.setRepeatMode(RepeatMode.Queue)
+            } else {
+              await trackPlayerService.setRepeatMode(RepeatMode.Off)
             }
+            
+            // Skip to first track to load it
+            await trackPlayerService.skipToTrack(0)
             
             console.log('🎵 [TTS Debug] TTS generation completed successfully')
           } else {
@@ -334,16 +364,26 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     )
 
     const handlePlayPause = useCallback(async () => {
-      if (currentAudioIndex === null || audioFilePaths.length === 0) return
+      console.log('🎵 [PlayPause] Button pressed')
+      console.log('🎵 [PlayPause] Current audio index:', currentAudioIndex)
+      console.log('🎵 [PlayPause] Audio files length:', audioFilePaths.length)
+      console.log('🎵 [PlayPause] Playback state:', playbackState.state)
+      
+      if (currentAudioIndex === null || audioFilePaths.length === 0) {
+        console.log('🎵 [PlayPause] No audio available to play')
+        return
+      }
 
       try {
         if (playbackState.state === State.Playing) {
+          console.log('🎵 [PlayPause] Currently playing, pausing...')
           await trackPlayerService.pause()
         } else {
+          console.log('🎵 [PlayPause] Not playing, starting playback...')
           await trackPlayerService.play()
         }
       } catch (error) {
-        console.error('Error during play/pause:', error)
+        console.error('🎵 [PlayPause] Error during play/pause:', error)
         showToastError('Lỗi khi phát/dừng audio.')
       }
     }, [
