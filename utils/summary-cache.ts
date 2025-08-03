@@ -24,3 +24,19 @@ export const setCachedSummary = (bookId: string, chapterNumber: number, summary:
 export const clearSummaryCache = (): void => {
   summaryCache.clearAll()
 }
+
+export const deleteCachedSummary = (bookId: string, chapterNumber: number): void => {
+  const cacheKey = getSummaryCacheKey(bookId, chapterNumber)
+  summaryCache.delete(cacheKey)
+}
+
+export const getSummaryCountForBook = (bookId: string): number => {
+  const allKeys = summaryCache.getAllKeys()
+  return allKeys.filter(key => key.startsWith(`summary_${bookId}_`)).length
+}
+
+export const clearBookSummaryCache = (bookId: string): void => {
+  const allKeys = summaryCache.getAllKeys()
+  const bookKeys = allKeys.filter(key => key.startsWith(`summary_${bookId}_`))
+  bookKeys.forEach(key => summaryCache.delete(key))
+}

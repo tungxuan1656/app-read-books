@@ -2,19 +2,20 @@ import { AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppTypo } from '@/constants'
 import { useBookInfo, useReading } from '@/controllers/context'
-import { convertTTSCapcut } from '@/services/convert-tts'
+import { convertTTSCapcut, cancelTTSConversion, resetTTSCancellation } from '@/services/convert-tts'
 import { summarizeChapter, validateGeminiApiKey } from '@/services/gemini-service'
 import { getBookChapterContent, getChapterHtml, showToastError } from '@/utils'
 import { getCachedSummary, setCachedSummary } from '@/utils/summary-cache'
+import { clearBookCache, getBookCacheStats } from '@/utils/cache-manager'
 import { breakSummaryIntoLines } from '@/utils/string-helpers'
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet'
-import TrackPlayer, { 
-  Event, 
-  State, 
-  useTrackPlayerEvents, 
-  usePlaybackState, 
+import TrackPlayer, {
+  Event,
+  State,
+  useTrackPlayerEvents,
+  usePlaybackState,
   useProgress,
-  RepeatMode 
+  RepeatMode,
 } from 'react-native-track-player'
 import TrackPlayerService from '@/services/track-player-service'
 import * as FileSystem from 'expo-file-system'
@@ -27,7 +28,16 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import {
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  DeviceEventEmitter,
+  EmitterSubscription,
+} from 'react-native'
 
 export interface ReviewBottomSheetRef {
   present: () => void
@@ -69,6 +79,11 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     const [audioFilePaths, setAudioFilePaths] = useState<string[]>([])
     const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
     const [isPlaylistMode, setIsPlaylistMode] = useState(false)
+    const [isTTSGenerating, setIsTTSGenerating] = useState(false)
+    const [ttsProgress, setTtsProgress] = useState({ current: 0, total: 0 })
+
+    // Event subscription refs
+    const ttsEventSubscription = useRef<EmitterSubscription | null>(null)
 
     // Track Player setup
     const trackPlayerService = TrackPlayerService.getInstance()
@@ -101,6 +116,20 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         loadChapterContent()
       },
       close: async () => {
+        // Cancel TTS generation if in progress
+        if (isTTSGenerating) {
+          console.log('🎵 [Close] Cancelling TTS generation...')
+          cancelTTSConversion()
+          setIsTTSGenerating(false)
+          setTtsProgress({ current: 0, total: 0 })
+        }
+
+        // Cleanup event subscriptions
+        if (ttsEventSubscription.current) {
+          ttsEventSubscription.current.remove()
+          ttsEventSubscription.current = null
+        }
+
         bottomSheetRef.current?.close()
         await trackPlayerService.reset()
       },
@@ -280,82 +309,112 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
 
     const generateTTSFromSummary = useCallback(
       async (content: string) => {
-        if (!content) return
+        if (!content || !currentBookId || !currentChapterNumber) return
 
         console.log('🎵 [TTS Debug] Starting TTS generation...')
         console.log('🎵 [TTS Debug] Content length:', content.length)
 
         setLoadingState('generatingTTS')
+        setIsTTSGenerating(true)
+
+        // Reset TTS cancellation state
+        resetTTSCancellation()
+
         try {
           // Break summary into shorter lines for better TTS
           const sentences = breakSummaryIntoLines(content).slice(0, 5) // Limit to 5 lines for TTS
           console.log('🎵 [TTS Debug] Broke into lines:', sentences.length)
-          sentences.forEach((sentence: string, index: number) => {
-            console.log(
-              `🎵 [TTS Debug] Line ${index + 1} (${sentence.length} chars): ${sentence.substring(
-                0,
-                100,
-              )}...`,
-            )
-          })
 
           if (sentences.length === 0) {
             console.log('🎵 [TTS Debug] No lines found, returning')
             return
           }
 
-          console.log('🎵 [TTS Debug] Calling convertTTSCapcut with:', {
+          // Set up progress tracking
+          setTtsProgress({ current: 0, total: sentences.length })
+
+          // First reset the player to clear any existing tracks
+          await trackPlayerService.reset()
+          setAudioFilePaths([])
+          setCurrentAudioIndex(null)
+
+          // Set up event listener for TTS audio ready events
+          if (ttsEventSubscription.current) {
+            ttsEventSubscription.current.remove()
+          }
+
+          ttsEventSubscription.current = DeviceEventEmitter.addListener(
+            'tts_audio_ready',
+            async (data: { filePath: string; sentenceIndex: number; isFromCache: boolean }) => {
+              console.log('🎵 [TTS Event] Audio ready:', data)
+
+              try {
+                // Update progress
+                setTtsProgress((prev) => ({ ...prev, current: prev.current + 1 }))
+
+                // Prepare track for TrackPlayer
+                const normalizedPath = data.filePath.startsWith('file://')
+                  ? data.filePath
+                  : `file://${data.filePath}`
+
+                const track = {
+                  id: `tts-${currentBookId}-${currentChapterNumber}-${data.sentenceIndex}`,
+                  url: normalizedPath,
+                  title: `TTS Part ${data.sentenceIndex + 1}`,
+                  artist: bookInfo?.name || 'Unknown',
+                }
+
+                // Add track to TrackPlayer
+                await trackPlayerService.addTracks([track])
+
+                // Update audio file paths state
+                setAudioFilePaths((prev) => {
+                  const newPaths = [...prev]
+                  newPaths[data.sentenceIndex] = data.filePath
+                  return newPaths
+                })
+
+                // If this is the first track, set it as current and start playing
+                if (data.sentenceIndex === 0) {
+                  setCurrentAudioIndex(0)
+
+                  // Set repeat mode based on playlist mode
+                  if (isPlaylistMode) {
+                    await trackPlayerService.setRepeatMode(RepeatMode.Queue)
+                  } else {
+                    await trackPlayerService.setRepeatMode(RepeatMode.Off)
+                  }
+
+                  // Skip to first track to load it (but don't auto-play)
+                  await trackPlayerService.skipToTrack(0)
+                }
+
+                console.log(`🎵 [TTS Event] Track ${data.sentenceIndex} added to player`)
+              } catch (error) {
+                console.error('🎵 [TTS Event] Error handling audio ready event:', error)
+              }
+            },
+          )
+
+          console.log('🎵 [TTS Debug] Starting conversion with options:', {
             linesCount: sentences.length,
             voice: 'BV421_vivn_streaming',
+            bookId: currentBookId,
+            chapterNumber: currentChapterNumber,
           })
 
-          // Generate TTS for all lines using the updated function
-          const audioPaths = await convertTTSCapcut(sentences, { voice: 'BV421_vivn_streaming' })
+          // Start TTS conversion - this will emit events as each audio file is ready
+          const audioPaths = await convertTTSCapcut(sentences, {
+            voice: 'BV421_vivn_streaming',
+            bookId: currentBookId,
+            chapterNumber: currentChapterNumber,
+          })
 
-          console.log('🎵 [TTS Debug] convertTTSCapcut returned:', {
+          console.log('🎵 [TTS Debug] convertTTSCapcut completed:', {
             audioPathsCount: audioPaths.length,
-            audioPaths: audioPaths,
           })
 
           if (audioPaths.length > 0) {
-            console.log('🎵 [TTS Debug] Processing audio paths for TrackPlayer...')
-            
-            // First reset the player to clear any existing tracks
-            await trackPlayerService.reset()
-            // Prepare tracks for TrackPlayer
-            const tracks = audioPaths.map((path, index) => {
-              // Check if path already has file:// prefix to avoid double prefix
-              const normalizedPath = path.startsWith('file://') ? path : `file://${path}`
-              console.log('🎵 [TTS Debug] Original path:', path)
-              console.log('🎵 [TTS Debug] Normalized path:', normalizedPath)
-              
-              return {
-                id: `tts-${currentBookId}-${currentChapterNumber}-${index}`,
-                url: normalizedPath,
-                title: `TTS Part ${index + 1}`,
-                artist: bookInfo?.name || 'Unknown',
-              }
-            })
-
-            console.log('🎵 [TTS Debug] Prepared tracks:', tracks)
-
-            // Add tracks to TrackPlayer
-            await trackPlayerService.addTracks(tracks)
-            
-            // Update state
-            setAudioFilePaths(audioPaths)
-            setCurrentAudioIndex(0)
-            
-            // Set repeat mode based on playlist mode
-            if (isPlaylistMode) {
-              await trackPlayerService.setRepeatMode(RepeatMode.Queue)
-            } else {
-              await trackPlayerService.setRepeatMode(RepeatMode.Off)
-            }
-            
-            // Skip to first track to load it
-            await trackPlayerService.skipToTrack(0)
-            
             console.log('🎵 [TTS Debug] TTS generation completed successfully')
           } else {
             console.log('🎵 [TTS Debug] No audio paths returned')
@@ -365,10 +424,11 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           Alert.alert('Lỗi TTS', 'Không thể tạo audio từ nội dung tóm tắt')
         } finally {
           setLoadingState('idle')
+          setIsTTSGenerating(false)
           console.log('🎵 [TTS Debug] TTS generation process finished')
         }
       },
-      [trackPlayerService, bookInfo, isPlaylistMode],
+      [trackPlayerService, bookInfo, isPlaylistMode, currentBookId, currentChapterNumber],
     )
 
     const handlePlayPause = useCallback(async () => {
@@ -376,7 +436,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       console.log('🎵 [PlayPause] Current audio index:', currentAudioIndex)
       console.log('🎵 [PlayPause] Audio files length:', audioFilePaths.length)
       console.log('🎵 [PlayPause] Playback state:', playbackState.state)
-      
+
       if (currentAudioIndex === null || audioFilePaths.length === 0) {
         console.log('🎵 [PlayPause] No audio available to play')
         return
@@ -387,7 +447,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         if (playbackState.state === State.Error) {
           console.log('🎵 [PlayPause] In error state, trying to reload track...')
           await trackPlayerService.reset()
-          
+
           // Re-add the tracks
           const tracks = audioFilePaths.map((path, index) => {
             const normalizedPath = path.startsWith('file://') ? path : `file://${path}`
@@ -398,7 +458,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
               artist: bookInfo?.name || 'Unknown',
             }
           })
-          
+
           await trackPlayerService.addTracks(tracks)
           await trackPlayerService.skipToTrack(currentAudioIndex)
           await trackPlayerService.play()
@@ -443,7 +503,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     const togglePlaylistMode = useCallback(async () => {
       const newPlaylistMode = !isPlaylistMode
       setIsPlaylistMode(newPlaylistMode)
-      
+
       // Update repeat mode based on playlist mode
       if (newPlaylistMode) {
         await trackPlayerService.setRepeatMode(RepeatMode.Queue)
@@ -451,6 +511,39 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         await trackPlayerService.setRepeatMode(RepeatMode.Off)
       }
     }, [isPlaylistMode, trackPlayerService])
+
+    const handleClearCache = useCallback(async () => {
+      if (!currentBookId) return
+
+      Alert.alert(
+        'Xóa Cache',
+        'Bạn có muốn xóa toàn bộ cache (tóm tắt và audio) của bộ truyện này không?',
+        [
+          { text: 'Hủy', style: 'cancel' },
+          {
+            text: 'Xóa',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await clearBookCache(currentBookId)
+
+                // Reset current chapter states
+                chapterContent.current = ''
+                summarizedContent.current = ''
+                setAudioFilePaths([])
+                setCurrentAudioIndex(null)
+                await trackPlayerService.reset()
+
+                Alert.alert('Thành công', 'Đã xóa toàn bộ cache của bộ truyện')
+              } catch (error) {
+                console.error('Error clearing cache:', error)
+                Alert.alert('Lỗi', 'Không thể xóa cache')
+              }
+            },
+          },
+        ],
+      )
+    }, [currentBookId, trackPlayerService])
 
     const handleClose = useCallback(() => {
       bottomSheetRef.current?.close()
@@ -465,6 +558,19 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       onNavigateToChapter?.('next')
       loadChapterContent()
     }, [onNavigateToChapter, loadChapterContent])
+
+    // Cleanup on unmount
+    useEffect(() => {
+      return () => {
+        if (ttsEventSubscription.current) {
+          ttsEventSubscription.current.remove()
+          ttsEventSubscription.current = null
+        }
+        if (isTTSGenerating) {
+          cancelTTSConversion()
+        }
+      }
+    }, [isTTSGenerating])
 
     return (
       <BottomSheet
@@ -489,23 +595,33 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
               {currentChapter}
             </Text>
           </View>
-          <View style={styles.navigationContainer}>
+          <View style={styles.headerActions}>
             <VectorIcon
-              name="arrow-left"
+              name="trash"
               font="FontAwesome6"
-              size={14}
-              buttonStyle={styles.navButton}
-              color={AppPalette.white}
-              onPress={handlePreviousChapter}
+              size={16}
+              buttonStyle={styles.cacheButton}
+              color={AppPalette.red500}
+              onPress={handleClearCache}
             />
-            <VectorIcon
-              name="arrow-right"
-              font="FontAwesome6"
-              size={14}
-              buttonStyle={styles.navButton}
-              color={AppPalette.white}
-              onPress={handleNextChapter}
-            />
+            <View style={styles.navigationContainer}>
+              <VectorIcon
+                name="arrow-left"
+                font="FontAwesome6"
+                size={14}
+                buttonStyle={styles.navButton}
+                color={AppPalette.white}
+                onPress={handlePreviousChapter}
+              />
+              <VectorIcon
+                name="arrow-right"
+                font="FontAwesome6"
+                size={14}
+                buttonStyle={styles.navButton}
+                color={AppPalette.white}
+                onPress={handleNextChapter}
+              />
+            </View>
           </View>
         </View>
         <BottomSheetScrollView style={{ backgroundColor: '#F5F1E5' }}>
@@ -517,6 +633,11 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
                 {loadingState === 'summarizing' && 'Đang tóm tắt nội dung...'}
                 {loadingState === 'generatingTTS' && 'Đang tạo audio...'}
               </Text>
+              {loadingState === 'generatingTTS' && ttsProgress.total > 0 && (
+                <Text style={[AppTypo.mini.regular, styles.loadingSubtext]}>
+                  {ttsProgress.current}/{ttsProgress.total} file đã hoàn thành
+                </Text>
+              )}
               {loadingState === 'summarizing' && (
                 <Text style={[AppTypo.mini.regular, styles.loadingSubtext]}>
                   Quá trình này có thể mất vài giây
@@ -710,6 +831,17 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     color: AppPalette.gray600,
     textAlign: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cacheButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: AppPalette.gray100,
   },
   navigationContainer: {
     flexDirection: 'row',

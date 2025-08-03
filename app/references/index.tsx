@@ -43,7 +43,7 @@ const References = () => {
   return (
     <Screen.Container>
       <Stack.Screen
-        options={{ title: 'Mục lục', headerBackTitleVisible: false, headerShown: true }}
+        options={{ title: 'Mục lục', headerShown: true}}
       />
       <Screen.Content>
         <FlatList
