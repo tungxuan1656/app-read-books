@@ -21,8 +21,8 @@ import PlayTTS, { PlayTTSRef } from './PlayTTS'
 
 const Reading = () => {
   const params = useLocalSearchParams<{ bookId: string }>()
-  const refTimeout = useRef<NodeJS.Timeout>()
-  const refTimeoutSave = useRef<NodeJS.Timeout>()
+  const refTimeout = useRef<number | undefined>(undefined)
+  const refTimeoutSave = useRef<number | undefined>(undefined)
   const [chapterContent, setChapterContent] = useState('')
   const [visibleSheet, setVisibleSheet] = useState(false)
   const reading = useReading()
@@ -33,7 +33,7 @@ const Reading = () => {
   const [lineHeight, setLineHeight] = useState(MMKVStorage.get(MMKVKeys.CURRENT_LINE_HEIGHT) ?? 1.5)
   const [isLoading, setIsLoading] = useState(true)
   const [showPlayer, setShowPlayer] = useState(false)
-  const refPlayTTS = useRef<PlayTTSRef>()
+  const refPlayTTS = useRef<PlayTTSRef | undefined>(undefined)
 
   const bookInfo = useBookInfo(bookId)
 
@@ -224,6 +224,18 @@ const Reading = () => {
         buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 }}
         color={AppPalette.gray600}
         onPress={() => (showPlayer ? refPlayTTS.current?.hide?.() : refPlayTTS.current?.show?.())}
+      />
+      <VectorIcon
+        name="wand-magic-sparkles"
+        font="FontAwesome6"
+        size={18}
+        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 + 40 + 8 }}
+        color={AppPalette.gray600}
+        onPress={() =>
+          router.push(
+            `/reading/review?bookId=${bookId}&chapter=${reading.books[reading.currentBook]}`,
+          )
+        }
       />
       <PlayTTS
         name={bookId + reading.books[reading.currentBook]}

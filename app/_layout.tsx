@@ -9,6 +9,7 @@ import { GToastComponent } from '@/components/GToast'
 import { EventKeys, MMKVKeys } from '@/constants'
 import TrackPlayer from 'react-native-track-player'
 import { PlaybackService } from '@/services/track-player-playback-service'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 TrackPlayer.registerPlaybackService(() => PlaybackService)
 
@@ -59,13 +60,15 @@ export default function RootLayout() {
   }
 
   return (
-    <BooksContext.Provider value={books}>
-      <ReadingContext.Provider value={readingValue}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-        </Stack>
-        <GToastComponent />
-      </ReadingContext.Provider>
-    </BooksContext.Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BooksContext.Provider value={books}>
+        <ReadingContext.Provider value={readingValue}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+          </Stack>
+          <GToastComponent />
+        </ReadingContext.Provider>
+      </BooksContext.Provider>
+    </GestureHandlerRootView>
   )
 }
