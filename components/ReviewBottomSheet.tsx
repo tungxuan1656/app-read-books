@@ -195,13 +195,16 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
               )}
             </View>
           ) : summarizedContent ? (
-            <ContentDisplay
-              chapterHtml={summarizedContent}
-              font={font!}
-              fontSize={fontSize!}
-              lineHeight={lineHeight!}
-              onLoaded={() => {}}
-            />
+            <Text
+              style={{
+                fontFamily: font || 'Inter-Regular',
+                lineHeight: fontSize! * lineHeight! * 0.9,
+                fontSize: fontSize! * 0.8,
+                marginHorizontal: 16,
+                color: AppPalette.gray900,
+              }}>
+              {summarizedContent}
+            </Text>
           ) : (
             <View style={styles.errorContainer}>
               <VectorIcon

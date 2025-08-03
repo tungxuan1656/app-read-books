@@ -122,7 +122,12 @@ ${request.bookTitle ? `**Tên truyện:** ${request.bookTitle}\n` : ''}
 **Nội dung chương:**
 ${processedContent}
 
-Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn:
+Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn.
+
+**QUAN TRỌNG**: Trả về kết quả dưới dạng JSON với format sau:
+{
+  "content": "Nội dung tóm tắt ở đây..."
+}
 `
 
     const raw = JSON.stringify({
@@ -134,6 +139,7 @@ Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn:
       generationConfig: {
         ...COMMON_GENERATION_CONFIG_BASE,
         responseSchema: CONTENT_SCHEMA,
+        responseMimeType: "application/json",
         maxOutputTokens: 8096,
       },
       safetySettings: COMMON_SAFETY_SETTINGS,
@@ -147,10 +153,8 @@ Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn:
     })
 
     const data = await handleGeminiResponse(response)
-    console.log('Gemini API response:', JSON.stringify(data, null, 2))
-    const summary = parseGeminiResult(data, 'chapter summarization')
-
-    console.log('Summary:', summary)
+    const result = parseGeminiResult(data, 'chapter summarization')
+    const summary = result.content || result // Fallback nếu không có field content
 
     if (!summary || summary.length === 0) {
       throw new Error('Gemini API trả về nội dung trống')
