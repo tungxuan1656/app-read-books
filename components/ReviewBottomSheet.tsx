@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState, forwardRef, useImperativeHandle } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from 'react'
 import { ActivityIndicator, StyleSheet, Text, View, Alert } from 'react-native'
 import BottomSheet, { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet'
 import { VectorIcon } from '@/components/Icon'
@@ -8,6 +15,7 @@ import { useBookInfo, useReading } from '@/controllers/context'
 import RenderHTML from 'react-native-render-html'
 import { AppConst, AppTypo } from '@/constants'
 import { summarizeChapter, validateGeminiApiKey, extractKeyPoints } from '@/services/gemini-service'
+import { ContentDisplay } from './ContentDisplay'
 
 export interface ReviewBottomSheetRef {
   present: () => void
@@ -18,24 +26,25 @@ interface ReviewBottomSheetProps {
   bookId?: string
   chapterNumber?: number
   onNavigateToChapter?: (direction: 'prev' | 'next') => void
+  font?: string
+  lineHeight?: number
+  fontSize?: number
 }
 
 const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProps>(
-  ({ bookId, chapterNumber, onNavigateToChapter }, ref) => {
+  ({ bookId, chapterNumber, onNavigateToChapter, font, lineHeight, fontSize }, ref) => {
     const bottomSheetRef = React.useRef<BottomSheet>(null)
     const [chapterContent, setChapterContent] = useState('')
     const [summarizedContent, setSummarizedContent] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [isSummarizing, setIsSummarizing] = useState(false)
-    const [keyPoints, setKeyPoints] = useState<string[]>([])
-    const [showKeyPoints, setShowKeyPoints] = useState(false)
-    
+
     const reading = useReading()
     const currentBookId = bookId || reading.currentBook
     const currentChapterNumber = chapterNumber || (reading.books[currentBookId] ?? 1)
     const bookInfo = useBookInfo(currentBookId)
 
-    const snapPoints = useMemo(() => ['25%', '50%', '90%'], [])
+    const snapPoints = useMemo(() => ['50%', '85%'], [])
 
     const currentChapter = useMemo(() => {
       if (bookInfo && currentChapterNumber) {
@@ -63,8 +72,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         setIsLoading(true)
         setChapterContent('')
         setSummarizedContent('')
-        setKeyPoints([])
-        
+
         getBookChapterContent(currentBookId, currentChapterNumber)
           .then((content: string) => {
             setChapterContent(content)
@@ -112,7 +120,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         ])
 
         setSummarizedContent(summary)
-        setKeyPoints(points)
       } catch (error) {
         console.error('Error summarizing:', error)
         Alert.alert(
@@ -139,18 +146,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     }, [onNavigateToChapter, loadChapterContent])
 
     const renderContent = () => {
-      if (isLoading) {
-        return (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={AppPalette.blue500} />
-            <Text style={[AppTypo.body.regular, styles.loadingText]}>
-              Đang tải nội dung chương...
-            </Text>
-          </View>
-        )
-      }
-
-      if (isSummarizing) {
+      if (isLoading || isSummarizing) {
         return (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={AppPalette.blue500} />
@@ -164,67 +160,13 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
 
       if (summarizedContent) {
         return (
-          <View style={styles.summaryContainer}>
-            <View style={styles.summaryHeader}>
-              <VectorIcon
-                name="wand-magic-sparkles"
-                font="FontAwesome6"
-                size={16}
-                color={AppPalette.blue500}
-              />
-              <Text style={[AppTypo.body.semiBold, styles.summaryTitle]}>Tóm tắt nội dung</Text>
-              {keyPoints.length > 0 && (
-                <VectorIcon
-                  name={showKeyPoints ? 'chevron-up' : 'chevron-down'}
-                  font="FontAwesome6"
-                  size={14}
-                  color={AppPalette.gray600}
-                  buttonStyle={styles.toggleButton}
-                  onPress={() => setShowKeyPoints(!showKeyPoints)}
-                />
-              )}
-            </View>
-
-            {/* Key Points Section */}
-            {showKeyPoints && keyPoints.length > 0 && (
-              <View style={styles.keyPointsContainer}>
-                <Text style={[AppTypo.body.medium, styles.keyPointsTitle]}>📌 Điểm chính</Text>
-                {keyPoints.map((point, index) => (
-                  <View key={index} style={styles.keyPointItem}>
-                    <Text style={[AppTypo.mini.regular, styles.keyPointText]}>• {point}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            <RenderHTML
-              source={{ html: summarizedContent }}
-              baseStyle={styles.htmlContent}
-              contentWidth={AppConst.windowWidth() - 64}
-              systemFonts={['Inter-Regular', 'Inter-Medium', 'Inter-SemiBold']}
-              tagsStyles={{
-                body: {
-                  fontFamily: 'Inter-Regular',
-                  lineHeight: 24,
-                  fontSize: 16,
-                  color: AppPalette.gray800,
-                },
-                p: {
-                  marginVertical: 8,
-                  textAlign: 'justify',
-                },
-                strong: {
-                  fontFamily: 'Inter-SemiBold',
-                  color: AppPalette.gray900,
-                },
-                em: {
-                  fontFamily: 'Inter-Medium',
-                  fontStyle: 'italic',
-                  color: AppPalette.blue500,
-                },
-              }}
-            />
-          </View>
+          <ContentDisplay
+            chapterHtml={summarizedContent}
+            font={font ?? 'Inter-Regular'}
+            lineHeight={lineHeight ?? 1.5}
+            fontSize={fontSize ?? 16}
+            onLoaded={() => {}}
+          />
         )
       }
 
@@ -260,18 +202,17 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         backgroundStyle={styles.bottomSheetBackground}
         handleIndicatorStyle={styles.handleIndicator}>
         <BottomSheetView style={styles.container}>
-          {/* Header */}
           <View style={styles.header}>
             <VectorIcon
               name="xmark"
               font="FontAwesome6"
-              size={18}
+              size={20}
               buttonStyle={styles.headerButton}
-              color={AppPalette.gray600}
+              color={AppPalette.gray400}
               onPress={handleClose}
             />
             <View style={styles.headerCenter}>
-              <Text style={[AppTypo.mini.regular, styles.headerSubtitle]} numberOfLines={1}>
+              <Text style={[AppTypo.body.semiBold, styles.headerSubtitle]} numberOfLines={1}>
                 {currentChapter}
               </Text>
             </View>
@@ -295,12 +236,21 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
             </View>
           </View>
 
-          {/* Content */}
           <BottomSheetScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.contentContainer}
-            showsVerticalScrollIndicator={false}>
-            {renderContent()}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ flexGrow: 1 }}>
+            {summarizedContent ? (
+              <ContentDisplay
+                chapterHtml={summarizedContent}
+                font={font ?? 'Inter-Regular'}
+                lineHeight={lineHeight ?? 1.5}
+                fontSize={fontSize ?? 16}
+                onLoaded={() => {}}
+              />
+            ) : (
+              <ActivityIndicator size="small" color={AppPalette.blue500} />
+            )}
           </BottomSheetScrollView>
         </BottomSheetView>
       </BottomSheet>
@@ -314,10 +264,13 @@ export default ReviewBottomSheet
 
 const styles = StyleSheet.create({
   bottomSheetBackground: {
-    backgroundColor: '#F9F7F4',
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
   },
   handleIndicator: {
-    backgroundColor: AppPalette.gray300,
+    // backgroundColor: AppPalette.gray300,
+    display: 'none',
   },
   container: {
     flex: 1,
@@ -326,15 +279,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: AppPalette.gray200,
+    borderBottomColor: AppPalette.gray100,
   },
   headerButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: AppPalette.gray100,
+    width: 44,
+    height: 44,
   },
   headerCenter: {
     flex: 1,
@@ -359,10 +309,12 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    backgroundColor: '#F5F1E5',
   },
   contentContainer: {
     flexGrow: 1,
     padding: 16,
+    backgroundColor: '#F5F1E5',
   },
   loadingContainer: {
     flex: 1,
@@ -379,16 +331,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: AppPalette.gray500,
     textAlign: 'center',
-  },
-  summaryContainer: {
-    backgroundColor: AppPalette.white,
-    borderRadius: 12,
-    padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   summaryHeader: {
     flexDirection: 'row',
