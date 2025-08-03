@@ -108,16 +108,10 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
 
       setIsSummarizing(true)
       try {
-        const [summary, points] = await Promise.all([
-          summarizeChapter({
-            chapterHtml,
-            bookTitle: bookInfo?.name,
-          }),
-          extractKeyPoints({
-            chapterHtml,
-            bookTitle: bookInfo?.name,
-          }),
-        ])
+        const summary = await summarizeChapter({
+          chapterHtml,
+          bookTitle: bookInfo?.name,
+        })
 
         setSummarizedContent(summary)
       } catch (error) {
@@ -349,22 +343,5 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     backgroundColor: AppPalette.gray100,
-  },
-  keyPointsContainer: {
-    backgroundColor: AppPalette.gray50,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  keyPointsTitle: {
-    color: AppPalette.gray800,
-    marginBottom: 8,
-  },
-  keyPointItem: {
-    marginVertical: 2,
-  },
-  keyPointText: {
-    color: AppPalette.gray700,
-    lineHeight: 18,
   },
 })

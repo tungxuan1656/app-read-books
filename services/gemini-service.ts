@@ -10,8 +10,9 @@ export interface GeminiSummaryResponse {
 }
 
 // Common configuration for Gemini API
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyAQGVLSryDfxi4KikDE_3wHy8C-AtgT7rg'
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
+const GEMINI_API_KEY =
+  process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyAQGVLSryDfxi4KikDE_3wHy8C-AtgT7rg'
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
 
 const COMMON_HEADERS = new Headers()
 COMMON_HEADERS.append('Content-Type', 'application/json')
@@ -27,7 +28,7 @@ const COMMON_GENERATION_CONFIG_BASE = {
   temperature: 0.2,
   topK: 32,
   topP: 1,
-  maxOutputTokens: 4096,
+  maxOutputTokens: 8096,
 }
 
 // Helper functions
@@ -35,7 +36,7 @@ const handleGeminiResponse = async (response: Response) => {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: { message: 'Unknown error' } }))
     throw new Error(
-      `Gemini API Error ${response.status}: ${errorData.error?.message || 'Unknown error'}`
+      `Gemini API Error ${response.status}: ${errorData.error?.message || 'Unknown error'}`,
     )
   }
   return response.json()
@@ -56,6 +57,18 @@ const parseGeminiResult = (result: any, errorContext: string) => {
   return rawText.trim()
 }
 
+export const CONTENT_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    content: {
+      type: 'STRING',
+      description: 'Nội dung văn bản đã được xử lý từ HTML',
+      nullable: true,
+    },
+  },
+  required: ['content'],
+}
+
 export const summarizeChapter = async (request: GeminiSummaryRequest): Promise<string> => {
   try {
     // Loại bỏ HTML tags để lấy text thuần
@@ -70,9 +83,10 @@ export const summarizeChapter = async (request: GeminiSummaryRequest): Promise<s
 
     // Giới hạn độ dài input để tránh vượt quá token limit
     const maxInputLength = 30000 // ~7500 tokens
-    const processedContent = textContent.length > maxInputLength 
-      ? textContent.substring(0, maxInputLength) + "..."
-      : textContent
+    const processedContent =
+      textContent.length > maxInputLength
+        ? textContent.substring(0, maxInputLength) + '...'
+        : textContent
 
     const prompt = `
 Bạn là một trợ lý tóm tắt truyện chuyên nghiệp. Hãy tóm tắt nội dung chương truyện sau đây bằng tiếng Việt theo yêu cầu:
@@ -83,7 +97,7 @@ Bạn là một trợ lý tóm tắt truyện chuyên nghiệp. Hãy tóm tắt 
 3. 👥 **GIỮ ĐẦY ĐỦ** tên các nhân vật và mối quan hệ tương tác giữa họ
 4. 🎯 **BẢO TOÀN** tinh thần, phong cách và thông điệp của chương gốc
 5. 📏 **ĐỘ DÀI** tóm tắt khoảng 40-60% so với bài gốc (không quá ngắn)
-6. 🏷️ **FORMAT** HTML đơn giản: <p>, <strong>, <em>, <br> để hiển thị đẹp
+6. Chỉnh sửa các từ về đúng tiếng việt, không có từ ngữ bị lỗi chính tả, ví dụ: "c.hết" thành "chết".
 
 **HƯỚNG DẪN CHI TIẾT:**
 - Ưu tiên giữ lại các câu thoại có tính cách, thể hiện emotion
@@ -98,7 +112,7 @@ ${processedContent}
 Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn:
 `
 
-    const requestBody = {
+    const raw = JSON.stringify({
       contents: [
         {
           parts: [{ text: prompt }],
@@ -106,26 +120,30 @@ Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn:
       ],
       generationConfig: {
         ...COMMON_GENERATION_CONFIG_BASE,
-        temperature: 0.2, // Giảm temperature để ổn định hơn
+        responseSchema: CONTENT_SCHEMA,
+        maxOutputTokens: 1000,
       },
       safetySettings: COMMON_SAFETY_SETTINGS,
-    }
+    })
 
     const response = await fetch(GEMINI_API_URL, {
       method: 'POST',
       headers: COMMON_HEADERS,
-      body: JSON.stringify(requestBody),
+      body: raw,
+      redirect: 'follow',
     })
 
     const data = await handleGeminiResponse(response)
     const summary = parseGeminiResult(data, 'chapter summarization')
+
+    console.log('Gemini API response:', data)
+    console.log('Summary:', summary)
 
     if (!summary || summary.length === 0) {
       throw new Error('Gemini API trả về nội dung trống')
     }
 
     return summary
-
   } catch (error) {
     console.error('Error in summarizeChapter:', error)
     if (error instanceof Error) {
@@ -137,21 +155,21 @@ Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn:
 
 // Thêm function để tóm tắt tự động theo độ dài
 export const summarizeChapterWithLength = async (
-  request: GeminiSummaryRequest, 
-  targetLength: 'short' | 'medium' | 'long' = 'medium'
+  request: GeminiSummaryRequest,
+  targetLength: 'short' | 'medium' | 'long' = 'medium',
 ): Promise<string> => {
   const lengthConfig = {
     short: { percentage: '20-30%', maxTokens: 1500 },
     medium: { percentage: '40-60%', maxTokens: 3000 },
-    long: { percentage: '70-80%', maxTokens: 4096 }
+    long: { percentage: '70-80%', maxTokens: 4096 },
   }
 
   const config = lengthConfig[targetLength]
-  
+
   // Modify the original request with length-specific config
   const modifiedRequest = {
     ...request,
-    targetPercentage: config.percentage
+    targetPercentage: config.percentage,
   }
 
   return summarizeChapter(modifiedRequest)
@@ -196,14 +214,16 @@ Ví dụ: ["Nhân vật A gặp gỡ nhân vật B", "Xảy ra xung đột tại
 
     const data = await handleGeminiResponse(response)
     const resultText = parseGeminiResult(data, 'key points extraction')
-    
+
     try {
       return JSON.parse(resultText)
     } catch {
       // Fallback: parse manually if JSON parsing fails
-      return resultText.split('\n').filter((line: string) => line.trim().length > 0).slice(0, 8)
+      return resultText
+        .split('\n')
+        .filter((line: string) => line.trim().length > 0)
+        .slice(0, 8)
     }
-
   } catch (error) {
     console.error('Error extracting key points:', error)
     return []
@@ -212,9 +232,11 @@ Ví dụ: ["Nhân vật A gặp gỡ nhân vật B", "Xảy ra xung đột tại
 
 // Helper function để kiểm tra API key
 export const validateGeminiApiKey = (): boolean => {
-  return typeof GEMINI_API_KEY === 'string' && 
-         GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY' && 
-         GEMINI_API_KEY.length > 30
+  return (
+    typeof GEMINI_API_KEY === 'string' &&
+    GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY' &&
+    GEMINI_API_KEY.length > 30
+  )
 }
 
 // Export service object tương tự như trong file tham khảo
