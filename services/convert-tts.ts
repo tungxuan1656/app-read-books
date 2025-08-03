@@ -186,6 +186,7 @@ const _getOrGenerateAudioFile = async (
 
     // Emit event when audio file is ready
     DeviceEventEmitter.emit('tts_audio_ready', {
+      name: fileName,
       filePath: newCacheFilePath,
       sentenceIndex,
       isFromCache: false,

@@ -5,7 +5,6 @@ import { initTTSCache, getTTSCacheStats } from '../services/convert-tts'
  * This should be called in your App.tsx or _layout.tsx
  */
 export const initializeTTSCache = async () => {
-  console.log('🔄 Initializing TTS cache...')
   await initTTSCache()
   console.log('✅ TTS cache initialized')
 }

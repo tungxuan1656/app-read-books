@@ -9,11 +9,18 @@ import { GToastComponent } from '@/components/GToast'
 import { EventKeys, MMKVKeys } from '@/constants'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { initializeTTSCache } from '../controllers/tts-cache'
-import TrackPlayerService from '../services/track-player-service'
+import trackPlayerService from '../services/track-player-service'
 import TrackPlayer from 'react-native-track-player'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
+try {
+  initializeTTSCache()
+  TrackPlayer.registerPlaybackService(() => require('../services/playback-service'))
+  trackPlayerService.setupPlayer()
+} catch (error) {
+  console.error('Error during splash screen initialization:', error)
+}
 
 export default function RootLayout() {
   const [readingValue, setReadingValue] = useState<Options>(defaultOptions)
@@ -41,25 +48,6 @@ export default function RootLayout() {
     if (output?.currentBook && output?.books) {
       setReadingValue(output)
     }
-
-    // Initialize TTS cache on app start
-    initializeTTSCache()
-
-    // Initialize TrackPlayer and register service on app start
-    const initTrackPlayer = async () => {
-      try {
-        // Register playback service
-        TrackPlayer.registerPlaybackService(() => require('../services/playback-service'))
-        console.log('🎵 [App] TrackPlayer service registered')
-        
-        const trackPlayerService = TrackPlayerService.getInstance()
-        await trackPlayerService.setupPlayer()
-        console.log('🎵 [App] TrackPlayer initialized successfully')
-      } catch (error) {
-        console.error('🎵 [App] Failed to initialize TrackPlayer:', error)
-      }
-    }
-    initTrackPlayer()
   }, [])
 
   // Separate effect for navigation that runs after fonts are loaded

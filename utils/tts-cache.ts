@@ -16,14 +16,7 @@ const ttsCache = new MMKV({
  */
 export const initTTSCache = async () => {
   try {
-    // Clear file system cache
-    await FileSystem.deleteAsync(CACHE_FOLDER, { idempotent: true })
     await FileSystem.makeDirectoryAsync(CACHE_FOLDER, { intermediates: true })
-
-    // Clear MMKV cache
-    ttsCache.clearAll()
-
-    console.log('🎤 TTS Cache initialized successfully.')
   } catch (error) {
     console.error('Error initializing TTS cache:', error)
   }

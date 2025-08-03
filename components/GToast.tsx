@@ -1,9 +1,9 @@
-import { Dimensions, Image, StyleSheet, Text, View } from 'react-native'
-import Toast, { BaseToast, ToastConfig, ToastConfigParams } from 'react-native-toast-message'
-import React from 'react'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AppColors, AppIcons } from '@/assets'
+import { AppColors } from '@/assets'
 import { AppStyles, AppTypo } from '@/constants'
+import React from 'react'
+import { Dimensions, StyleSheet, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Toast, { BaseToast, ToastConfig, ToastConfigParams } from 'react-native-toast-message'
 import { VectorIcon } from './Icon'
 
 const renderLeadingIcon = (name: string, font: string) => {

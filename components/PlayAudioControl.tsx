@@ -2,22 +2,15 @@ import { AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppTypo } from '@/constants'
 import { cancelTTSConversion, convertTTSCapcut, resetTTSCancellation } from '@/services/convert-tts'
-import TrackPlayerService from '@/services/track-player-service'
+import trackPlayerService from '@/services/track-player-service'
 import { breakSummaryIntoLines } from '@/utils/string-helpers'
 import React, { useCallback, useEffect, useState } from 'react'
-import {
-  ActivityIndicator,
-  Alert,
-  DeviceEventEmitter,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native'
+import { ActivityIndicator, Alert, DeviceEventEmitter, StyleSheet, Text, View } from 'react-native'
 import TrackPlayer, {
   Event,
   RepeatMode,
   useIsPlaying,
-  useTrackPlayerEvents
+  useTrackPlayerEvents,
 } from 'react-native-track-player'
 
 interface PlayAudioControlProps {
@@ -34,8 +27,6 @@ export default function PlayAudioControl({
   const [audioFilePaths, setAudioFilePaths] = useState<string[]>([])
   const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
   const [isTTSGenerating, setIsTTSGenerating] = useState(false)
-
-  const trackPlayerService = TrackPlayerService.getInstance()
   const isPlaying = useIsPlaying()
 
   useEffect(() => {
