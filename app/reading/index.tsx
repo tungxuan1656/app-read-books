@@ -19,8 +19,10 @@ import RenderHTML from 'react-native-render-html'
 import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
 import { ContentDisplay } from '@/components/ContentDisplay'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const Reading = () => {
+  const insets = useSafeAreaInsets()
   const params = useLocalSearchParams<{ bookId: string }>()
   const refTimeout = useRef<number | undefined>(undefined)
   const refTimeoutSave = useRef<number | undefined>(undefined)
@@ -165,7 +167,7 @@ const Reading = () => {
   }, [chapterContent, bookId, reading])
 
   return (
-    <Screen.Container safe={'all'} style={{ backgroundColor: '#F5F1E5' }}>
+    <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
       <Text style={[AppTypo.mini.regular, { marginHorizontal: 16 }]} numberOfLines={1}>
         {currentChapter}
       </Text>
@@ -227,7 +229,7 @@ const Reading = () => {
         name="book"
         font="FontAwesome6"
         size={18}
-        buttonStyle={{ ...styles.buttonInfo }}
+        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + insets.bottom }}
         color={AppPalette.gray600}
         onPress={() => setVisibleSheet(true)}
       />
@@ -235,7 +237,7 @@ const Reading = () => {
         name={showPlayer ? 'stop' : 'play'}
         font="FontAwesome6"
         size={18}
-        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 }}
+        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 + insets.bottom }}
         color={AppPalette.gray600}
         onPress={() => {}}
       />
@@ -243,7 +245,7 @@ const Reading = () => {
         name="wand-magic-sparkles"
         font="FontAwesome6"
         size={18}
-        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 + 40 + 8 }}
+        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 + 40 + 8 + insets.bottom }}
         color={AppPalette.gray600}
         onPress={openReviewBottomSheet}
       />

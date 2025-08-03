@@ -41,8 +41,6 @@ export default function useTtsAudio() {
     const subscrition = DeviceEventEmitter.addListener(
       'tts_audio_ready',
       async (data: { filePath: string; audioTaskId: string; index: number }) => {
-        console.log('🎵 [Audio] TTS audio ready:', data)
-
         try {
           const track = {
             id: data.audioTaskId,

@@ -7,6 +7,7 @@
     "icon": "./assets/images/logo.png",
     "scheme": "tx-truyen",
     "userInterfaceStyle": "light",
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/logo.png",
       "resizeMode": "contain",
@@ -17,9 +18,7 @@
       "bundleIdentifier": "com.tungxuan.rnreadbooks",
       "buildNumber": "0",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "audio"
-        ],
+        "UIBackgroundModes": ["audio"],
         "NSMicrophoneUsageDescription": "This app needs access to microphone for audio playback",
         "NSCameraUsageDescription": "This app does not use camera"
       }
