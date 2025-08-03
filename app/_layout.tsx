@@ -39,12 +39,23 @@ export default function RootLayout() {
     if (output?.currentBook && output?.books) {
       setReadingValue(output)
     }
-    const IS_READING = MMKVStorage.get(MMKVKeys.IS_READING)
-    if (IS_READING) router.navigate('/reading')
 
     // Initialize TTS cache on app start
     initializeTTSCache()
   }, [])
+
+  // Separate effect for navigation that runs after fonts are loaded
+  useEffect(() => {
+    if (loaded) {
+      const IS_READING = MMKVStorage.get(MMKVKeys.IS_READING)
+      if (IS_READING) {
+        // Use setTimeout to ensure navigation happens after the Stack is mounted
+        setTimeout(() => {
+          router.navigate('/reading')
+        }, 100)
+      }
+    }
+  }, [loaded])
 
   useEffect(() => {
     if (loaded) {
