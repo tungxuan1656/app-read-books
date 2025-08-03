@@ -1,20 +1,14 @@
-import * as FileSystem from 'expo-file-system'
 import { encode } from 'base-64'
+import * as FileSystem from 'expo-file-system'
 import { DeviceEventEmitter } from 'react-native'
-import {
-  CACHE_FOLDER,
-  createSimpleHash,
-  deleteCachedAudioPath,
-  getCachedAudioPath,
-  setCachedAudioPath,
-} from '../utils/tts-cache'
 import { preprocessSentence, splitContentToParagraph } from '../utils/string-helpers'
+import { CACHE_FOLDER } from '../utils/tts-cache'
 
 // Global variable to track cancellation
 let isCancelled = false
 
-// Function to cancel TTS conversion
-export const cancelTTSConversion = () => {
+// Function to stop TTS conversion
+export const stopConvertTTSCapcut = () => {
   console.log('🎵 [TTS] Cancelling TTS conversion...')
   isCancelled = true
 }
@@ -124,32 +118,20 @@ const generateAudioFromWebSocket = (
  */
 const _getOrGenerateAudioFile = async (
   sentence: string,
+  audioTaskId: string,
   voice: string,
-  bookId: string,
-  chapterNumber: number,
-  sentenceIndex: number,
 ): Promise<string | null> => {
   // Check if operation was cancelled
   if (isCancelled) {
     console.log('🎵 [TTS] Operation cancelled during audio generation')
     return null
   }
-
-  // 1. Create new filename format: bookId_chapter_index.mp3
-  const fileName = `${bookId}_${chapterNumber}_${sentenceIndex}.mp3`
+  const fileName = `${audioTaskId}.mp3`
   const newCacheFilePath = `${CACHE_FOLDER}${fileName}`
 
-  // 2. Check if file already exists
   const info = await FileSystem.getInfoAsync(newCacheFilePath)
   if (info.exists) {
     console.log(`🎵 [TTS] Using cached audio: ${fileName}`)
-    // Emit event for cached file
-    DeviceEventEmitter.emit('tts_audio_ready', {
-      name: fileName,
-      filePath: newCacheFilePath,
-      sentenceIndex,
-      isFromCache: true,
-    })
     return newCacheFilePath
   }
 
@@ -157,7 +139,6 @@ const _getOrGenerateAudioFile = async (
   console.log(`🎵 [TTS] Generating audio for: ${fileName}`)
   const audioData = await generateAudioFromWebSocket(sentence, voice)
 
-  // Check cancellation again after async operation
   if (isCancelled) {
     console.log('🎵 [TTS] Operation cancelled after audio generation')
     return null
@@ -168,10 +149,7 @@ const _getOrGenerateAudioFile = async (
     return null
   }
 
-  // 4. Save to file system
   try {
-    // expo-file-system requires base64 encoding for binary data.
-    // We convert the Uint8Array to a binary string first.
     let binaryString = ''
     for (let i = 0; i < audioData.byteLength; i++) {
       binaryString += String.fromCharCode(audioData[i])
@@ -183,41 +161,11 @@ const _getOrGenerateAudioFile = async (
     })
 
     console.log(`🎵 [TTS] Audio saved: ${fileName}`)
-
-    // Emit event when audio file is ready
-    DeviceEventEmitter.emit('tts_audio_ready', {
-      name: fileName,
-      filePath: newCacheFilePath,
-      sentenceIndex,
-      isFromCache: false,
-    })
-
     return newCacheFilePath
   } catch (error) {
     console.error(`Failed to write audio file ${newCacheFilePath}:`, error)
     return null
   }
-}
-
-/**
- * Converts a single sentence to speech and saves it to a specified file path.
- * This is a convenience wrapper around the main `convertTTSCapcut` function.
- */
-export const convertTTSCapcutSentence = async (
-  sentence: string,
-  outputFilePath: string,
-  options: {
-    voice: string
-    bookId: string
-    chapterNumber: number
-  } = {
-    voice: 'BV421_vivn_streaming',
-    bookId: 'unknown',
-    chapterNumber: 0,
-  },
-): Promise<boolean> => {
-  const audioPaths = await convertTTSCapcut([sentence], options)
-  return audioPaths.length > 0
 }
 
 /**
@@ -227,49 +175,36 @@ export const convertTTSCapcutSentence = async (
  */
 export const convertTTSCapcut = async (
   sentences: string[],
-  options: {
-    voice: string
-    bookId: string
-    chapterNumber: number
-  } = {
-    voice: 'BV421_vivn_streaming',
-    bookId: 'unknown',
-    chapterNumber: 0,
-  },
-  outputPaths?: string[], // Optional: provide specific output paths
+  taskId: string = 'tts_default',
+  voice: string = 'BV421_vivn_streaming',
 ): Promise<string[]> => {
   console.log(`🎤 Starting TTS conversion for ${sentences.length} sentences.`)
-
-  // Reset cancellation state at the start
   resetTTSCancellation()
 
   const finalAudioPaths: string[] = []
   const maxRetries = 2
 
   for (let i = 0; i < sentences.length; i++) {
-    // Check if operation was cancelled
     if (isCancelled) {
       console.log('🎵 [TTS] Conversion cancelled by user')
       break
     }
-
     const sentence = sentences[i]
-
     let success = false
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const cachedAudioPath = await _getOrGenerateAudioFile(
-          sentence,
-          options.voice,
-          options.bookId,
-          options.chapterNumber,
-          i,
-        )
-
+        const cachedAudioPath = await _getOrGenerateAudioFile(sentence, `${taskId}_${i}`, voice)
         if (cachedAudioPath) {
+          DeviceEventEmitter.emit('tts_audio_ready', {
+            filePath: cachedAudioPath,
+            audioTaskId: `${taskId}_${i}`,
+            index: i,
+            isFromCache: false,
+          })
+
           finalAudioPaths.push(cachedAudioPath)
           success = true
-          break // Success, exit retry loop
+          break
         }
       } catch (error) {
         console.error(`Error processing sentence ${i} (attempt ${attempt}):`, error)
@@ -285,7 +220,6 @@ export const convertTTSCapcut = async (
       console.error(
         `Failed to convert sentence after ${maxRetries} attempts: ${sentence.substring(0, 50)}...`,
       )
-      // Continue with next sentence instead of stopping entirely
     }
   }
 
@@ -293,37 +227,5 @@ export const convertTTSCapcut = async (
   return finalAudioPaths
 }
 
-/**
- * Legacy function, now maps to the new Capcut implementation.
- * Converts a single block of text.
- */
-export const convertTTS = async (
-  text: string,
-  bookId: string = 'legacy',
-  chapterNumber: number = 0,
-): Promise<string | null> => {
-  const paragraphs = splitContentToParagraph(text)
-  if (paragraphs.length === 0) return null
-
-  // This function is designed for a single text block, so we process it as one.
-  // If the text is very long, it will be sent as one large chunk to the TTS service.
-  const audioPaths = await convertTTSCapcut([text], {
-    voice: 'BV421_vivn_streaming',
-    bookId,
-    chapterNumber,
-  })
-
-  if (audioPaths.length > 0) {
-    // The path is already cached by convertTTSCapcut, so we just return it.
-    return audioPaths[0]
-  }
-
-  return null
-}
-
-// --- Utility Functions ---
-// All utility functions have been moved to /utils/
-// The following exports are kept for backward compatibility if needed,
-// but they now point to the new utility files.
-export { initTTSCache, getTTSCacheStats } from '../utils/tts-cache'
 export { splitContentToParagraph } from '../utils/string-helpers'
+export { getTTSCacheStats, initTTSCache } from '../utils/tts-cache'

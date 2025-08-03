@@ -15,6 +15,7 @@ import React, {
 } from 'react'
 import { ActivityIndicator, Alert, DeviceEventEmitter, StyleSheet, Text, View } from 'react-native'
 import PlayAudioControl from './PlayAudioControl'
+import useTtsAudio from '@/hooks/use-tts-audio'
 
 export interface ReviewBottomSheetRef {
   present: ({
@@ -48,6 +49,17 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     const [bookId, setBookId] = useState<string | null>(null)
     const [chapterNumber, setChapterNumber] = useState<number | null>(null)
     const bookInfo = useBookInfo(bookId ?? '')
+
+    const {
+      startGenerateAudio,
+      stopGenerateAudio,
+      isPlaying,
+      handleNext,
+      handlePrevious,
+      handlePlayPause,
+      currentAudioIndex,
+      listAudios,
+    } = useTtsAudio()
 
     useImperativeHandle(ref, () => ({
       present: async ({ content, bookId, chapterNumber }) => {
@@ -146,9 +158,12 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           ) : (
             <View style={styles.contentContainer}>
               <PlayAudioControl
-                bookId={bookId ?? ''}
-                chapterNumber={chapterNumber ?? 0}
-                bookName={bookInfo?.name}
+                currentIndex={currentAudioIndex}
+                maxIndex={listAudios.length}
+                handlePrevious={handlePrevious}
+                handleNext={handleNext}
+                handlePlayPause={handlePlayPause}
+                isPlaying={!!isPlaying.playing}
               />
               <Text
                 style={{
