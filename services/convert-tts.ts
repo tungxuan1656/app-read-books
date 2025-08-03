@@ -187,7 +187,7 @@ export const convertTTSCapcut = async (
   for (let i = 0; i < sentences.length; i++) {
     if (isCancelled) {
       console.log('🎵 [TTS] Conversion cancelled by user')
-      break
+      return []
     }
     const sentence = sentences[i]
     let success = false
@@ -214,12 +214,6 @@ export const convertTTSCapcut = async (
         console.log(`Retrying sentence ${i} (attempt ${attempt + 1}/${maxRetries})...`)
         await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait before retrying
       }
-    }
-
-    if (!success) {
-      console.error(
-        `Failed to convert sentence after ${maxRetries} attempts: ${sentence.substring(0, 50)}...`,
-      )
     }
   }
 

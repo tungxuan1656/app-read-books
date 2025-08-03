@@ -1,6 +1,5 @@
 import { AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
-import { AppTypo } from '@/constants'
 import { useBookInfo } from '@/controllers/context'
 import { summarizeChapter } from '@/services/gemini-service'
 import { getCachedSummary, setCachedSummary } from '@/utils/summary-cache'
@@ -13,7 +12,7 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import { ActivityIndicator, Alert, DeviceEventEmitter, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native'
 import PlayAudioControl from './PlayAudioControl'
 import useTtsAudio from '@/hooks/use-tts-audio'
 
@@ -37,13 +36,10 @@ interface ReviewBottomSheetProps {
   fontSize?: number
 }
 
-type LoadingState = 'idle' | 'loadingChapter' | 'summarizing'
-
 const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProps>(
   ({ font, lineHeight, fontSize }, ref) => {
     const bottomSheetRef = React.useRef<BottomSheet>(null)
     const snapPoints = useMemo(() => ['50%', '85%'], [])
-    const [loadingState, setLoadingState] = useState<LoadingState>('idle')
     const [chapterContent, setChapterContent] = useState('')
     const [summaryContent, setSummaryContent] = useState<string | null>(null)
     const [bookId, setBookId] = useState<string | null>(null)
@@ -68,10 +64,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         setChapterNumber(chapterNumber)
         bottomSheetRef.current?.expand()
       },
-      close: async () => {
-        DeviceEventEmitter.emit(`cancel_audio_${bookId}`)
-        bottomSheetRef.current?.close()
-      },
+      close: handleClose,
     }))
 
     useEffect(() => {
@@ -82,46 +75,34 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       if (!bookId || !chapterNumber || !chapterContent) {
         return
       }
-
-      const cachedSummary = getCachedSummary(bookId, chapterNumber)
-      if (cachedSummary) {
-        setSummaryContent(cachedSummary)
-        sendSummaryToTTS(cachedSummary)
-        return
-      }
-
-      setLoadingState('summarizing')
-
       try {
-        const summary = await summarizeChapter({
-          chapterHtml: chapterContent,
-          bookTitle: bookInfo?.name,
-        })
-
+        let summary = getCachedSummary(bookId, chapterNumber)
+        if (summary) {
+          setSummaryContent(summary)
+        } else {
+          summary = await summarizeChapter({
+            chapterHtml: chapterContent,
+            bookTitle: bookInfo?.name,
+          })
+          setCachedSummary(bookId, chapterNumber, summary)
+        }
         setSummaryContent(summary)
-        sendSummaryToTTS(summary)
-        setCachedSummary(bookId, chapterNumber, summary)
+        startGenerateAudio(summary, bookId, chapterNumber)
       } catch (error) {
         console.error('📝 [Summary Cache] Error summarizing:', error)
         Alert.alert(
           'Lỗi tóm tắt',
           error instanceof Error ? error.message : 'Có lỗi xảy ra khi tóm tắt chương truyện',
         )
-      } finally {
-        setLoadingState('idle')
       }
-    }
-
-    const sendSummaryToTTS = (content: string) => {
-      setTimeout(() => {
-        DeviceEventEmitter.emit(`summary_ready_${bookId}_${chapterNumber}`, {
-          content,
-        })
-      }, 1000)
     }
 
     const handleClose = useCallback(() => {
       bottomSheetRef.current?.close()
+      stopGenerateAudio()
+      setChapterContent('')
+      setBookId(null)
+      setChapterNumber(null)
     }, [])
 
     return (
@@ -131,6 +112,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         index={-1}
         enablePanDownToClose
         enableDynamicSizing={false}
+        onClose={handleClose}
         backgroundStyle={styles.bottomSheetBackground}
         handleIndicatorStyle={styles.handleIndicator}>
         <BottomSheetScrollView style={{ backgroundColor: '#FFF' }}>
@@ -145,15 +127,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           {!summaryContent ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color={AppPalette.blue500} />
-              <Text style={[AppTypo.body.regular, styles.loadingText]}>
-                {loadingState === 'loadingChapter' && 'Đang tải nội dung chương...'}
-                {loadingState === 'summarizing' && 'Đang tóm tắt nội dung...'}
-              </Text>
-              {loadingState === 'summarizing' && (
-                <Text style={[AppTypo.mini.regular, styles.loadingSubtext]}>
-                  Quá trình này có thể mất vài giây
-                </Text>
-              )}
             </View>
           ) : (
             <View style={styles.contentContainer}>

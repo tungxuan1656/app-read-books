@@ -40,6 +40,7 @@ const setupPlayer = async (): Promise<boolean> => {
 
 const reset = async (): Promise<void> => {
   try {
+    await TrackPlayer.stop()
     await TrackPlayer.reset()
   } catch (error) {
     console.error('🎵 [TrackPlayer] Error resetting:', error)
