@@ -14,10 +14,10 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { getBookChapterContent, getChapterHtml, showToastError } from '../../utils'
 import { setReadingContext, useBookInfo, useReading } from '../../controllers/context'
 import SheetBookInfo from '@/components/SheetBookInfo'
+import ReviewBottomSheet, { ReviewBottomSheetRef } from '@/components/ReviewBottomSheet'
 import RenderHTML from 'react-native-render-html'
 import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
-import PlayTTS, { PlayTTSRef } from './PlayTTS'
 
 const Reading = () => {
   const params = useLocalSearchParams<{ bookId: string }>()
@@ -33,7 +33,7 @@ const Reading = () => {
   const [lineHeight, setLineHeight] = useState(MMKVStorage.get(MMKVKeys.CURRENT_LINE_HEIGHT) ?? 1.5)
   const [isLoading, setIsLoading] = useState(true)
   const [showPlayer, setShowPlayer] = useState(false)
-  const refPlayTTS = useRef<PlayTTSRef | undefined>(undefined)
+  const reviewBottomSheetRef = useRef<ReviewBottomSheetRef>(null)
 
   const bookInfo = useBookInfo(bookId)
 
@@ -115,7 +115,6 @@ const Reading = () => {
   }, [])
 
   const nextChapter = () => {
-    refPlayTTS.current?.hide?.()
     clearTimeout(refTimeout.current)
     refTimeout.current = setTimeout(() => {
       setIsLoading(true)
@@ -126,7 +125,6 @@ const Reading = () => {
     }, 500)
   }
   const previousChapter = () => {
-    refPlayTTS.current?.hide?.()
     clearTimeout(refTimeout.current)
     refTimeout.current = setTimeout(() => {
       setIsLoading(true)
@@ -146,8 +144,19 @@ const Reading = () => {
   const onLoaded = useCallback(() => {
     setTimeout(() => {
       setIsLoading(false)
-      refPlayTTS.current?.hide?.()
     }, 150)
+  }, [])
+
+  const handleNavigateFromReview = useCallback((direction: 'prev' | 'next') => {
+    if (direction === 'next') {
+      nextChapter()
+    } else {
+      previousChapter()
+    }
+  }, [])
+
+  const openReviewBottomSheet = useCallback(() => {
+    reviewBottomSheetRef.current?.present()
   }, [])
 
   return (
@@ -223,7 +232,7 @@ const Reading = () => {
         size={18}
         buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 }}
         color={AppPalette.gray600}
-        onPress={() => (showPlayer ? refPlayTTS.current?.hide?.() : refPlayTTS.current?.show?.())}
+        onPress={() => {}}
       />
       <VectorIcon
         name="wand-magic-sparkles"
@@ -231,17 +240,7 @@ const Reading = () => {
         size={18}
         buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 + 40 + 8 }}
         color={AppPalette.gray600}
-        onPress={() =>
-          router.push(
-            `/reading/review?bookId=${bookId}&chapter=${reading.books[reading.currentBook]}`,
-          )
-        }
-      />
-      <PlayTTS
-        name={bookId + reading.books[reading.currentBook]}
-        chapterHtml={chapterHtml}
-        innerRef={refPlayTTS}
-        onChange={setShowPlayer}
+        onPress={openReviewBottomSheet}
       />
       <SheetBookInfo
         bookId={bookId}
@@ -253,6 +252,12 @@ const Reading = () => {
         setFontSize={setFontSize}
         lineHeight={lineHeight}
         setLineHeight={setLineHeight}
+      />
+      <ReviewBottomSheet
+        ref={reviewBottomSheetRef}
+        bookId={bookId}
+        chapterNumber={reading.books[reading.currentBook]}
+        onNavigateToChapter={handleNavigateFromReview}
       />
     </Screen.Container>
   )
