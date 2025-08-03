@@ -16,6 +16,7 @@ import TrackPlayer, {
   usePlaybackState,
   useProgress,
   RepeatMode,
+  useIsPlaying,
 } from 'react-native-track-player'
 import TrackPlayerService from '@/services/track-player-service'
 import * as FileSystem from 'expo-file-system'
@@ -73,12 +74,10 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     const chapterContent = useRef('')
     const summarizedContent = useRef('')
     const [loadingState, setLoadingState] = useState<LoadingState>('idle')
-    const isSwitchingAudio = useRef(false) // Ref to prevent race conditions
 
     // TTS states
     const [audioFilePaths, setAudioFilePaths] = useState<string[]>([])
     const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
-    const [isPlaylistMode, setIsPlaylistMode] = useState(false)
     const [isTTSGenerating, setIsTTSGenerating] = useState(false)
     const [ttsProgress, setTtsProgress] = useState({ current: 0, total: 0 })
 
@@ -88,7 +87,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     // Track Player setup
     const trackPlayerService = TrackPlayerService.getInstance()
     const playbackState = usePlaybackState()
-    const progress = useProgress()
 
     const reading = useReading()
     const currentBookId = bookId || reading.currentBook
@@ -97,6 +95,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     const bookInfo = passedBookInfo || bookInfoFromHook
 
     const snapPoints = useMemo(() => ['50%', '85%'], [])
+    const isPlaying = useIsPlaying()
 
     const currentChapter = useMemo(() => {
       if (bookInfo && currentChapterNumber) {
@@ -145,7 +144,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         await trackPlayerService.reset()
         setAudioFilePaths([])
         setCurrentAudioIndex(null)
-        setIsPlaylistMode(false)
 
         // Check if we have cached summary before loading content
         console.log('📝 [Summary Cache] Checking cache during chapter load')
@@ -206,13 +204,8 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     })
 
     useTrackPlayerEvents([Event.PlaybackQueueEnded], async () => {
-      console.log('🎵 [Event] PlaybackQueueEnded, playlist mode:', isPlaylistMode)
-      if (isPlaylistMode) {
-        // Restart from beginning if playlist mode is enabled
-        console.log('🎵 [Event] Restarting playlist from beginning')
-        await trackPlayerService.skipToTrack(0)
-        await trackPlayerService.play()
-      }
+      console.log('🎵 [Event] PlaybackQueueEnded - playlist mode disabled')
+      // No auto-restart since playlist mode is disabled
     })
 
     useTrackPlayerEvents([Event.PlaybackState], async (event) => {
@@ -378,12 +371,8 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
                 if (data.sentenceIndex === 0) {
                   setCurrentAudioIndex(0)
 
-                  // Set repeat mode based on playlist mode
-                  if (isPlaylistMode) {
-                    await trackPlayerService.setRepeatMode(RepeatMode.Queue)
-                  } else {
-                    await trackPlayerService.setRepeatMode(RepeatMode.Off)
-                  }
+                  // Always set repeat mode to Off
+                  await trackPlayerService.setRepeatMode(RepeatMode.Off)
 
                   // Skip to first track to load it (but don't auto-play)
                   await trackPlayerService.skipToTrack(0)
@@ -428,7 +417,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           console.log('🎵 [TTS Debug] TTS generation process finished')
         }
       },
-      [trackPlayerService, bookInfo, isPlaylistMode, currentBookId, currentChapterNumber],
+      [trackPlayerService, bookInfo, currentBookId, currentChapterNumber],
     )
 
     const handlePlayPause = useCallback(async () => {
@@ -499,18 +488,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         await trackPlayerService.skipToNext()
       }
     }, [currentAudioIndex, audioFilePaths.length, trackPlayerService])
-
-    const togglePlaylistMode = useCallback(async () => {
-      const newPlaylistMode = !isPlaylistMode
-      setIsPlaylistMode(newPlaylistMode)
-
-      // Update repeat mode based on playlist mode
-      if (newPlaylistMode) {
-        await trackPlayerService.setRepeatMode(RepeatMode.Queue)
-      } else {
-        await trackPlayerService.setRepeatMode(RepeatMode.Off)
-      }
-    }, [isPlaylistMode, trackPlayerService])
 
     const handleClose = useCallback(() => {
       bottomSheetRef.current?.close()
@@ -606,109 +583,34 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
               {/* TTS Controls */}
               {audioFilePaths.length > 0 && (
                 <View style={styles.ttsContainer}>
-                  <View style={styles.ttsHeader}>
-                    <VectorIcon
-                      name="volume-high"
-                      font="FontAwesome6"
-                      size={16}
-                      color={AppPalette.blue500}
-                    />
-                    <Text style={[AppTypo.caption.semiBold, styles.ttsTitle]}>Audio Tóm Tắt</Text>
-                    {audioFilePaths.length > 1 && (
-                      <TouchableOpacity onPress={togglePlaylistMode} style={styles.playlistButton}>
-                        <VectorIcon
-                          name={isPlaylistMode ? 'list-check' : 'list'}
-                          font="FontAwesome6"
-                          size={12}
-                          color={isPlaylistMode ? AppPalette.blue500 : AppPalette.gray500}
-                        />
-                        <Text
-                          style={[
-                            AppTypo.mini.regular,
-                            {
-                              color: isPlaylistMode ? AppPalette.blue500 : AppPalette.gray500,
-                              marginLeft: 4,
-                            },
-                          ]}>
-                          Auto
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-
-                  <View style={styles.ttsControls}>
-                    <View style={styles.ttsProgress}>
-                      <Text style={[AppTypo.mini.regular, styles.progressText]}>
-                        {currentAudioIndex !== null ? currentAudioIndex + 1 : '-'} /{' '}
-                        {audioFilePaths.length}
-                      </Text>
-                      {progress.duration > 0 && (
-                        <Text style={[AppTypo.mini.regular, styles.progressText]}>
-                          {Math.floor(progress.position || 0)}s /{' '}
-                          {Math.floor(progress.duration || 0)}s
-                        </Text>
-                      )}
-                    </View>
-
-                    <View style={styles.ttsButtons}>
-                      <TouchableOpacity
-                        onPress={handlePrevious}
-                        disabled={currentAudioIndex === 0 || currentAudioIndex === null}
-                        style={[
-                          styles.ttsButton,
-                          (currentAudioIndex === 0 || currentAudioIndex === null) &&
-                            styles.ttsButtonDisabled,
-                        ]}>
-                        <VectorIcon
-                          name="backward-step"
-                          font="FontAwesome6"
-                          size={14}
-                          color={
-                            currentAudioIndex === 0 || currentAudioIndex === null
-                              ? AppPalette.gray300
-                              : AppPalette.gray700
-                          }
-                        />
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        onPress={handlePlayPause}
-                        style={styles.ttsPlayButton}
-                        disabled={currentAudioIndex === null}>
-                        <VectorIcon
-                          name={playbackState.state === State.Playing ? 'pause' : 'play'}
-                          font="FontAwesome6"
-                          size={16}
-                          color={AppPalette.white}
-                        />
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        onPress={handleNext}
-                        disabled={
-                          currentAudioIndex === null ||
-                          currentAudioIndex === audioFilePaths.length - 1
-                        }
-                        style={[
-                          styles.ttsButton,
-                          (currentAudioIndex === null ||
-                            currentAudioIndex === audioFilePaths.length - 1) &&
-                            styles.ttsButtonDisabled,
-                        ]}>
-                        <VectorIcon
-                          name="forward-step"
-                          font="FontAwesome6"
-                          size={14}
-                          color={
-                            currentAudioIndex === null ||
-                            currentAudioIndex === audioFilePaths.length - 1
-                              ? AppPalette.gray300
-                              : AppPalette.gray700
-                          }
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+                  <Text style={[AppTypo.caption.medium, styles.progressText]}>
+                    {currentAudioIndex !== null ? currentAudioIndex + 1 : '-'} /{' '}
+                    {audioFilePaths.length}
+                  </Text>
+                  <VectorIcon
+                    name={'backward'}
+                    font="FontAwesome6"
+                    size={16}
+                    buttonStyle={{ width: 32, height: 32 }}
+                    color={AppPalette.white}
+                    onPress={handlePrevious}
+                  />
+                  <VectorIcon
+                    name={isPlaying.playing ? 'pause' : 'play'}
+                    font="FontAwesome6"
+                    size={16}
+                    buttonStyle={{ width: 32, height: 32 }}
+                    color={AppPalette.white}
+                    onPress={handlePlayPause}
+                  />
+                  <VectorIcon
+                    name={'forward'}
+                    font="FontAwesome6"
+                    size={16}
+                    buttonStyle={{ width: 32, height: 32 }}
+                    color={AppPalette.white}
+                    onPress={handleNext}
+                  />
                 </View>
               )}
 
@@ -723,9 +625,9 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
                   />
                   <Text style={[AppTypo.body.semiBold, styles.summaryTitle]}>Tóm tắt nội dung</Text>
                 </View>
-                
+
                 {audioFilePaths.length === 0 && !isTTSGenerating && (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={() => generateTTSFromSummary(summarizedContent.current)}
                     style={styles.generateTTSButton}>
                     <VectorIcon
@@ -734,13 +636,14 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
                       size={14}
                       color={AppPalette.blue500}
                     />
-                    <Text style={[AppTypo.mini.medium, { color: AppPalette.blue500, marginLeft: 4 }]}>
+                    <Text
+                      style={[AppTypo.mini.medium, { color: AppPalette.blue500, marginLeft: 4 }]}>
                       Tạo Audio
                     </Text>
                   </TouchableOpacity>
                 )}
               </View>
-              
+
               <Text
                 style={{
                   fontFamily: font || 'Inter-Regular',
@@ -914,16 +817,14 @@ const styles = StyleSheet.create({
   },
   // TTS Styles
   ttsContainer: {
-    backgroundColor: AppPalette.white,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 12,
-    padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: AppPalette.gray400,
+    borderRadius: 100,
+    flexDirection: 'row',
+    alignSelf: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    gap: 8
   },
   ttsHeader: {
     flexDirection: 'row',
@@ -934,14 +835,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     color: AppPalette.gray800,
     flex: 1,
-  },
-  playlistButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: AppPalette.gray50,
   },
   ttsLoading: {
     flexDirection: 'row',
@@ -963,7 +856,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   progressText: {
-    color: AppPalette.gray500,
+    color: AppPalette.white,
+    marginRight: 8,
   },
   ttsButtons: {
     flexDirection: 'row',
