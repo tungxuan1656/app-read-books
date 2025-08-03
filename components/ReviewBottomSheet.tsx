@@ -1,25 +1,12 @@
-import { AppColors, AppPalette } from '@/assets'
+import { AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppTypo } from '@/constants'
 import { useBookInfo, useReading } from '@/controllers/context'
-import { convertTTSCapcut, cancelTTSConversion, resetTTSCancellation } from '@/services/convert-tts'
 import { summarizeChapter, validateGeminiApiKey } from '@/services/gemini-service'
 import { getBookChapterContent, getChapterHtml, showToastError } from '@/utils'
 import { getCachedSummary, setCachedSummary } from '@/utils/summary-cache'
-import { clearBookCache, getBookCacheStats } from '@/utils/cache-manager'
-import { breakSummaryIntoLines } from '@/utils/string-helpers'
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet'
-import TrackPlayer, {
-  Event,
-  State,
-  useTrackPlayerEvents,
-  usePlaybackState,
-  useProgress,
-  RepeatMode,
-  useIsPlaying,
-} from 'react-native-track-player'
 import TrackPlayerService from '@/services/track-player-service'
-import * as FileSystem from 'expo-file-system'
 import React, {
   forwardRef,
   useCallback,
@@ -29,16 +16,8 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  DeviceEventEmitter,
-  EmitterSubscription,
-} from 'react-native'
+import { ActivityIndicator, Alert, StyleSheet, Text, View, DeviceEventEmitter } from 'react-native'
+import PlayAudioControl from './PlayAudioControl'
 
 export interface ReviewBottomSheetRef {
   present: () => void
@@ -55,7 +34,7 @@ interface ReviewBottomSheetProps {
   fontSize?: number
 }
 
-type LoadingState = 'idle' | 'loadingChapter' | 'summarizing' | 'generatingTTS'
+type LoadingState = 'idle' | 'loadingChapter' | 'summarizing'
 
 const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProps>(
   (
@@ -75,18 +54,8 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     const summarizedContent = useRef('')
     const [loadingState, setLoadingState] = useState<LoadingState>('idle')
 
-    // TTS states
-    const [audioFilePaths, setAudioFilePaths] = useState<string[]>([])
-    const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
-    const [isTTSGenerating, setIsTTSGenerating] = useState(false)
-    const [ttsProgress, setTtsProgress] = useState({ current: 0, total: 0 })
-
-    // Event subscription refs
-    const ttsEventSubscription = useRef<EmitterSubscription | null>(null)
-
     // Track Player setup
     const trackPlayerService = TrackPlayerService.getInstance()
-    const playbackState = usePlaybackState()
 
     const reading = useReading()
     const currentBookId = bookId || reading.currentBook
@@ -95,7 +64,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     const bookInfo = passedBookInfo || bookInfoFromHook
 
     const snapPoints = useMemo(() => ['50%', '85%'], [])
-    const isPlaying = useIsPlaying()
 
     const currentChapter = useMemo(() => {
       if (bookInfo && currentChapterNumber) {
@@ -115,19 +83,8 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         loadChapterContent()
       },
       close: async () => {
-        // Cancel TTS generation if in progress
-        if (isTTSGenerating) {
-          console.log('🎵 [Close] Cancelling TTS generation...')
-          cancelTTSConversion()
-          setIsTTSGenerating(false)
-          setTtsProgress({ current: 0, total: 0 })
-        }
-
-        // Cleanup event subscriptions
-        if (ttsEventSubscription.current) {
-          ttsEventSubscription.current.remove()
-          ttsEventSubscription.current = null
-        }
+        // Send cancel event to PlayAudioControl
+        DeviceEventEmitter.emit(`cancel_audio_${currentBookId}`)
 
         bottomSheetRef.current?.close()
         await trackPlayerService.reset()
@@ -140,10 +97,8 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         chapterContent.current = ''
         summarizedContent.current = ''
 
-        // Reset TTS states
+        // Reset TrackPlayer
         await trackPlayerService.reset()
-        setAudioFilePaths([])
-        setCurrentAudioIndex(null)
 
         // Check if we have cached summary before loading content
         console.log('📝 [Summary Cache] Checking cache during chapter load')
@@ -159,12 +114,14 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
             chapterContent.current = content
             setLoadingState('idle')
 
-            // If we have cached summary, set it immediately without waiting for chapterHtml effect
+            // If we have cached summary, set it immediately and send to PlayAudioControl
             if (cachedSummary) {
               console.log('📝 [Summary Cache] Setting cached summary immediately')
               summarizedContent.current = cachedSummary
-              // Generate TTS from cached summary
-              generateTTSFromSummary(cachedSummary)
+              // Send summary to PlayAudioControl
+              DeviceEventEmitter.emit(`summary_ready_${currentBookId}_${currentChapterNumber}`, {
+                content: cachedSummary,
+              })
             }
           })
           .catch((error: any) => {
@@ -194,46 +151,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       }
     }, [chapterHtml, summarizedContent.current, loadingState, currentBookId, currentChapterNumber])
 
-    // TrackPlayer events for auto-play
-    useTrackPlayerEvents([Event.PlaybackTrackChanged], async (event) => {
-      console.log('🎵 [Event] PlaybackTrackChanged:', event)
-      if (event.type === Event.PlaybackTrackChanged && event.nextTrack !== undefined) {
-        console.log('🎵 [Event] Setting current audio index to:', event.nextTrack)
-        setCurrentAudioIndex(event.nextTrack)
-      }
-    })
-
-    useTrackPlayerEvents([Event.PlaybackQueueEnded], async () => {
-      console.log('🎵 [Event] PlaybackQueueEnded - playlist mode disabled')
-      // No auto-restart since playlist mode is disabled
-    })
-
-    useTrackPlayerEvents([Event.PlaybackState], async (event) => {
-      console.log('🎵 [Event] PlaybackState changed:', event.state)
-    })
-
-    useTrackPlayerEvents([Event.PlaybackError], async (event) => {
-      console.error('🎵 [Event] PlaybackError:', event)
-    })
-
-    useTrackPlayerEvents([Event.PlaybackMetadataReceived], async (event) => {
-      console.log('🎵 [Event] MetadataReceived:', event)
-    })
-
-    const playAudioAtIndex = useCallback(
-      async (index: number) => {
-        if (index < 0 || index >= audioFilePaths.length) return
-        try {
-          await trackPlayerService.skipToTrack(index)
-          await trackPlayerService.play()
-        } catch (error) {
-          console.error('Error playing audio:', error)
-          showToastError('Không thể phát audio.')
-        }
-      },
-      [audioFilePaths.length, trackPlayerService],
-    )
-
     const handleSummarize = useCallback(async () => {
       if (!chapterHtml) {
         Alert.alert('Lỗi', 'Không có nội dung để tóm tắt')
@@ -259,8 +176,10 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         if (cachedSummary) {
           console.log('📝 [Summary Cache] Found cached summary, using cached version')
           summarizedContent.current = cachedSummary
-          // Auto-generate TTS after setting cached summary
-          await generateTTSFromSummary(cachedSummary)
+          // Send summary to PlayAudioControl
+          DeviceEventEmitter.emit(`summary_ready_${currentBookId}_${currentChapterNumber}`, {
+            content: cachedSummary,
+          })
           return
         } else {
           console.log('📝 [Summary Cache] No cached summary found, generating new one')
@@ -287,8 +206,10 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           setCachedSummary(currentBookId, currentChapterNumber, summary)
         }
 
-        // Auto-generate TTS after summarizing
-        await generateTTSFromSummary(summary)
+        // Send summary to PlayAudioControl for TTS generation
+        DeviceEventEmitter.emit(`summary_ready_${currentBookId}_${currentChapterNumber}`, {
+          content: summary,
+        })
       } catch (error) {
         console.error('📝 [Summary Cache] Error summarizing:', error)
         Alert.alert(
@@ -300,221 +221,23 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       }
     }, [chapterHtml, bookInfo, currentBookId, currentChapterNumber])
 
-    const generateTTSFromSummary = useCallback(
-      async (content: string) => {
-        if (!content || !currentBookId || !currentChapterNumber) return
-
-        console.log('🎵 [TTS Debug] Starting TTS generation...')
-        console.log('🎵 [TTS Debug] Content length:', content.length)
-
-        setLoadingState('generatingTTS')
-        setIsTTSGenerating(true)
-
-        // Reset TTS cancellation state
-        resetTTSCancellation()
-
-        try {
-          // Break summary into shorter lines for better TTS
-          const sentences = breakSummaryIntoLines(content).slice(0, 5) // Limit to 5 lines for TTS
-          console.log('🎵 [TTS Debug] Broke into lines:', sentences.length)
-
-          if (sentences.length === 0) {
-            console.log('🎵 [TTS Debug] No lines found, returning')
-            return
-          }
-
-          // Set up progress tracking
-          setTtsProgress({ current: 0, total: sentences.length })
-
-          // First reset the player to clear any existing tracks
-          await trackPlayerService.reset()
-          setAudioFilePaths([])
-          setCurrentAudioIndex(null)
-
-          // Set up event listener for TTS audio ready events
-          if (ttsEventSubscription.current) {
-            ttsEventSubscription.current.remove()
-          }
-
-          ttsEventSubscription.current = DeviceEventEmitter.addListener(
-            'tts_audio_ready',
-            async (data: { filePath: string; sentenceIndex: number; isFromCache: boolean }) => {
-              console.log('🎵 [TTS Event] Audio ready:', data)
-
-              try {
-                // Update progress
-                setTtsProgress((prev) => ({ ...prev, current: prev.current + 1 }))
-
-                // Prepare track for TrackPlayer
-                const normalizedPath = data.filePath.startsWith('file://')
-                  ? data.filePath
-                  : `file://${data.filePath}`
-
-                const track = {
-                  id: `tts-${currentBookId}-${currentChapterNumber}-${data.sentenceIndex}`,
-                  url: normalizedPath,
-                  title: `TTS Part ${data.sentenceIndex + 1}`,
-                  artist: bookInfo?.name || 'Unknown',
-                }
-
-                // Add track to TrackPlayer
-                await trackPlayerService.addTracks([track])
-
-                // Update audio file paths state
-                setAudioFilePaths((prev) => {
-                  const newPaths = [...prev]
-                  newPaths[data.sentenceIndex] = data.filePath
-                  return newPaths
-                })
-
-                // If this is the first track, set it as current and start playing
-                if (data.sentenceIndex === 0) {
-                  setCurrentAudioIndex(0)
-
-                  // Always set repeat mode to Off
-                  await trackPlayerService.setRepeatMode(RepeatMode.Off)
-
-                  // Skip to first track to load it (but don't auto-play)
-                  await trackPlayerService.skipToTrack(0)
-                }
-
-                console.log(`🎵 [TTS Event] Track ${data.sentenceIndex} added to player`)
-              } catch (error) {
-                console.error('🎵 [TTS Event] Error handling audio ready event:', error)
-              }
-            },
-          )
-
-          console.log('🎵 [TTS Debug] Starting conversion with options:', {
-            linesCount: sentences.length,
-            voice: 'BV421_vivn_streaming',
-            bookId: currentBookId,
-            chapterNumber: currentChapterNumber,
-          })
-
-          // Start TTS conversion - this will emit events as each audio file is ready
-          const audioPaths = await convertTTSCapcut(sentences, {
-            voice: 'BV421_vivn_streaming',
-            bookId: currentBookId,
-            chapterNumber: currentChapterNumber,
-          })
-
-          console.log('🎵 [TTS Debug] convertTTSCapcut completed:', {
-            audioPathsCount: audioPaths.length,
-          })
-
-          if (audioPaths.length > 0) {
-            console.log('🎵 [TTS Debug] TTS generation completed successfully')
-          } else {
-            console.log('🎵 [TTS Debug] No audio paths returned')
-          }
-        } catch (error) {
-          console.error('🎵 [TTS Debug] Error generating TTS:', error)
-          Alert.alert('Lỗi TTS', 'Không thể tạo audio từ nội dung tóm tắt')
-        } finally {
-          setLoadingState('idle')
-          setIsTTSGenerating(false)
-          console.log('🎵 [TTS Debug] TTS generation process finished')
-        }
-      },
-      [trackPlayerService, bookInfo, currentBookId, currentChapterNumber],
-    )
-
-    const handlePlayPause = useCallback(async () => {
-      console.log('🎵 [PlayPause] Button pressed')
-      console.log('🎵 [PlayPause] Current audio index:', currentAudioIndex)
-      console.log('🎵 [PlayPause] Audio files length:', audioFilePaths.length)
-      console.log('🎵 [PlayPause] Playback state:', playbackState.state)
-
-      if (currentAudioIndex === null || audioFilePaths.length === 0) {
-        console.log('🎵 [PlayPause] No audio available to play')
-        return
-      }
-
-      try {
-        // If we're in error state, try to reload the track
-        if (playbackState.state === State.Error) {
-          console.log('🎵 [PlayPause] In error state, trying to reload track...')
-          await trackPlayerService.reset()
-
-          // Re-add the tracks
-          const tracks = audioFilePaths.map((path, index) => {
-            const normalizedPath = path.startsWith('file://') ? path : `file://${path}`
-            return {
-              id: `tts-${currentBookId}-${currentChapterNumber}-${index}`,
-              url: normalizedPath,
-              title: `TTS Part ${index + 1}`,
-              artist: bookInfo?.name || 'Unknown',
-            }
-          })
-
-          await trackPlayerService.addTracks(tracks)
-          await trackPlayerService.skipToTrack(currentAudioIndex)
-          await trackPlayerService.play()
-        } else if (playbackState.state === State.Playing) {
-          console.log('🎵 [PlayPause] Currently playing, pausing...')
-          await trackPlayerService.pause()
-        } else {
-          console.log('🎵 [PlayPause] Not playing, starting playback...')
-          await trackPlayerService.play()
-        }
-      } catch (error) {
-        console.error('🎵 [PlayPause] Error during play/pause:', error)
-        showToastError('Lỗi khi phát/dừng audio.')
-      }
-    }, [
-      currentAudioIndex,
-      playbackState.state,
-      trackPlayerService,
-      audioFilePaths.length,
-      audioFilePaths,
-      currentBookId,
-      currentChapterNumber,
-      bookInfo,
-    ])
-
-    const handlePrevious = useCallback(async () => {
-      if (currentAudioIndex !== null && currentAudioIndex > 0) {
-        const newIndex = currentAudioIndex - 1
-        setCurrentAudioIndex(newIndex)
-        await trackPlayerService.skipToPrevious()
-      }
-    }, [currentAudioIndex, trackPlayerService])
-
-    const handleNext = useCallback(async () => {
-      if (currentAudioIndex !== null && currentAudioIndex < audioFilePaths.length - 1) {
-        const newIndex = currentAudioIndex + 1
-        setCurrentAudioIndex(newIndex)
-        await trackPlayerService.skipToNext()
-      }
-    }, [currentAudioIndex, audioFilePaths.length, trackPlayerService])
-
     const handleClose = useCallback(() => {
       bottomSheetRef.current?.close()
     }, [])
 
     const handlePreviousChapter = useCallback(() => {
+      // Send cancel event to PlayAudioControl before navigating
+      DeviceEventEmitter.emit(`cancel_audio_${currentBookId}`)
       onNavigateToChapter?.('prev')
       loadChapterContent()
-    }, [onNavigateToChapter, loadChapterContent])
+    }, [onNavigateToChapter, loadChapterContent, currentBookId])
 
     const handleNextChapter = useCallback(() => {
+      // Send cancel event to PlayAudioControl before navigating
+      DeviceEventEmitter.emit(`cancel_audio_${currentBookId}`)
       onNavigateToChapter?.('next')
       loadChapterContent()
-    }, [onNavigateToChapter, loadChapterContent])
-
-    // Cleanup on unmount
-    useEffect(() => {
-      return () => {
-        if (ttsEventSubscription.current) {
-          ttsEventSubscription.current.remove()
-          ttsEventSubscription.current = null
-        }
-        if (isTTSGenerating) {
-          cancelTTSConversion()
-        }
-      }
-    }, [isTTSGenerating])
+    }, [onNavigateToChapter, loadChapterContent, currentBookId])
 
     return (
       <BottomSheet
@@ -559,7 +282,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           </View>
         </View>
         <BottomSheetScrollView style={{ backgroundColor: '#F5F1E5' }}>
-          {loadingState !== 'idle' && loadingState !== 'generatingTTS' ? (
+          {loadingState !== 'idle' ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color={AppPalette.blue500} />
               <Text style={[AppTypo.body.regular, styles.loadingText]}>
@@ -574,42 +297,11 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
             </View>
           ) : summarizedContent.current ? (
             <View style={styles.contentContainer}>
-              <View style={styles.ttsContainer}>
-                <Text style={[AppTypo.caption.medium, styles.progressText]}>
-                  {currentAudioIndex !== null ? currentAudioIndex + 1 : '-'} /{' '}
-                  {audioFilePaths.length}
-                </Text>
-                {audioFilePaths.length === 0 ? (
-                  <ActivityIndicator size={'small'} color={'#FFF'} style={{ paddingVertical: 4 }} />
-                ) : (
-                  <>
-                    <VectorIcon
-                      name={'backward'}
-                      font="FontAwesome6"
-                      size={16}
-                      buttonStyle={{ width: 32, height: 32 }}
-                      color={AppPalette.white}
-                      onPress={handlePrevious}
-                    />
-                    <VectorIcon
-                      name={isPlaying.playing ? 'pause' : 'play'}
-                      font="FontAwesome6"
-                      size={16}
-                      buttonStyle={{ width: 32, height: 32 }}
-                      color={AppPalette.white}
-                      onPress={handlePlayPause}
-                    />
-                    <VectorIcon
-                      name={'forward'}
-                      font="FontAwesome6"
-                      size={16}
-                      buttonStyle={{ width: 32, height: 32 }}
-                      color={AppPalette.white}
-                      onPress={handleNext}
-                    />
-                  </>
-                )}
-              </View>
+              <PlayAudioControl
+                bookId={currentBookId}
+                chapterNumber={currentChapterNumber}
+                bookName={bookInfo?.name}
+              />
 
               {/* Summary Content */}
               <View style={styles.summaryHeader}>
@@ -673,11 +365,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 32,
   },
   handleIndicator: {
-    // backgroundColor: AppPalette.gray300,
     display: 'none',
-  },
-  container: {
-    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -710,10 +398,6 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     marginHorizontal: 1,
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: '#F5F1E5',
   },
   contentContainer: {
     flexGrow: 1,
@@ -756,20 +440,6 @@ const styles = StyleSheet.create({
     color: AppPalette.gray900,
     flex: 1,
   },
-  generateTTSButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: AppPalette.blue50,
-    borderWidth: 1,
-    borderColor: AppPalette.blue200,
-  },
-  htmlContent: {
-    flex: 1,
-    marginHorizontal: 0,
-  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -787,79 +457,5 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: AppPalette.blue500,
-  },
-  toggleButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: AppPalette.gray100,
-  },
-  // TTS Styles
-  ttsContainer: {
-    backgroundColor: AppPalette.gray400,
-    borderRadius: 100,
-    flexDirection: 'row',
-    alignSelf: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    marginBottom: 16,
-    gap: 8,
-  },
-  ttsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  ttsTitle: {
-    marginLeft: 8,
-    color: AppPalette.gray800,
-    flex: 1,
-  },
-  ttsLoading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-  },
-  ttsLoadingText: {
-    marginLeft: 8,
-    color: AppPalette.gray600,
-  },
-  ttsControls: {
-    alignItems: 'center',
-  },
-  ttsProgress: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 12,
-  },
-  progressText: {
-    color: AppPalette.white,
-    marginRight: 8,
-  },
-  ttsButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  ttsButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: AppPalette.gray100,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ttsButtonDisabled: {
-    backgroundColor: AppPalette.gray50,
-  },
-  ttsPlayButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: AppPalette.blue500,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 })
