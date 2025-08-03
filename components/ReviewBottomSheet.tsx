@@ -74,9 +74,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       const cachedSummary = getCachedSummary(bookId, chapterNumber)
       if (cachedSummary) {
         setSummaryContent(cachedSummary)
-        DeviceEventEmitter.emit(`summary_ready_${bookId}_${chapterNumber}`, {
-          content: cachedSummary,
-        })
+        sendSummaryToTTS(cachedSummary)
         return
       }
 
@@ -89,11 +87,8 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         })
 
         setSummaryContent(summary)
+        sendSummaryToTTS(summary)
         setCachedSummary(bookId, chapterNumber, summary)
-
-        DeviceEventEmitter.emit(`summary_ready_${bookId}_${chapterNumber}`, {
-          content: summary,
-        })
       } catch (error) {
         console.error('📝 [Summary Cache] Error summarizing:', error)
         Alert.alert(
@@ -103,6 +98,14 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       } finally {
         setLoadingState('idle')
       }
+    }
+
+    const sendSummaryToTTS = (content: string) => {
+      setTimeout(() => {
+        DeviceEventEmitter.emit(`summary_ready_${bookId}_${chapterNumber}`, {
+          content,
+        })
+      }, 1000)
     }
 
     const handleClose = useCallback(() => {

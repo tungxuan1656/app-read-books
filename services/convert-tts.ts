@@ -145,6 +145,7 @@ const _getOrGenerateAudioFile = async (
     console.log(`🎵 [TTS] Using cached audio: ${fileName}`)
     // Emit event for cached file
     DeviceEventEmitter.emit('tts_audio_ready', {
+      name: fileName,
       filePath: newCacheFilePath,
       sentenceIndex,
       isFromCache: true,

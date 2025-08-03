@@ -39,17 +39,12 @@ export default function PlayAudioControl({
   const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
   const [isTTSGenerating, setIsTTSGenerating] = useState(false)
 
-  const ttsEventSubscription = useRef<EmitterSubscription | null>(null)
-  const summaryEventSubscription = useRef<EmitterSubscription | null>(null)
-
   const trackPlayerService = TrackPlayerService.getInstance()
   const isPlaying = useIsPlaying()
 
-  console.log(bookId, chapterNumber)
-
   useEffect(() => {
     if (!bookId || !chapterNumber) return
-    summaryEventSubscription.current = DeviceEventEmitter.addListener(
+    const subs1 = DeviceEventEmitter.addListener(
       `summary_ready_${bookId}_${chapterNumber}`,
       (data: { content: string }) => {
         console.log('🎵 [Audio] Received summary, starting TTS...')
@@ -63,18 +58,20 @@ export default function PlayAudioControl({
     })
 
     return () => {
-      summaryEventSubscription.current?.remove()
+      subs1.remove()
       cancelSubscription.remove()
     }
   }, [bookId, chapterNumber])
 
   useEffect(() => {
-    ttsEventSubscription.current = DeviceEventEmitter.addListener(
+    const subscrition = DeviceEventEmitter.addListener(
       'tts_audio_ready',
-      async (data: { filePath: string; sentenceIndex: number }) => {
+      async (data: { filePath: string; sentenceIndex: number; name: string }) => {
+        console.log('🎵 [Audio] TTS audio ready:', data)
+
         try {
           const track = {
-            id: `tts-${bookId}-${chapterNumber}-${data.sentenceIndex}`,
+            id: data.name,
             url: data.filePath.startsWith('file://') ? data.filePath : `file://${data.filePath}`,
             title: `Part ${data.sentenceIndex + 1}`,
             artist: bookName || 'Unknown',
@@ -89,7 +86,7 @@ export default function PlayAudioControl({
           })
 
           // Auto-play first track only
-          if (data.sentenceIndex === 0) {
+          if (data.sentenceIndex === 3) {
             setCurrentAudioIndex(0)
             await trackPlayerService.setRepeatMode(RepeatMode.Off)
             await trackPlayerService.skipToTrack(0)
@@ -109,8 +106,8 @@ export default function PlayAudioControl({
       },
     )
 
-    return () => ttsEventSubscription.current?.remove()
-  }, [bookId, chapterNumber, bookName])
+    return () => subscrition.remove()
+  }, [])
 
   useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], (event) => {
     if (event.type === Event.PlaybackActiveTrackChanged && event.index !== undefined) {
@@ -126,7 +123,7 @@ export default function PlayAudioControl({
       resetTTSCancellation()
 
       try {
-        const sentences = breakSummaryIntoLines(content).slice(0, 5)
+        const sentences = breakSummaryIntoLines(content)
         if (sentences.length === 0) return
         await trackPlayerService.reset()
         setAudioFilePaths([])
@@ -185,8 +182,6 @@ export default function PlayAudioControl({
   // Cleanup
   useEffect(() => {
     return () => {
-      ttsEventSubscription.current?.remove()
-      summaryEventSubscription.current?.remove()
       if (isTTSGenerating) cancelTTSConversion()
     }
   }, [isTTSGenerating])
