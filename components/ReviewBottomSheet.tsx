@@ -145,114 +145,91 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       loadChapterContent()
     }, [onNavigateToChapter, loadChapterContent])
 
-    const renderContent = () => {
-      if (isLoading || isSummarizing) {
-        return (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={AppPalette.blue500} />
-            <Text style={[AppTypo.body.regular, styles.loadingText]}>Đang tóm tắt nội dung...</Text>
-            <Text style={[AppTypo.mini.regular, styles.loadingSubtext]}>
-              Quá trình này có thể mất vài giây
-            </Text>
-          </View>
-        )
-      }
-
-      if (summarizedContent) {
-        return (
-          <ContentDisplay
-            chapterHtml={summarizedContent}
-            font={font ?? 'Inter-Regular'}
-            lineHeight={lineHeight ?? 1.5}
-            fontSize={fontSize ?? 16}
-            onLoaded={() => {}}
-          />
-        )
-      }
-
-      return (
-        <View style={styles.errorContainer}>
-          <VectorIcon
-            name="triangle-exclamation"
-            font="FontAwesome6"
-            size={32}
-            color={AppPalette.red500}
-          />
-          <Text style={[AppTypo.body.regular, styles.errorText]}>
-            Không thể tóm tắt nội dung chương
-          </Text>
-          <VectorIcon
-            name="refresh"
-            font="FontAwesome6"
-            size={18}
-            buttonStyle={styles.retryButton}
-            color={AppPalette.blue500}
-            onPress={handleSummarize}
-          />
-        </View>
-      )
-    }
-
     return (
       <BottomSheet
         ref={bottomSheetRef}
         snapPoints={snapPoints}
         index={-1}
         enablePanDownToClose
+        enableDynamicSizing={false}
         backgroundStyle={styles.bottomSheetBackground}
         handleIndicatorStyle={styles.handleIndicator}>
-        <BottomSheetView style={styles.container}>
-          <View style={styles.header}>
-            <VectorIcon
-              name="xmark"
-              font="FontAwesome6"
-              size={20}
-              buttonStyle={styles.headerButton}
-              color={AppPalette.gray400}
-              onPress={handleClose}
-            />
-            <View style={styles.headerCenter}>
-              <Text style={[AppTypo.body.semiBold, styles.headerSubtitle]} numberOfLines={1}>
-                {currentChapter}
-              </Text>
-            </View>
-            <View style={styles.navigationContainer}>
-              <VectorIcon
-                name="arrow-left"
-                font="FontAwesome6"
-                size={14}
-                buttonStyle={styles.navButton}
-                color={AppPalette.white}
-                onPress={handlePreviousChapter}
-              />
-              <VectorIcon
-                name="arrow-right"
-                font="FontAwesome6"
-                size={14}
-                buttonStyle={styles.navButton}
-                color={AppPalette.white}
-                onPress={handleNextChapter}
-              />
-            </View>
+        <View style={styles.header}>
+          <VectorIcon
+            name="xmark"
+            font="FontAwesome6"
+            size={20}
+            buttonStyle={styles.headerButton}
+            color={AppPalette.gray400}
+            onPress={handleClose}
+          />
+          <View style={styles.headerCenter}>
+            <Text style={[AppTypo.body.semiBold, styles.headerSubtitle]} numberOfLines={1}>
+              {currentChapter}
+            </Text>
           </View>
-
-          <BottomSheetScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ flexGrow: 1 }}>
-            {summarizedContent ? (
-              <ContentDisplay
-                chapterHtml={summarizedContent}
-                font={font ?? 'Inter-Regular'}
-                lineHeight={lineHeight ?? 1.5}
-                fontSize={fontSize ?? 16}
-                onLoaded={() => {}}
-              />
-            ) : (
+          <View style={styles.navigationContainer}>
+            <VectorIcon
+              name="arrow-left"
+              font="FontAwesome6"
+              size={14}
+              buttonStyle={styles.navButton}
+              color={AppPalette.white}
+              onPress={handlePreviousChapter}
+            />
+            <VectorIcon
+              name="arrow-right"
+              font="FontAwesome6"
+              size={14}
+              buttonStyle={styles.navButton}
+              color={AppPalette.white}
+              onPress={handleNextChapter}
+            />
+          </View>
+        </View>
+        <BottomSheetScrollView style={{ backgroundColor: '#F5F1E5' }}>
+          {isLoading || isSummarizing ? (
+            <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color={AppPalette.blue500} />
-            )}
-          </BottomSheetScrollView>
-        </BottomSheetView>
+              <Text style={[AppTypo.body.regular, styles.loadingText]}>
+                {isLoading ? 'Đang tải nội dung chương...' : 'Đang tóm tắt nội dung...'}
+              </Text>
+              {!isLoading && (
+                <Text style={[AppTypo.mini.regular, styles.loadingSubtext]}>
+                  Quá trình này có thể mất vài giây
+                </Text>
+              )}
+            </View>
+          ) : summarizedContent ? (
+            <ContentDisplay
+              chapterHtml={summarizedContent}
+              font={font!}
+              fontSize={fontSize!}
+              lineHeight={lineHeight!}
+              onLoaded={() => {}}
+            />
+          ) : (
+            <View style={styles.errorContainer}>
+              <VectorIcon
+                name="triangle-exclamation"
+                font="FontAwesome6"
+                size={32}
+                color={AppPalette.red500}
+              />
+              <Text style={[AppTypo.body.regular, styles.errorText]}>
+                Không thể tóm tắt nội dung chương
+              </Text>
+              <VectorIcon
+                name="refresh"
+                font="FontAwesome6"
+                size={18}
+                buttonStyle={styles.retryButton}
+                color={AppPalette.blue500}
+                onPress={handleSummarize}
+              />
+            </View>
+          )}
+        </BottomSheetScrollView>
       </BottomSheet>
     )
   },
@@ -347,6 +324,7 @@ const styles = StyleSheet.create({
   },
   htmlContent: {
     flex: 1,
+    marginHorizontal: 0,
   },
   errorContainer: {
     flex: 1,
