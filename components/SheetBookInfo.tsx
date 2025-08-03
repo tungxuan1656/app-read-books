@@ -1,6 +1,7 @@
 import { AppColors, AppPalette } from '@/assets'
 import { AppStyles, AppTypo } from '@/constants'
 import { getListFonts } from '@/utils'
+import { clearBookCache } from '@/utils/cache-manager'
 import { VectorIcon } from '@/components/Icon'
 import { router } from 'expo-router'
 import React from 'react'
@@ -13,6 +14,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  Alert,
 } from 'react-native'
 
 type SheetBookInfoProps = {
@@ -38,6 +40,29 @@ const SheetBookInfo = ({
   lineHeight,
   setLineHeight,
 }: SheetBookInfoProps) => {
+  const handleClearCache = async () => {
+    Alert.alert(
+      'Xóa Cache',
+      'Bạn có muốn xóa toàn bộ cache (tóm tắt và audio) của bộ truyện này không?',
+      [
+        { text: 'Hủy', style: 'cancel' },
+        {
+          text: 'Xóa',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await clearBookCache(bookId)
+              Alert.alert('Thành công', 'Đã xóa toàn bộ cache của bộ truyện')
+            } catch (error) {
+              console.error('Error clearing cache:', error)
+              Alert.alert('Lỗi', 'Không thể xóa cache')
+            }
+          },
+        },
+      ],
+    )
+  }
+
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible}>
       <View style={{ flex: 1, backgroundColor: 'transparent' }}>
@@ -122,6 +147,20 @@ const SheetBookInfo = ({
                 {'Cuộn xuống cuối'}
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.viewRow, { marginBottom: 20 }]}
+              onPress={handleClearCache}>
+              <VectorIcon
+                name="trash"
+                font="FontAwesome6"
+                color={AppColors.textValidate}
+                size={16}
+              />
+              <Text style={[AppTypo.body.medium, { color: AppColors.textValidate }]}>
+                {'Xóa cache bộ truyện'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -133,7 +172,7 @@ export default SheetBookInfo
 
 const styles = StyleSheet.create({
   modalContent: {
-    height: 340,
+    height: 380,
     width: '100%',
     backgroundColor: AppPalette.white,
     borderTopRightRadius: 24,

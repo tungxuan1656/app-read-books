@@ -1,4 +1,4 @@
-import { AppPalette } from '@/assets'
+import { AppColors, AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppTypo } from '@/constants'
 import { useBookInfo, useReading } from '@/controllers/context'
@@ -512,39 +512,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       }
     }, [isPlaylistMode, trackPlayerService])
 
-    const handleClearCache = useCallback(async () => {
-      if (!currentBookId) return
-
-      Alert.alert(
-        'Xóa Cache',
-        'Bạn có muốn xóa toàn bộ cache (tóm tắt và audio) của bộ truyện này không?',
-        [
-          { text: 'Hủy', style: 'cancel' },
-          {
-            text: 'Xóa',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await clearBookCache(currentBookId)
-
-                // Reset current chapter states
-                chapterContent.current = ''
-                summarizedContent.current = ''
-                setAudioFilePaths([])
-                setCurrentAudioIndex(null)
-                await trackPlayerService.reset()
-
-                Alert.alert('Thành công', 'Đã xóa toàn bộ cache của bộ truyện')
-              } catch (error) {
-                console.error('Error clearing cache:', error)
-                Alert.alert('Lỗi', 'Không thể xóa cache')
-              }
-            },
-          },
-        ],
-      )
-    }, [currentBookId, trackPlayerService])
-
     const handleClose = useCallback(() => {
       bottomSheetRef.current?.close()
     }, [])
@@ -595,33 +562,23 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
               {currentChapter}
             </Text>
           </View>
-          <View style={styles.headerActions}>
+          <View style={styles.navigationContainer}>
             <VectorIcon
-              name="trash"
+              name="arrow-left"
               font="FontAwesome6"
-              size={16}
-              buttonStyle={styles.cacheButton}
-              color={AppPalette.red500}
-              onPress={handleClearCache}
+              size={14}
+              buttonStyle={styles.navButton}
+              color={AppPalette.white}
+              onPress={handlePreviousChapter}
             />
-            <View style={styles.navigationContainer}>
-              <VectorIcon
-                name="arrow-left"
-                font="FontAwesome6"
-                size={14}
-                buttonStyle={styles.navButton}
-                color={AppPalette.white}
-                onPress={handlePreviousChapter}
-              />
-              <VectorIcon
-                name="arrow-right"
-                font="FontAwesome6"
-                size={14}
-                buttonStyle={styles.navButton}
-                color={AppPalette.white}
-                onPress={handleNextChapter}
-              />
-            </View>
+            <VectorIcon
+              name="arrow-right"
+              font="FontAwesome6"
+              size={14}
+              buttonStyle={styles.navButton}
+              color={AppPalette.white}
+              onPress={handleNextChapter}
+            />
           </View>
         </View>
         <BottomSheetScrollView style={{ backgroundColor: '#F5F1E5' }}>
@@ -756,13 +713,41 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
               )}
 
               {/* Summary Content */}
+              <View style={styles.summaryHeader}>
+                <View style={styles.summaryTitleContainer}>
+                  <VectorIcon
+                    name="file-text"
+                    font="FontAwesome6"
+                    size={16}
+                    color={AppPalette.gray700}
+                  />
+                  <Text style={[AppTypo.body.semiBold, styles.summaryTitle]}>Tóm tắt nội dung</Text>
+                </View>
+                
+                {audioFilePaths.length === 0 && !isTTSGenerating && (
+                  <TouchableOpacity 
+                    onPress={() => generateTTSFromSummary(summarizedContent.current)}
+                    style={styles.generateTTSButton}>
+                    <VectorIcon
+                      name="volume-high"
+                      font="FontAwesome6"
+                      size={14}
+                      color={AppPalette.blue500}
+                    />
+                    <Text style={[AppTypo.mini.medium, { color: AppPalette.blue500, marginLeft: 4 }]}>
+                      Tạo Audio
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              
               <Text
                 style={{
                   fontFamily: font || 'Inter-Regular',
                   lineHeight: fontSize! * lineHeight! * 0.9,
                   fontSize: fontSize! * 0.8,
                   marginHorizontal: 16,
-                  marginTop: audioFilePaths.length > 0 ? 16 : 0,
+                  marginTop: 8,
                   color: AppPalette.gray900,
                 }}>
                 {summarizedContent.current}
@@ -832,17 +817,6 @@ const styles = StyleSheet.create({
     color: AppPalette.gray600,
     textAlign: 'center',
   },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  cacheButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: AppPalette.gray100,
-  },
   navigationContainer: {
     flexDirection: 'row',
     backgroundColor: AppPalette.gray400,
@@ -883,15 +857,32 @@ const styles = StyleSheet.create({
   summaryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    marginBottom: 8,
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: AppPalette.gray200,
+  },
+  summaryTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   summaryTitle: {
     marginLeft: 8,
     color: AppPalette.gray900,
     flex: 1,
+  },
+  generateTTSButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: AppPalette.blue50,
+    borderWidth: 1,
+    borderColor: AppPalette.blue200,
   },
   htmlContent: {
     flex: 1,
