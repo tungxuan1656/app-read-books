@@ -86,6 +86,9 @@ importers:
       react-native-toast-message:
         specifier: ^2.2.0
         version: 2.3.3(react-native@0.79.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+      react-native-track-player:
+        specifier: ^4.1.1
+        version: 4.1.1(react-native@0.79.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       react-native-zip-archive:
         specifier: ^7.0.1
         version: 7.0.2(react-native@0.79.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
@@ -3327,6 +3330,19 @@ packages:
     peerDependencies:
       react: '*'
       react-native: '*'
+
+  react-native-track-player@4.1.1:
+    resolution: {integrity: sha512-E5N/eK/+HtAVJUAzXpm1cWz8ROheV9jb0TI6h2bM+333U+DWibTTnT2T1122FkCoXLXIYavtm2FR2if+5jH8cA==}
+    peerDependencies:
+      react: '>=16.8.6'
+      react-native: '>=0.60.0-rc.2'
+      react-native-windows: '>=0.63.0'
+      shaka-player: ^4.7.9
+    peerDependenciesMeta:
+      react-native-windows:
+        optional: true
+      shaka-player:
+        optional: true
 
   react-native-zip-archive@7.0.2:
     resolution: {integrity: sha512-msCRJMcwH6NVZ2/zoC+1nvA0wlpYRnMxteQywS9nt4BzXn48tZpaVtE519QEZn0xe3ygvgsWx5cdPoE9Jx3bsg==}
@@ -8350,6 +8366,11 @@ snapshots:
       warn-once: 0.1.1
 
   react-native-toast-message@2.3.3(react-native@0.79.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
+    dependencies:
+      react: 19.0.0
+      react-native: 0.79.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.0.14)(react@19.0.0)
+
+  react-native-track-player@4.1.1(react-native@0.79.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
     dependencies:
       react: 19.0.0
       react-native: 0.79.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.0.14)(react@19.0.0)

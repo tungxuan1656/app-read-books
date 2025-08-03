@@ -9,6 +9,7 @@ import { GToastComponent } from '@/components/GToast'
 import { EventKeys, MMKVKeys } from '@/constants'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { initializeTTSCache } from '../controllers/tts-cache'
+import TrackPlayerService from '../services/track-player-service'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
@@ -42,6 +43,18 @@ export default function RootLayout() {
 
     // Initialize TTS cache on app start
     initializeTTSCache()
+
+    // Initialize TrackPlayer on app start
+    const initTrackPlayer = async () => {
+      try {
+        const trackPlayerService = TrackPlayerService.getInstance()
+        await trackPlayerService.setupPlayer()
+        console.log('TrackPlayer initialized successfully')
+      } catch (error) {
+        console.error('Failed to initialize TrackPlayer:', error)
+      }
+    }
+    initTrackPlayer()
   }, [])
 
   // Separate effect for navigation that runs after fonts are loaded

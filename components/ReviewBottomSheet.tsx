@@ -8,7 +8,15 @@ import { getBookChapterContent, getChapterHtml, showToastError } from '@/utils'
 import { getCachedSummary, setCachedSummary } from '@/utils/summary-cache'
 import { breakSummaryIntoLines } from '@/utils/string-helpers'
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet'
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio'
+import TrackPlayer, { 
+  Event, 
+  State, 
+  useTrackPlayerEvents, 
+  usePlaybackState, 
+  useProgress,
+  RepeatMode 
+} from 'react-native-track-player'
+import TrackPlayerService from '@/services/track-player-service'
 import React, {
   forwardRef,
   useCallback,
@@ -61,9 +69,10 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
     const [isPlaylistMode, setIsPlaylistMode] = useState(false)
 
-    // Audio player setup
-    const player = useAudioPlayer()
-    const status = useAudioPlayerStatus(player)
+    // Track Player setup
+    const trackPlayerService = TrackPlayerService.getInstance()
+    const playbackState = usePlaybackState()
+    const progress = useProgress()
 
     const reading = useReading()
     const currentBookId = bookId || reading.currentBook
@@ -85,25 +94,25 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     }, [chapterContent.current])
 
     useImperativeHandle(ref, () => ({
-      present: () => {
+      present: async () => {
+        await trackPlayerService.setupPlayer()
         bottomSheetRef.current?.expand()
         loadChapterContent()
       },
-      close: () => {
+      close: async () => {
         bottomSheetRef.current?.close()
-        player.pause()
-        player.remove()
+        await trackPlayerService.reset()
       },
     }))
 
-    const loadChapterContent = useCallback(() => {
+    const loadChapterContent = useCallback(async () => {
       if (currentBookId && currentChapterNumber) {
         setLoadingState('loadingChapter')
         chapterContent.current = ''
         summarizedContent.current = ''
 
         // Reset TTS states
-        player.remove()
+        await trackPlayerService.reset()
         setAudioFilePaths([])
         setCurrentAudioIndex(null)
         setIsPlaylistMode(false)
@@ -135,7 +144,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
             setLoadingState('idle')
           })
       }
-    }, [currentBookId, currentChapterNumber, player])
+    }, [currentBookId, currentChapterNumber, trackPlayerService])
 
     // Summarize chapter when content is loaded (only if no cached summary and no current summary)
     useEffect(() => {
@@ -157,47 +166,33 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       }
     }, [chapterHtml, summarizedContent.current, loadingState, currentBookId, currentChapterNumber])
 
-    // Auto-play next audio when current finishes
-    useEffect(() => {
-      if (
-        status?.didJustFinish &&
-        isPlaylistMode &&
-        currentAudioIndex !== null &&
-        currentAudioIndex < audioFilePaths.length - 1 &&
-        !isSwitchingAudio.current // Prevent re-triggering while switching
-      ) {
-        console.log('🎵 [Auto-play] Triggering next audio')
-        isSwitchingAudio.current = true // Set flag to prevent re-entry
-        const nextIndex = currentAudioIndex + 1
-        setCurrentAudioIndex(nextIndex)
-        playAudioAtIndex(nextIndex)
-      } else if (!status?.playing) {
-        // Reset the flag when playback stops for any other reason
-        isSwitchingAudio.current = false
+    // TrackPlayer events for auto-play
+    useTrackPlayerEvents([Event.PlaybackTrackChanged], async (event) => {
+      if (event.type === Event.PlaybackTrackChanged && event.nextTrack !== undefined) {
+        setCurrentAudioIndex(event.nextTrack)
       }
-    }, [
-      status?.didJustFinish,
-      status?.playing,
-      isPlaylistMode,
-      currentAudioIndex,
-      audioFilePaths.length,
-    ])
+    })
+
+    useTrackPlayerEvents([Event.PlaybackQueueEnded], async () => {
+      if (isPlaylistMode) {
+        // Restart from beginning if playlist mode is enabled
+        await trackPlayerService.skipToTrack(0)
+        await trackPlayerService.play()
+      }
+    })
 
     const playAudioAtIndex = useCallback(
       async (index: number) => {
         if (index < 0 || index >= audioFilePaths.length) return
-        const path = audioFilePaths[index]
         try {
-          await player.replace(path)
-          await player.play()
-          // The flag is reset in the useEffect when playing status changes
+          await trackPlayerService.skipToTrack(index)
+          await trackPlayerService.play()
         } catch (error) {
           console.error('Error playing audio:', error)
           showToastError('Không thể phát audio.')
-          isSwitchingAudio.current = false // Reset flag on error
         }
       },
-      [audioFilePaths, player],
+      [audioFilePaths.length, trackPlayerService],
     )
 
     const handleSummarize = useCallback(async () => {
@@ -306,9 +301,23 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           })
 
           if (audioPaths.length > 0) {
+            // Prepare tracks for TrackPlayer
+            const tracks = audioPaths.map((path, index) => ({
+              id: `tts-${index}`,
+              url: path,
+              title: `TTS Part ${index + 1}`,
+              artist: bookInfo?.name || 'Unknown',
+            }))
+
+            await trackPlayerService.addTracks(tracks)
             setAudioFilePaths(audioPaths)
-            setCurrentAudioIndex(0) // Set initial index, but don't auto-play
-            await player.replace(audioPaths[0])
+            setCurrentAudioIndex(0)
+            
+            // Set repeat mode based on playlist mode
+            if (isPlaylistMode) {
+              await trackPlayerService.setRepeatMode(RepeatMode.Queue)
+            }
+            
             console.log('🎵 [TTS Debug] TTS generation completed successfully')
           } else {
             console.log('🎵 [TTS Debug] No audio paths returned')
@@ -321,23 +330,17 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           console.log('🎵 [TTS Debug] TTS generation process finished')
         }
       },
-      [player],
+      [trackPlayerService, bookInfo, isPlaylistMode],
     )
 
     const handlePlayPause = useCallback(async () => {
       if (currentAudioIndex === null || audioFilePaths.length === 0) return
 
       try {
-        if (status?.playing) {
-          await player.pause()
+        if (playbackState.state === State.Playing) {
+          await trackPlayerService.pause()
         } else {
-          // If the player is loaded and just paused, resume it.
-          // Otherwise, (re)load the track and play.
-          if (status?.isLoaded && !status.playing) {
-            await player.play()
-          } else {
-            await playAudioAtIndex(currentAudioIndex)
-          }
+          await trackPlayerService.play()
         }
       } catch (error) {
         console.error('Error during play/pause:', error)
@@ -345,32 +348,38 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       }
     }, [
       currentAudioIndex,
-      status?.playing,
-      status?.isLoaded,
-      player,
-      playAudioAtIndex,
+      playbackState.state,
+      trackPlayerService,
       audioFilePaths.length,
     ])
 
-    const handlePrevious = useCallback(() => {
+    const handlePrevious = useCallback(async () => {
       if (currentAudioIndex !== null && currentAudioIndex > 0) {
         const newIndex = currentAudioIndex - 1
         setCurrentAudioIndex(newIndex)
-        playAudioAtIndex(newIndex)
+        await trackPlayerService.skipToPrevious()
       }
-    }, [currentAudioIndex, playAudioAtIndex])
+    }, [currentAudioIndex, trackPlayerService])
 
-    const handleNext = useCallback(() => {
+    const handleNext = useCallback(async () => {
       if (currentAudioIndex !== null && currentAudioIndex < audioFilePaths.length - 1) {
         const newIndex = currentAudioIndex + 1
         setCurrentAudioIndex(newIndex)
-        playAudioAtIndex(newIndex)
+        await trackPlayerService.skipToNext()
       }
-    }, [currentAudioIndex, audioFilePaths.length, playAudioAtIndex])
+    }, [currentAudioIndex, audioFilePaths.length, trackPlayerService])
 
-    const togglePlaylistMode = useCallback(() => {
-      setIsPlaylistMode((prev) => !prev)
-    }, [])
+    const togglePlaylistMode = useCallback(async () => {
+      const newPlaylistMode = !isPlaylistMode
+      setIsPlaylistMode(newPlaylistMode)
+      
+      // Update repeat mode based on playlist mode
+      if (newPlaylistMode) {
+        await trackPlayerService.setRepeatMode(RepeatMode.Queue)
+      } else {
+        await trackPlayerService.setRepeatMode(RepeatMode.Off)
+      }
+    }, [isPlaylistMode, trackPlayerService])
 
     const handleClose = useCallback(() => {
       bottomSheetRef.current?.close()
@@ -484,10 +493,10 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
                         {currentAudioIndex !== null ? currentAudioIndex + 1 : '-'} /{' '}
                         {audioFilePaths.length}
                       </Text>
-                      {status?.isLoaded && (
+                      {progress.duration > 0 && (
                         <Text style={[AppTypo.mini.regular, styles.progressText]}>
-                          {Math.floor(status.currentTime || 0)}s /{' '}
-                          {Math.floor(status.duration || 0)}s
+                          {Math.floor(progress.position || 0)}s /{' '}
+                          {Math.floor(progress.duration || 0)}s
                         </Text>
                       )}
                     </View>
@@ -518,7 +527,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
                         style={styles.ttsPlayButton}
                         disabled={currentAudioIndex === null}>
                         <VectorIcon
-                          name={status?.playing ? 'pause' : 'play'}
+                          name={playbackState.state === State.Playing ? 'pause' : 'play'}
                           font="FontAwesome6"
                           size={16}
                           color={AppPalette.white}
