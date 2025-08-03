@@ -44,17 +44,30 @@ const handleGeminiResponse = async (response: Response) => {
 
 const parseGeminiResult = (result: any, errorContext: string) => {
   const contentParts = result.candidates?.[0]?.content?.parts
-  let rawText = null
+  let rawJson = null
 
   if (contentParts && contentParts.length > 0) {
-    rawText = contentParts[0].text
+    rawJson = contentParts[0].text
   }
 
-  if (!rawText) {
-    throw new Error(`Không nhận được kết quả từ Gemini. Context: ${errorContext}`)
+  if (!rawJson) {
+    throw new Error(
+      `Không nhận được kết quả từ Gemini. Context: ${errorContext}`,
+    )
   }
 
-  return rawText.trim()
+  try {
+    return JSON.parse(rawJson)
+  } catch (e) {
+    console.log(
+      `Lỗi khi parse JSON từ Gemini (${errorContext}):`,
+      e,
+      JSON.stringify(result),
+    )
+    throw new Error(
+      `Gemini trả về văn bản không phải JSON hợp lệ: ${rawJson.substring(0, 200)}...`,
+    )
+  }
 }
 
 export const CONTENT_SCHEMA = {
@@ -121,7 +134,7 @@ Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn:
       generationConfig: {
         ...COMMON_GENERATION_CONFIG_BASE,
         responseSchema: CONTENT_SCHEMA,
-        maxOutputTokens: 1000,
+        maxOutputTokens: 8096,
       },
       safetySettings: COMMON_SAFETY_SETTINGS,
     })
@@ -134,9 +147,9 @@ Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn:
     })
 
     const data = await handleGeminiResponse(response)
+    console.log('Gemini API response:', JSON.stringify(data, null, 2))
     const summary = parseGeminiResult(data, 'chapter summarization')
 
-    console.log('Gemini API response:', data)
     console.log('Summary:', summary)
 
     if (!summary || summary.length === 0) {
