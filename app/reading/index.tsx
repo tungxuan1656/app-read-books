@@ -257,6 +257,7 @@ const Reading = () => {
       <ReviewBottomSheet
         ref={reviewBottomSheetRef}
         bookId={bookId}
+        bookInfo={bookInfo as Book}
         chapterNumber={reading.books[reading.currentBook]}
         onNavigateToChapter={handleNavigateFromReview}
         font={font}

@@ -15,6 +15,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -26,6 +27,7 @@ export interface ReviewBottomSheetRef {
 
 interface ReviewBottomSheetProps {
   bookId?: string
+  bookInfo?: Book
   chapterNumber?: number
   onNavigateToChapter?: (direction: 'prev' | 'next') => void
   font?: string
@@ -33,29 +35,41 @@ interface ReviewBottomSheetProps {
   fontSize?: number
 }
 
+type LoadingState = 'idle' | 'loadingChapter' | 'summarizing' | 'generatingTTS'
+
 const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProps>(
-  ({ bookId, chapterNumber, onNavigateToChapter, font, lineHeight, fontSize }, ref) => {
+  (
+    {
+      bookId,
+      bookInfo: passedBookInfo,
+      chapterNumber,
+      onNavigateToChapter,
+      font,
+      lineHeight,
+      fontSize,
+    },
+    ref,
+  ) => {
     const bottomSheetRef = React.useRef<BottomSheet>(null)
-    const [chapterContent, setChapterContent] = useState('')
-    const [summarizedContent, setSummarizedContent] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-    const [isSummarizing, setIsSummarizing] = useState(false)
-    
+    const chapterContent = useRef('')
+    const summarizedContent = useRef('')
+    const [loadingState, setLoadingState] = useState<LoadingState>('idle')
+    const isSwitchingAudio = useRef(false) // Ref to prevent race conditions
+
     // TTS states
-    const [isGeneratingTTS, setIsGeneratingTTS] = useState(false)
     const [audioFilePaths, setAudioFilePaths] = useState<string[]>([])
-    const [currentAudioIndex, setCurrentAudioIndex] = useState(0)
+    const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
     const [isPlaylistMode, setIsPlaylistMode] = useState(false)
 
     // Audio player setup
-    const currentAudioPath = audioFilePaths[currentAudioIndex] || null
-    const player = useAudioPlayer(currentAudioPath)
+    const player = useAudioPlayer()
     const status = useAudioPlayerStatus(player)
 
     const reading = useReading()
     const currentBookId = bookId || reading.currentBook
     const currentChapterNumber = chapterNumber || (reading.books[currentBookId] ?? 1)
-    const bookInfo = useBookInfo(currentBookId)
+    const bookInfoFromHook = useBookInfo(currentBookId)
+    const bookInfo = passedBookInfo || bookInfoFromHook
 
     const snapPoints = useMemo(() => ['50%', '85%'], [])
 
@@ -66,9 +80,9 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     }, [bookInfo, currentChapterNumber])
 
     const chapterHtml = useMemo(() => {
-      if (!chapterContent) return ''
-      return getChapterHtml(chapterContent)
-    }, [chapterContent])
+      if (!chapterContent.current) return ''
+      return getChapterHtml(chapterContent.current)
+    }, [chapterContent.current])
 
     useImperativeHandle(ref, () => ({
       present: () => {
@@ -77,50 +91,61 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       },
       close: () => {
         bottomSheetRef.current?.close()
+        player.pause()
+        player.remove()
       },
     }))
 
     const loadChapterContent = useCallback(() => {
       if (currentBookId && currentChapterNumber) {
-        setIsLoading(true)
-        setChapterContent('')
-        setSummarizedContent('')
-        
+        setLoadingState('loadingChapter')
+        chapterContent.current = ''
+        summarizedContent.current = ''
+
         // Reset TTS states
+        player.remove()
         setAudioFilePaths([])
-        setCurrentAudioIndex(0)
+        setCurrentAudioIndex(null)
         setIsPlaylistMode(false)
 
         // Check if we have cached summary before loading content
         console.log('📝 [Summary Cache] Checking cache during chapter load')
         const cachedSummary = getCachedSummary(currentBookId, currentChapterNumber)
         if (cachedSummary) {
-          console.log('📝 [Summary Cache] Found cached summary during load, will use it after content loads')
+          console.log(
+            '📝 [Summary Cache] Found cached summary during load, will use it after content loads',
+          )
         }
 
         getBookChapterContent(currentBookId, currentChapterNumber)
           .then((content: string) => {
-            setChapterContent(content)
-            setIsLoading(false)
-            
+            chapterContent.current = content
+            setLoadingState('idle')
+
             // If we have cached summary, set it immediately without waiting for chapterHtml effect
             if (cachedSummary) {
               console.log('📝 [Summary Cache] Setting cached summary immediately')
-              setSummarizedContent(cachedSummary)
+              summarizedContent.current = cachedSummary
               // Generate TTS from cached summary
               generateTTSFromSummary(cachedSummary)
             }
           })
           .catch((error: any) => {
             showToastError(error)
-            setIsLoading(false)
+            setLoadingState('idle')
           })
       }
-    }, [currentBookId, currentChapterNumber])
+    }, [currentBookId, currentChapterNumber, player])
 
     // Summarize chapter when content is loaded (only if no cached summary and no current summary)
     useEffect(() => {
-      if (chapterHtml && !summarizedContent && !isSummarizing && currentBookId && currentChapterNumber) {
+      if (
+        chapterHtml &&
+        !summarizedContent.current &&
+        loadingState === 'idle' &&
+        currentBookId &&
+        currentChapterNumber
+      ) {
         // Check cache one more time before calling API
         const cachedSummary = getCachedSummary(currentBookId, currentChapterNumber)
         if (!cachedSummary) {
@@ -130,22 +155,50 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           console.log('📝 [Summary Cache] Found cache in useEffect, skipping auto-summarize')
         }
       }
-    }, [chapterHtml, summarizedContent, isSummarizing, currentBookId, currentChapterNumber])
+    }, [chapterHtml, summarizedContent.current, loadingState, currentBookId, currentChapterNumber])
 
     // Auto-play next audio when current finishes
     useEffect(() => {
-      if (status && status.didJustFinish && isPlaylistMode && currentAudioIndex < audioFilePaths.length - 1) {
-        setCurrentAudioIndex(prev => prev + 1)
+      if (
+        status?.didJustFinish &&
+        isPlaylistMode &&
+        currentAudioIndex !== null &&
+        currentAudioIndex < audioFilePaths.length - 1 &&
+        !isSwitchingAudio.current // Prevent re-triggering while switching
+      ) {
+        console.log('🎵 [Auto-play] Triggering next audio')
+        isSwitchingAudio.current = true // Set flag to prevent re-entry
+        const nextIndex = currentAudioIndex + 1
+        setCurrentAudioIndex(nextIndex)
+        playAudioAtIndex(nextIndex)
+      } else if (!status?.playing) {
+        // Reset the flag when playback stops for any other reason
+        isSwitchingAudio.current = false
       }
-    }, [status?.didJustFinish, isPlaylistMode, currentAudioIndex, audioFilePaths.length])
+    }, [
+      status?.didJustFinish,
+      status?.playing,
+      isPlaylistMode,
+      currentAudioIndex,
+      audioFilePaths.length,
+    ])
 
-    // Auto-play when audio source changes in playlist mode
-    useEffect(() => {
-      if (currentAudioPath && isPlaylistMode && player) {
-        player.seekTo(0)
-        player.play()
-      }
-    }, [currentAudioPath, isPlaylistMode])
+    const playAudioAtIndex = useCallback(
+      async (index: number) => {
+        if (index < 0 || index >= audioFilePaths.length) return
+        const path = audioFilePaths[index]
+        try {
+          await player.replace(path)
+          await player.play()
+          // The flag is reset in the useEffect when playing status changes
+        } catch (error) {
+          console.error('Error playing audio:', error)
+          showToastError('Không thể phát audio.')
+          isSwitchingAudio.current = false // Reset flag on error
+        }
+      },
+      [audioFilePaths, player],
+    )
 
     const handleSummarize = useCallback(async () => {
       if (!chapterHtml) {
@@ -161,14 +214,17 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         return
       }
 
-      console.log('📝 [Summary Cache] Checking cache for:', { bookId: currentBookId, chapter: currentChapterNumber })
+      console.log('📝 [Summary Cache] Checking cache for:', {
+        bookId: currentBookId,
+        chapter: currentChapterNumber,
+      })
 
       // Check cache first
       if (currentBookId && currentChapterNumber) {
         const cachedSummary = getCachedSummary(currentBookId, currentChapterNumber)
         if (cachedSummary) {
           console.log('📝 [Summary Cache] Found cached summary, using cached version')
-          setSummarizedContent(cachedSummary)
+          summarizedContent.current = cachedSummary
           // Auto-generate TTS after setting cached summary
           await generateTTSFromSummary(cachedSummary)
           return
@@ -177,7 +233,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
         }
       }
 
-      setIsSummarizing(true)
+      setLoadingState('summarizing')
       try {
         console.log('📝 [Summary Cache] Calling Gemini API for new summary')
         const summary = await summarizeChapter({
@@ -185,15 +241,18 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           bookTitle: bookInfo?.name,
         })
 
-        console.log('📝 [Summary Cache] Received summary from API:', summary.substring(0, 100) + '...')
-        setSummarizedContent(summary)
-        
+        console.log(
+          '📝 [Summary Cache] Received summary from API:',
+          summary.substring(0, 100) + '...',
+        )
+        summarizedContent.current = summary
+
         // Cache the new summary
         if (currentBookId && currentChapterNumber) {
           console.log('📝 [Summary Cache] Caching new summary')
           setCachedSummary(currentBookId, currentChapterNumber, summary)
         }
-        
+
         // Auto-generate TTS after summarizing
         await generateTTSFromSummary(summary)
       } catch (error) {
@@ -203,83 +262,114 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           error instanceof Error ? error.message : 'Có lỗi xảy ra khi tóm tắt chương truyện',
         )
       } finally {
-        setIsSummarizing(false)
+        setLoadingState('idle')
       }
     }, [chapterHtml, bookInfo, currentBookId, currentChapterNumber])
 
-    const generateTTSFromSummary = useCallback(async (content: string) => {
-      if (!content) return
+    const generateTTSFromSummary = useCallback(
+      async (content: string) => {
+        if (!content) return
 
-      console.log('🎵 [TTS Debug] Starting TTS generation...')
-      console.log('🎵 [TTS Debug] Content length:', content.length)
-      
-      setIsGeneratingTTS(true)
-      try {
-        // Break summary into shorter lines for better TTS
-        const sentences = breakSummaryIntoLines(content).slice(0, 5) // Limit to 5 lines for TTS
-        console.log('🎵 [TTS Debug] Broke into lines:', sentences.length)
-        sentences.forEach((sentence: string, index: number) => {
-          console.log(`🎵 [TTS Debug] Line ${index + 1} (${sentence.length} chars): ${sentence.substring(0, 100)}...`)
-        })
-        
-        if (sentences.length === 0) {
-          console.log('🎵 [TTS Debug] No lines found, returning')
-          return
+        console.log('🎵 [TTS Debug] Starting TTS generation...')
+        console.log('🎵 [TTS Debug] Content length:', content.length)
+
+        setLoadingState('generatingTTS')
+        try {
+          // Break summary into shorter lines for better TTS
+          const sentences = breakSummaryIntoLines(content).slice(0, 5) // Limit to 5 lines for TTS
+          console.log('🎵 [TTS Debug] Broke into lines:', sentences.length)
+          sentences.forEach((sentence: string, index: number) => {
+            console.log(
+              `🎵 [TTS Debug] Line ${index + 1} (${sentence.length} chars): ${sentence.substring(
+                0,
+                100,
+              )}...`,
+            )
+          })
+
+          if (sentences.length === 0) {
+            console.log('🎵 [TTS Debug] No lines found, returning')
+            return
+          }
+
+          console.log('🎵 [TTS Debug] Calling convertTTSCapcut with:', {
+            linesCount: sentences.length,
+            voice: 'BV421_vivn_streaming',
+          })
+
+          // Generate TTS for all lines using the updated function
+          const audioPaths = await convertTTSCapcut(sentences, { voice: 'BV421_vivn_streaming' })
+
+          console.log('🎵 [TTS Debug] convertTTSCapcut returned:', {
+            audioPathsCount: audioPaths.length,
+            audioPaths: audioPaths,
+          })
+
+          if (audioPaths.length > 0) {
+            setAudioFilePaths(audioPaths)
+            setCurrentAudioIndex(0) // Set initial index, but don't auto-play
+            await player.replace(audioPaths[0])
+            console.log('🎵 [TTS Debug] TTS generation completed successfully')
+          } else {
+            console.log('🎵 [TTS Debug] No audio paths returned')
+          }
+        } catch (error) {
+          console.error('🎵 [TTS Debug] Error generating TTS:', error)
+          Alert.alert('Lỗi TTS', 'Không thể tạo audio từ nội dung tóm tắt')
+        } finally {
+          setLoadingState('idle')
+          console.log('🎵 [TTS Debug] TTS generation process finished')
         }
+      },
+      [player],
+    )
 
-        console.log('🎵 [TTS Debug] Calling convertTTSCapcut with:', {
-          linesCount: sentences.length,
-          voice: 'BV421_vivn_streaming'
-        })
+    const handlePlayPause = useCallback(async () => {
+      if (currentAudioIndex === null || audioFilePaths.length === 0) return
 
-        // Generate TTS for all lines using the updated function
-        const audioPaths = await convertTTSCapcut(sentences, { voice: 'BV421_vivn_streaming' })
-        
-        console.log('🎵 [TTS Debug] convertTTSCapcut returned:', {
-          audioPathsCount: audioPaths.length,
-          audioPaths: audioPaths
-        })
-        
-        if (audioPaths.length > 0) {
-          setAudioFilePaths(audioPaths)
-          setCurrentAudioIndex(0)
-          console.log('🎵 [TTS Debug] TTS generation completed successfully')
+      try {
+        if (status?.playing) {
+          await player.pause()
         } else {
-          console.log('🎵 [TTS Debug] No audio paths returned')
+          // If the player is loaded and just paused, resume it.
+          // Otherwise, (re)load the track and play.
+          if (status?.isLoaded && !status.playing) {
+            await player.play()
+          } else {
+            await playAudioAtIndex(currentAudioIndex)
+          }
         }
       } catch (error) {
-        console.error('🎵 [TTS Debug] Error generating TTS:', error)
-        Alert.alert('Lỗi TTS', 'Không thể tạo audio từ nội dung tóm tắt')
-      } finally {
-        setIsGeneratingTTS(false)
-        console.log('🎵 [TTS Debug] TTS generation process finished')
+        console.error('Error during play/pause:', error)
+        showToastError('Lỗi khi phát/dừng audio.')
       }
-    }, [])
-
-    const handlePlayPause = useCallback(() => {
-    console.log('currentAudioPath:', currentAudioPath, status?.playing)
-      if (!currentAudioPath) return
-      if (status?.playing) {
-        player.pause()
-      } else {
-        player.play()
-      }
-    }, [currentAudioPath, status?.playing, player])
+    }, [
+      currentAudioIndex,
+      status?.playing,
+      status?.isLoaded,
+      player,
+      playAudioAtIndex,
+      audioFilePaths.length,
+    ])
 
     const handlePrevious = useCallback(() => {
-      if (currentAudioIndex > 0) {
-        setCurrentAudioIndex(prev => prev - 1)
+      if (currentAudioIndex !== null && currentAudioIndex > 0) {
+        const newIndex = currentAudioIndex - 1
+        setCurrentAudioIndex(newIndex)
+        playAudioAtIndex(newIndex)
       }
-    }, [currentAudioIndex])
+    }, [currentAudioIndex, playAudioAtIndex])
 
     const handleNext = useCallback(() => {
-      if (currentAudioIndex < audioFilePaths.length - 1) {
-        setCurrentAudioIndex(prev => prev + 1)
+      if (currentAudioIndex !== null && currentAudioIndex < audioFilePaths.length - 1) {
+        const newIndex = currentAudioIndex + 1
+        setCurrentAudioIndex(newIndex)
+        playAudioAtIndex(newIndex)
       }
-    }, [currentAudioIndex, audioFilePaths.length])
+    }, [currentAudioIndex, audioFilePaths.length, playAudioAtIndex])
 
     const togglePlaylistMode = useCallback(() => {
-      setIsPlaylistMode(prev => !prev)
+      setIsPlaylistMode((prev) => !prev)
     }, [])
 
     const handleClose = useCallback(() => {
@@ -339,22 +429,24 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
           </View>
         </View>
         <BottomSheetScrollView style={{ backgroundColor: '#F5F1E5' }}>
-          {isLoading || isSummarizing ? (
+          {loadingState !== 'idle' ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color={AppPalette.blue500} />
               <Text style={[AppTypo.body.regular, styles.loadingText]}>
-                {isLoading ? 'Đang tải nội dung chương...' : 'Đang tóm tắt nội dung...'}
+                {loadingState === 'loadingChapter' && 'Đang tải nội dung chương...'}
+                {loadingState === 'summarizing' && 'Đang tóm tắt nội dung...'}
+                {loadingState === 'generatingTTS' && 'Đang tạo audio...'}
               </Text>
-              {!isLoading && (
+              {loadingState === 'summarizing' && (
                 <Text style={[AppTypo.mini.regular, styles.loadingSubtext]}>
                   Quá trình này có thể mất vài giây
                 </Text>
               )}
             </View>
-          ) : summarizedContent ? (
+          ) : summarizedContent.current ? (
             <View style={styles.contentContainer}>
               {/* TTS Controls */}
-              {(audioFilePaths.length > 0 || isGeneratingTTS) && (
+              {audioFilePaths.length > 0 && (
                 <View style={styles.ttsContainer}>
                   <View style={styles.ttsHeader}>
                     <VectorIcon
@@ -363,85 +455,102 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
                       size={16}
                       color={AppPalette.blue500}
                     />
-                    <Text style={[AppTypo.caption.semiBold, styles.ttsTitle]}>
-                      Audio Tóm Tắt
-                    </Text>
+                    <Text style={[AppTypo.caption.semiBold, styles.ttsTitle]}>Audio Tóm Tắt</Text>
                     {audioFilePaths.length > 1 && (
                       <TouchableOpacity onPress={togglePlaylistMode} style={styles.playlistButton}>
                         <VectorIcon
-                          name={isPlaylistMode ? "list-check" : "list"}
+                          name={isPlaylistMode ? 'list-check' : 'list'}
                           font="FontAwesome6"
                           size={12}
                           color={isPlaylistMode ? AppPalette.blue500 : AppPalette.gray500}
                         />
-                        <Text style={[AppTypo.mini.regular, { 
-                          color: isPlaylistMode ? AppPalette.blue500 : AppPalette.gray500,
-                          marginLeft: 4 
-                        }]}>
+                        <Text
+                          style={[
+                            AppTypo.mini.regular,
+                            {
+                              color: isPlaylistMode ? AppPalette.blue500 : AppPalette.gray500,
+                              marginLeft: 4,
+                            },
+                          ]}>
                           Auto
                         </Text>
                       </TouchableOpacity>
                     )}
                   </View>
 
-                  {isGeneratingTTS ? (
-                    <View style={styles.ttsLoading}>
-                      <ActivityIndicator size="small" color={AppPalette.blue500} />
-                      <Text style={[AppTypo.mini.regular, styles.ttsLoadingText]}>
-                        Đang tạo audio...
+                  <View style={styles.ttsControls}>
+                    <View style={styles.ttsProgress}>
+                      <Text style={[AppTypo.mini.regular, styles.progressText]}>
+                        {currentAudioIndex !== null ? currentAudioIndex + 1 : '-'} /{' '}
+                        {audioFilePaths.length}
                       </Text>
-                    </View>
-                  ) : (
-                    <View style={styles.ttsControls}>
-                      <View style={styles.ttsProgress}>
+                      {status?.isLoaded && (
                         <Text style={[AppTypo.mini.regular, styles.progressText]}>
-                          {currentAudioIndex + 1} / {audioFilePaths.length}
+                          {Math.floor(status.currentTime || 0)}s /{' '}
+                          {Math.floor(status.duration || 0)}s
                         </Text>
-                        {status && (
-                          <Text style={[AppTypo.mini.regular, styles.progressText]}>
-                            {Math.floor(status.currentTime || 0)}s / {Math.floor(status.duration || 0)}s
-                          </Text>
-                        )}
-                      </View>
-                      
-                      <View style={styles.ttsButtons}>
-                        <TouchableOpacity 
-                          onPress={handlePrevious} 
-                          disabled={currentAudioIndex === 0}
-                          style={[styles.ttsButton, currentAudioIndex === 0 && styles.ttsButtonDisabled]}
-                        >
-                          <VectorIcon
-                            name="backward-step"
-                            font="FontAwesome6"
-                            size={14}
-                            color={currentAudioIndex === 0 ? AppPalette.gray300 : AppPalette.gray700}
-                          />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity onPress={handlePlayPause} style={styles.ttsPlayButton}>
-                          <VectorIcon
-                            name={status?.playing ? "pause" : "play"}
-                            font="FontAwesome6"
-                            size={16}
-                            color={AppPalette.white}
-                          />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity 
-                          onPress={handleNext} 
-                          disabled={currentAudioIndex === audioFilePaths.length - 1}
-                          style={[styles.ttsButton, currentAudioIndex === audioFilePaths.length - 1 && styles.ttsButtonDisabled]}
-                        >
-                          <VectorIcon
-                            name="forward-step"
-                            font="FontAwesome6"
-                            size={14}
-                            color={currentAudioIndex === audioFilePaths.length - 1 ? AppPalette.gray300 : AppPalette.gray700}
-                          />
-                        </TouchableOpacity>
-                      </View>
+                      )}
                     </View>
-                  )}
+
+                    <View style={styles.ttsButtons}>
+                      <TouchableOpacity
+                        onPress={handlePrevious}
+                        disabled={currentAudioIndex === 0 || currentAudioIndex === null}
+                        style={[
+                          styles.ttsButton,
+                          (currentAudioIndex === 0 || currentAudioIndex === null) &&
+                            styles.ttsButtonDisabled,
+                        ]}>
+                        <VectorIcon
+                          name="backward-step"
+                          font="FontAwesome6"
+                          size={14}
+                          color={
+                            currentAudioIndex === 0 || currentAudioIndex === null
+                              ? AppPalette.gray300
+                              : AppPalette.gray700
+                          }
+                        />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={handlePlayPause}
+                        style={styles.ttsPlayButton}
+                        disabled={currentAudioIndex === null}>
+                        <VectorIcon
+                          name={status?.playing ? 'pause' : 'play'}
+                          font="FontAwesome6"
+                          size={16}
+                          color={AppPalette.white}
+                        />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={handleNext}
+                        disabled={
+                          currentAudioIndex === null ||
+                          currentAudioIndex === audioFilePaths.length - 1
+                        }
+                        style={[
+                          styles.ttsButton,
+                          (currentAudioIndex === null ||
+                            currentAudioIndex === audioFilePaths.length - 1) &&
+                            styles.ttsButtonDisabled,
+                        ]}>
+                        <VectorIcon
+                          name="forward-step"
+                          font="FontAwesome6"
+                          size={14}
+                          color={
+                            currentAudioIndex === null ||
+                            currentAudioIndex === audioFilePaths.length - 1
+                              ? AppPalette.gray300
+                              : AppPalette.gray700
+                          }
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
               )}
 
@@ -455,7 +564,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
                   marginTop: audioFilePaths.length > 0 ? 16 : 0,
                   color: AppPalette.gray900,
                 }}>
-                {summarizedContent}
+                {summarizedContent.current}
               </Text>
             </View>
           ) : (
