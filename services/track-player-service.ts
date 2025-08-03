@@ -80,6 +80,16 @@ class TrackPlayerService {
       // Get queue to verify
       const queue = await TrackPlayer.getQueue()
       console.log('🎵 [TrackPlayer] Current queue length:', queue.length)
+      
+      // Verify first track can be loaded
+      if (queue.length > 0) {
+        try {
+          const activeTrack = await TrackPlayer.getActiveTrack()
+          console.log('🎵 [TrackPlayer] Active track:', activeTrack)
+        } catch (error) {
+          console.log('🎵 [TrackPlayer] No active track yet')
+        }
+      }
     } catch (error) {
       console.error('🎵 [TrackPlayer] Error adding tracks:', error)
       throw error

@@ -17,7 +17,7 @@ function createCapcutMessage(sentence: string, voice: string) {
     appkey: 'ddjeqjLGMn',
     event: 'StartTask',
     namespace: 'TTS',
-    payload: `{"audio_config":{"bit_rate":64000,"format":"ogg_opus","sample_rate":24000},"speaker":"${voice}","text":"${preprocessSentence(
+    payload: `{"audio_config":{"bit_rate":128000,"format":"mp3","sample_rate":24000},"speaker":"${voice}","text":"${preprocessSentence(
       sentence,
     )}"}`,
     token:

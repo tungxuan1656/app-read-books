@@ -2,7 +2,7 @@ import * as FileSystem from 'expo-file-system'
 import { MMKV } from 'react-native-mmkv'
 
 // --- Configuration ---
-export const CACHE_FOLDER = `${FileSystem.cacheDirectory}tts_audio/`
+export const CACHE_FOLDER = `${FileSystem.documentDirectory}tts_audio/`
 const ttsCache = new MMKV({
   id: 'tts-cache',
   encryptionKey: 'tts-audio-files',

@@ -63,7 +63,7 @@ const AddBook = (props: any) => {
   return (
     <Screen.Container>
       <Stack.Screen
-        options={{ title: 'Thêm truyện mới', headerBackTitleVisible: false, headerShown: true }}
+        options={{ title: 'Thêm truyện mới', headerBackVisible: false, headerShown: true }}
       />
       <Divider />
       <Screen.Content useScroll contentContainerStyle={{ padding: 20, gap: 20 }}>

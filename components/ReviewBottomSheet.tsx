@@ -17,6 +17,7 @@ import TrackPlayer, {
   RepeatMode 
 } from 'react-native-track-player'
 import TrackPlayerService from '@/services/track-player-service'
+import * as FileSystem from 'expo-file-system'
 import React, {
   forwardRef,
   useCallback,
@@ -189,6 +190,14 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       console.log('🎵 [Event] PlaybackState changed:', event.state)
     })
 
+    useTrackPlayerEvents([Event.PlaybackError], async (event) => {
+      console.error('🎵 [Event] PlaybackError:', event)
+    })
+
+    useTrackPlayerEvents([Event.PlaybackMetadataReceived], async (event) => {
+      console.log('🎵 [Event] MetadataReceived:', event)
+    })
+
     const playAudioAtIndex = useCallback(
       async (index: number) => {
         if (index < 0 || index >= audioFilePaths.length) return
@@ -313,7 +322,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
             
             // First reset the player to clear any existing tracks
             await trackPlayerService.reset()
-            
             // Prepare tracks for TrackPlayer
             const tracks = audioPaths.map((path, index) => {
               // Check if path already has file:// prefix to avoid double prefix
@@ -375,7 +383,26 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       }
 
       try {
-        if (playbackState.state === State.Playing) {
+        // If we're in error state, try to reload the track
+        if (playbackState.state === State.Error) {
+          console.log('🎵 [PlayPause] In error state, trying to reload track...')
+          await trackPlayerService.reset()
+          
+          // Re-add the tracks
+          const tracks = audioFilePaths.map((path, index) => {
+            const normalizedPath = path.startsWith('file://') ? path : `file://${path}`
+            return {
+              id: `tts-${currentBookId}-${currentChapterNumber}-${index}`,
+              url: normalizedPath,
+              title: `TTS Part ${index + 1}`,
+              artist: bookInfo?.name || 'Unknown',
+            }
+          })
+          
+          await trackPlayerService.addTracks(tracks)
+          await trackPlayerService.skipToTrack(currentAudioIndex)
+          await trackPlayerService.play()
+        } else if (playbackState.state === State.Playing) {
           console.log('🎵 [PlayPause] Currently playing, pausing...')
           await trackPlayerService.pause()
         } else {
@@ -391,6 +418,10 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       playbackState.state,
       trackPlayerService,
       audioFilePaths.length,
+      audioFilePaths,
+      currentBookId,
+      currentChapterNumber,
+      bookInfo,
     ])
 
     const handlePrevious = useCallback(async () => {
