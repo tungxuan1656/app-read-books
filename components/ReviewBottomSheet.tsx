@@ -31,14 +31,16 @@ export interface ReviewBottomSheetRef {
 }
 
 interface ReviewBottomSheetProps {
-  onNavigateToChapter?: (direction: 'prev' | 'next') => void
+  onClose?: () => void
   font?: string
   lineHeight?: number
   fontSize?: number
 }
 
 const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProps>(
-  ({ font, lineHeight, fontSize }, ref) => {
+  ({ font, lineHeight, fontSize, onClose }, ref) => {
+    console.log('RENDER ReviewBottomSheet')
+
     const bottomSheetRef = React.useRef<BottomSheet>(null)
     const snapPoints = useMemo(() => ['50%', '85%'], [])
     const [chapterContent, setChapterContent] = useState('')
@@ -87,6 +89,7 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       setChapterContent('')
       setBookId(null)
       setChapterNumber(null)
+      onClose?.()
     }, [])
 
     return (

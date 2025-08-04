@@ -13,12 +13,14 @@ export default function useTtsAudio(autoPlay = true) {
   const [listAudios, setListAudios] = useState<string[]>([])
   const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
   const isPlaying = useIsPlaying()
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const startGenerateAudio = useCallback(
     async (content: string, bookId: string, chapter: number) => {
       try {
         const sentences = breakSummaryIntoLines(content)
         if (sentences.length === 0) return
+        setIsGenerating(true)
         await trackPlayerService.reset()
         setListAudios([])
         setCurrentAudioIndex(null)
@@ -36,6 +38,7 @@ export default function useTtsAudio(autoPlay = true) {
     await trackPlayerService.reset()
     setListAudios([])
     setCurrentAudioIndex(null)
+    setIsGenerating(false)
     stopConvertTTSCapcut()
   }, [])
 
@@ -49,8 +52,7 @@ export default function useTtsAudio(autoPlay = true) {
             newPaths.push(data.filePath)
             return newPaths
           })
-
-          if (autoPlay) {
+          if (autoPlay && isGenerating) {
             const track = {
               id: data.audioTaskId,
               url: data.filePath.startsWith('file://') ? data.filePath : `file://${data.filePath}`,
@@ -81,7 +83,7 @@ export default function useTtsAudio(autoPlay = true) {
     )
 
     return () => subscrition.remove()
-  }, [autoPlay])
+  }, [autoPlay, isGenerating])
 
   useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], (event) => {
     if (event.type === Event.PlaybackActiveTrackChanged && event.index !== undefined) {

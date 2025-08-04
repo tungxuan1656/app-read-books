@@ -35,7 +35,6 @@ const Reading = () => {
   const [fontSize, setFontSize] = useState(MMKVStorage.get(MMKVKeys.CURRENT_FONT_SIZE) ?? 24)
   const [lineHeight, setLineHeight] = useState(MMKVStorage.get(MMKVKeys.CURRENT_LINE_HEIGHT) ?? 1.5)
   const [isLoading, setIsLoading] = useState(true)
-  const [showPlayer, setShowPlayer] = useState(false)
   const reviewBottomSheetRef = useRef<ReviewBottomSheetRef>(null)
 
   const bookInfo = useBookInfo(bookId)
@@ -150,14 +149,6 @@ const Reading = () => {
     }, 150)
   }, [])
 
-  const handleNavigateFromReview = useCallback((direction: 'prev' | 'next') => {
-    if (direction === 'next') {
-      nextChapter()
-    } else {
-      previousChapter()
-    }
-  }, [])
-
   const openReviewBottomSheet = useCallback(() => {
     reviewBottomSheetRef.current?.present({
       content: chapterContent,
@@ -234,18 +225,10 @@ const Reading = () => {
         onPress={() => setVisibleSheet(true)}
       />
       <VectorIcon
-        name={showPlayer ? 'stop' : 'play'}
-        font="FontAwesome6"
-        size={18}
-        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 + insets.bottom }}
-        color={AppPalette.gray600}
-        onPress={() => {}}
-      />
-      <VectorIcon
         name="wand-magic-sparkles"
         font="FontAwesome6"
         size={18}
-        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 + 40 + 8 + insets.bottom }}
+        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 + insets.bottom }}
         color={AppPalette.gray600}
         onPress={openReviewBottomSheet}
       />
@@ -262,10 +245,10 @@ const Reading = () => {
       />
       <ReviewBottomSheet
         ref={reviewBottomSheetRef}
-        onNavigateToChapter={handleNavigateFromReview}
         font={font}
         lineHeight={lineHeight}
         fontSize={fontSize}
+        onClose={() => {}}
       />
     </Screen.Container>
   )

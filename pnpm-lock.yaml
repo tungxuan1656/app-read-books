@@ -17,6 +17,9 @@ importers:
       '@react-navigation/native':
         specifier: ^6.0.2
         version: 6.1.18(react-native@0.79.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+      babel-preset-expo:
+        specifier: ^13.2.3
+        version: 13.2.3(@babel/core@7.28.0)
       base-64:
         specifier: ^1.0.0
         version: 1.0.0
