@@ -63,7 +63,7 @@ export default function useTtsAudio(autoPlay = true) {
               setCurrentAudioIndex(0)
               await trackPlayerService.setRepeatMode(RepeatMode.Off)
               await trackPlayerService.skipToTrack(0)
-              await trackPlayerService.setRate(1.5)
+              await trackPlayerService.setRate(1.3)
 
               setTimeout(async () => {
                 try {
@@ -85,6 +85,10 @@ export default function useTtsAudio(autoPlay = true) {
 
   useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], (event) => {
     if (event.type === Event.PlaybackActiveTrackChanged && event.index !== undefined) {
+      trackPlayerService.pause()
+      setTimeout(() => {
+        trackPlayerService.play()
+      }, 100)
       setCurrentAudioIndex(event.index)
     }
   })
