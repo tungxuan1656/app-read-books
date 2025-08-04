@@ -1,12 +1,12 @@
 import * as FileSystem from 'expo-file-system'
-import { CACHE_FOLDER } from './tts-cache'
-import { 
-  getCachedSummary, 
-  deleteCachedSummary, 
-  getSummaryCountForBook,
+import {
   clearBookSummaryCache,
-  clearSummaryCache
+  clearSummaryCache,
+  deleteCachedSummary,
+  getSummaryCountForBook
 } from './summary-cache'
+import { CACHE_FOLDER } from './tts-cache'
+import { autoGenerateService } from '../services/auto-generate-service'
 
 /**
  * Clears all cache for a specific book (both summary and TTS)
@@ -15,10 +15,18 @@ export const clearBookCache = async (bookId: string): Promise<void> => {
   console.log(`🗑️ [Cache Manager] Clearing all cache for book: ${bookId}`)
   
   try {
-    // 1. Clear summary cache for the book
+    // 0. Stop auto generate if running
+    if (autoGenerateService.isAutoGenerateRunning(bookId)) {
+      autoGenerateService.stopAutoGenerate(bookId)
+    }
+    
+    // 1. Clear auto generate progress cache
+    autoGenerateService.clearAutoGenerateCache(bookId)
+    
+    // 2. Clear summary cache for the book
     clearBookSummaryCache(bookId)
     
-    // 2. Clear TTS cache files for the book
+    // 3. Clear TTS cache files for the book
     const cacheDir = await FileSystem.getInfoAsync(CACHE_FOLDER)
     if (cacheDir.exists && cacheDir.isDirectory) {
       const files = await FileSystem.readDirectoryAsync(CACHE_FOLDER)
@@ -93,6 +101,7 @@ export const getBookCacheStats = async (bookId: string): Promise<{
   totalTTSFiles: number
   totalTTSSize: number
   summariesCount: number
+  autoGenerateStats: any
 }> => {
   try {
     let totalTTSFiles = 0
@@ -119,13 +128,17 @@ export const getBookCacheStats = async (bookId: string): Promise<{
       }
     }
     
-    // Note: Count summaries for a book
+    // Count summaries for a book
     summariesCount = getSummaryCountForBook(bookId)
+    
+    // Get auto generate stats
+    const autoGenerateStats = autoGenerateService.getAutoGenerateStats(bookId)
     
     return {
       totalTTSFiles,
       totalTTSSize,
       summariesCount,
+      autoGenerateStats,
     }
   } catch (error) {
     console.error(`Error getting cache stats for book ${bookId}:`, error)
@@ -133,6 +146,7 @@ export const getBookCacheStats = async (bookId: string): Promise<{
       totalTTSFiles: 0,
       totalTTSSize: 0,
       summariesCount: 0,
+      autoGenerateStats: null,
     }
   }
 }
@@ -144,6 +158,9 @@ export const clearAllCache = async (): Promise<void> => {
   console.log('🗑️ [Cache Manager] Clearing ALL cache')
   
   try {
+    // Stop all auto generate processes
+    autoGenerateService.clearAllAutoGenerateCache()
+    
     // Clear TTS cache folder
     const cacheDir = await FileSystem.getInfoAsync(CACHE_FOLDER)
     if (cacheDir.exists) {

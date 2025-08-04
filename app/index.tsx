@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Divider, Screen } from '@/components/Screen'
 import { Button } from '@/components/Button'
 import { AppTypo, EventKeys } from '../constants'

@@ -1,11 +1,12 @@
 import { AppColors, AppPalette } from '@/assets'
+import { VectorIcon } from '@/components/Icon'
 import { AppStyles, AppTypo } from '@/constants'
 import { getListFonts } from '@/utils'
 import { clearBookCache } from '@/utils/cache-manager'
-import { VectorIcon } from '@/components/Icon'
 import { router } from 'expo-router'
 import React from 'react'
 import {
+  Alert,
   DeviceEventEmitter,
   Modal,
   ScrollView,
@@ -14,7 +15,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  Alert,
 } from 'react-native'
 
 type SheetBookInfoProps = {
@@ -61,6 +61,12 @@ const SheetBookInfo = ({
         },
       ],
     )
+  }
+
+  const handleGenerateSummaryAndAudio = () => {
+    router.push({
+      pathname: '/generate-summary-tts',
+    })
   }
 
   return (
@@ -148,19 +154,28 @@ const SheetBookInfo = ({
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.viewRow, { marginBottom: 20 }]}
-              onPress={handleClearCache}>
-              <VectorIcon
-                name="trash"
-                font="FontAwesome6"
-                color={AppColors.textValidate}
-                size={16}
-              />
-              <Text style={[AppTypo.body.medium, { color: AppColors.textValidate }]}>
-                {'Xóa cache bộ truyện'}
-              </Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TouchableOpacity
+                style={[styles.viewRow, { marginBottom: 20 }]}
+                onPress={handleGenerateSummaryAndAudio}>
+                <VectorIcon
+                  name="download"
+                  font="FontAwesome6"
+                  color={AppColors.textActivate}
+                  size={16}
+                />
+                <Text style={[AppTypo.body.medium, { color: AppColors.textActivate }]}>
+                  {'Tạo tóm tắt và audio'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.viewRow, { marginBottom: 20 }]}
+                onPress={handleClearCache}>
+                <Text style={[AppTypo.body.medium, { color: AppColors.textValidate }]}>
+                  {'Xóa cache'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
