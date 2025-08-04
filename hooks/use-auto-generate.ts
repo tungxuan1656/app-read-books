@@ -27,6 +27,7 @@ export interface AutoGenerateHookReturn {
       voice?: string
       startFromChapter?: number
       resumeFromProgress?: boolean
+      totalChapters?: number
     },
   ) => Promise<void>
   stopGenerate: () => void
@@ -34,6 +35,7 @@ export interface AutoGenerateHookReturn {
     chapters: ChapterData[],
     options?: {
       voice?: string
+      totalChapters?: number
     },
   ) => Promise<void>
   clearCache: () => void
@@ -163,6 +165,7 @@ export default function useAutoGenerate(bookId: string): AutoGenerateHookReturn 
         voice?: string
         startFromChapter?: number
         resumeFromProgress?: boolean
+        totalChapters?: number
       } = {},
     ) => {
       try {
@@ -170,6 +173,7 @@ export default function useAutoGenerate(bookId: string): AutoGenerateHookReturn 
           voice: options.voice || 'BV421_vivn_streaming',
           startFromChapter: options.startFromChapter || 1,
           resumeFromProgress: options.resumeFromProgress !== false, // default true
+          totalChapters: options.totalChapters,
         })
       } catch (error) {
         console.error('Error starting auto generate:', error)
@@ -189,12 +193,14 @@ export default function useAutoGenerate(bookId: string): AutoGenerateHookReturn 
       chapters: ChapterData[],
       options: {
         voice?: string
+        totalChapters?: number
       } = {},
     ) => {
       try {
         await startAutoGenerate(bookId, chapters, {
           voice: options.voice || 'BV421_vivn_streaming',
           resumeFromProgress: true,
+          totalChapters: options.totalChapters,
         })
       } catch (error) {
         console.error('Error resuming auto generate:', error)

@@ -2,25 +2,26 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, TouchableOpacity, Alert, StyleSheet, ScrollView } from 'react-native'
 import useAutoGenerate, { AutoGenerateState } from '../hooks/use-auto-generate'
 import { ChapterData } from '../services/auto-generate-service'
+import { useBookInfo } from '../controllers/context'
+import { getBookChapterContent } from '../utils'
 
 interface AutoGenerateControllerProps {
   bookId: string
-  bookTitle?: string
-  totalChapters?: number
-  getBookChapterContent?: (bookId: string, chapterNumber: number) => Promise<string>
   onClose?: () => void
 }
 
 const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({
   bookId,
-  bookTitle = 'Chưa xác định',
-  totalChapters = 0,
-  getBookChapterContent,
   onClose,
 }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingChapter, setLoadingChapter] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Lấy thông tin book từ bookId
+  const bookInfo = useBookInfo(bookId)
+  const bookTitle = bookInfo?.name || 'Chưa xác định'
+  const totalChapters = bookInfo?.references?.length || 0
 
   const {
     state,
@@ -33,10 +34,6 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({
 
   // Function để load content của 1 chapter
   const loadChapterContent = useCallback(async (chapterNumber: number): Promise<string | null> => {
-    if (!getBookChapterContent) {
-      throw new Error('getBookChapterContent function not provided')
-    }
-
     try {
       setLoadingChapter(chapterNumber)
       const content = await getBookChapterContent(bookId, chapterNumber)
@@ -47,10 +44,24 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({
     } finally {
       setLoadingChapter(null)
     }
-  }, [bookId, getBookChapterContent])
+  }, [bookId])
 
-  // Function để tạo ChapterData array từ totalChapters
-  const generateChaptersData = useCallback(async (
+  // Function để tạo ChapterData cho 1 chapter cụ thể (dùng cho luồng tuần tự)
+  const createChapterData = useCallback(async (chapterNumber: number): Promise<ChapterData> => {
+    const content = await loadChapterContent(chapterNumber)
+    if (!content) {
+      throw new Error(`Cannot load content for chapter ${chapterNumber}`)
+    }
+    
+    return {
+      chapterNumber,
+      chapterHtml: content,
+      bookTitle: bookTitle,
+    }
+  }, [loadChapterContent, bookTitle])
+
+  // Function để tạo tất cả ChapterData (dùng khi cần thiết)
+  const generateAllChaptersData = useCallback(async (
     startChapter: number = 1,
     endChapter?: number
   ): Promise<ChapterData[]> => {
@@ -63,14 +74,8 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({
     try {
       // Load content cho từng chapter
       for (let i = startChapter; i <= end; i++) {
-        const content = await loadChapterContent(i)
-        if (content) {
-          chapters.push({
-            chapterNumber: i,
-            chapterHtml: content,
-            bookTitle: bookTitle,
-          })
-        }
+        const chapterData = await createChapterData(i)
+        chapters.push(chapterData)
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error'
@@ -81,11 +86,11 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({
     }
 
     return chapters
-  }, [totalChapters, bookTitle, loadChapterContent])
+  }, [totalChapters, createChapterData])
 
   const handleStart = async () => {
-    if (!getBookChapterContent) {
-      Alert.alert('Lỗi', 'Chức năng load chapter chưa được cung cấp')
+    if (!bookInfo) {
+      Alert.alert('Lỗi', 'Không tìm thấy thông tin sách')
       return
     }
 
@@ -96,17 +101,20 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({
 
     Alert.alert(
       'Bắt đầu tự động tạo Summary & TTS',
-      `Sẽ tạo tóm tắt và audio cho tất cả ${totalChapters} chương của "${bookTitle}".\n\nQuá trình này có thể mất khá lâu.`,
+      `Sẽ tạo tóm tắt và audio cho tất cả ${totalChapters} chương của "${bookTitle}".\n\nQuá trình này sẽ xử lý từng chương một cách tuần tự và có thể mất khá lâu.`,
       [
         { text: 'Hủy', style: 'cancel' },
         {
           text: 'Bắt đầu',
           onPress: async () => {
             try {
-              const chapters = await generateChaptersData()
-              await startGenerate(chapters, {
+              // Với luồng mới, ta chỉ cần truyền chapter đầu tiên và totalChapters
+              // Service sẽ tự động load từng chapter một cách tuần tự
+              const firstChapter = await createChapterData(1)
+              await startGenerate([firstChapter], {
                 voice: 'BV421_vivn_streaming',
                 resumeFromProgress: true,
+                totalChapters: totalChapters, // Truyền tổng số chapters
               })
             } catch (error) {
               Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thể bắt đầu')
@@ -118,8 +126,8 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({
   }
 
   const handleResume = async () => {
-    if (!getBookChapterContent) {
-      Alert.alert('Lỗi', 'Chức năng load chapter chưa được cung cấp')
+    if (!bookInfo) {
+      Alert.alert('Lỗi', 'Không tìm thấy thông tin sách')
       return
     }
 
@@ -132,11 +140,12 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({
           text: 'Tiếp tục',
           onPress: async () => {
             try {
-              // Chỉ load chapters từ current chapter trở đi để tối ưu
-              const startChapter = state.currentChapter || 1
-              const chapters = await generateChaptersData(startChapter)
-              await resumeGenerate(chapters, {
+              // Lấy chapter hiện tại từ state để tiếp tục
+              const currentChapter = state.currentChapter || 1
+              const chapterData = await createChapterData(currentChapter)
+              await resumeGenerate([chapterData], {
                 voice: 'BV421_vivn_streaming',
+                totalChapters: totalChapters, // Truyền tổng số chapters
               })
             } catch (error) {
               Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thể tiếp tục')
