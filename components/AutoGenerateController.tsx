@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, TouchableOpacity, Alert, StyleSheet, ScrollView } from 'react-native'
-import useAutoGenerate, { AutoGenerateState } from '../hooks/use-auto-generate'
-import { ChapterData } from '../services/auto-generate-service'
+import useSummary from '@/hooks/use-summary'
+import useTtsAudio from '@/hooks/use-tts-audio'
+import { clearBookCache } from '@/utils/cache-manager'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useBookInfo } from '../controllers/context'
 import { getBookChapterContent } from '../utils'
 
@@ -19,8 +20,14 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
   const bookInfo = useBookInfo(bookId)
   const bookTitle = bookInfo?.name || 'Chưa xác định'
   const totalChapters = bookInfo?.references?.length || 0
+  const refStopProcess = useRef(false)
+  const [state, setState] = useState({
+    isRunning: false,
+    currentChapter: 0,
+  })
 
-  const { state, startGenerate, stopGenerate, clearCache, refreshState } = useAutoGenerate(bookId)
+  const startSummary = useSummary()
+  const { startGenerateAudio, stopGenerateAudio } = useTtsAudio()
 
   // Function để load content của 1 chapter
   const loadChapterContent = useCallback(
@@ -39,51 +46,6 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
     [bookId],
   )
 
-  // Function để tạo ChapterData cho 1 chapter cụ thể (dùng cho luồng tuần tự)
-  const createChapterData = useCallback(
-    async (chapterNumber: number): Promise<ChapterData> => {
-      const content = await loadChapterContent(chapterNumber)
-      if (!content) {
-        throw new Error(`Cannot load content for chapter ${chapterNumber}`)
-      }
-
-      return {
-        chapterNumber,
-        chapterHtml: content,
-        bookTitle: bookTitle,
-      }
-    },
-    [loadChapterContent, bookTitle],
-  )
-
-  // Function để tạo tất cả ChapterData (dùng khi cần thiết)
-  const generateAllChaptersData = useCallback(
-    async (startChapter: number = 1, endChapter?: number): Promise<ChapterData[]> => {
-      const end = endChapter || totalChapters
-      const chapters: ChapterData[] = []
-
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        // Load content cho từng chapter
-        for (let i = startChapter; i <= end; i++) {
-          const chapterData = await createChapterData(i)
-          chapters.push(chapterData)
-        }
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-        setError(errorMsg)
-        throw new Error(`Failed to load chapters: ${errorMsg}`)
-      } finally {
-        setIsLoading(false)
-      }
-
-      return chapters
-    },
-    [totalChapters, createChapterData],
-  )
-
   const handleStart = async () => {
     if (!bookInfo) {
       Alert.alert('Lỗi', 'Không tìm thấy thông tin sách')
@@ -95,36 +57,66 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
       return
     }
 
-    const message = state.canResume
-      ? `Sẽ tiếp tục tạo từ chương ${
-          state.currentChapter || 1
-        } trong tổng số ${totalChapters} chương của "${bookTitle}".`
-      : `Sẽ tạo tóm tắt và audio cho tất cả ${totalChapters} chương của "${bookTitle}".\n\nQuá trình này sẽ xử lý từng chương một cách tuần tự và có thể mất khá lâu.`
+    const message = `Sẽ tạo tóm tắt và audio cho tất cả ${totalChapters} chương của "${bookTitle}".\n\nQuá trình này sẽ xử lý từng chương một cách tuần tự và có thể mất khá lâu.`
 
-    const title = state.canResume ? 'Tiếp tục tự động tạo' : 'Bắt đầu tự động tạo Summary & TTS'
+    const title = 'Bắt đầu tự động tạo Summary & TTS'
 
     Alert.alert(title, message, [
       { text: 'Hủy', style: 'cancel' },
       {
-        text: state.canResume ? 'Tiếp tục' : 'Bắt đầu',
-        onPress: async () => {
-          try {
-            setIsLoading(true)
-            // Service sẽ tự động load từng chapter, chỉ cần truyền thông tin khởi tạo
-            const firstChapterToProcess = await createChapterData(state.currentChapter || 1)
-            await startGenerate([firstChapterToProcess], {
-              voice: 'BV421_vivn_streaming',
-              resumeFromProgress: true, // Luôn cho phép resume
-              totalChapters: totalChapters,
-            })
-          } catch (error) {
-            Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thể bắt đầu')
-          } finally {
-            setIsLoading(false)
-          }
-        },
+        text: 'Bắt đầu',
+        onPress: startGenerate,
       },
     ])
+  }
+
+  const startGenerate = async () => {
+    try {
+      refStopProcess.current = false
+      setIsLoading(true)
+      for (let chapter = 1; chapter <= totalChapters; chapter++) {
+        setState((prev) => ({
+          ...prev,
+          isRunning: true,
+          currentChapter: chapter,
+        }))
+
+        if (refStopProcess.current) {
+          Alert.alert('Quá trình đã dừng', 'Bạn có thể tiếp tục lại sau.')
+          setState({
+            isRunning: false,
+            currentChapter: 0,
+          })
+          break
+        }
+        const content = await loadChapterContent(chapter)
+        if (!content) {
+          Alert.alert('Lỗi', `Không thể tải nội dung chương ${chapter}`)
+          continue
+        }
+
+        // Tạo tóm tắt cho chương
+        const summary = await startSummary(bookId, bookTitle, chapter, content)
+        if (!summary) {
+          Alert.alert('Lỗi', `Không thể tạo tóm tắt cho chương ${chapter}`)
+          continue
+        }
+        console.log(`Tóm tắt chương ${chapter}:`, summary);
+        
+        // Tạo audio từ tóm tắt
+        const success = await startGenerateAudio(summary, bookId, chapter)
+        if (!success) {
+          Alert.alert('Lỗi', `Không thể tạo audio cho chương ${chapter}`)
+          continue
+        }
+      }
+      Alert.alert('Hoàn thành', 'Đã tạo tóm tắt và audio cho tất cả các chương.')
+    } catch (error) {
+      console.error('Error starting auto-generate:', error)
+      setError(error instanceof Error ? error.message : 'Unknown error')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleStop = () => {
@@ -133,7 +125,10 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
       {
         text: 'Dừng',
         style: 'destructive',
-        onPress: stopGenerate,
+        onPress: () => {
+          refStopProcess.current = true
+          stopGenerateAudio()
+        },
       },
     ])
   }
@@ -145,8 +140,8 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
         text: 'Xóa',
         style: 'destructive',
         onPress: () => {
-          clearCache()
-          setError(null) // Clear local error
+          clearBookCache(bookId)
+          setError(null)
         },
       },
     ])
@@ -157,51 +152,20 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
     setError(null)
   }, [bookId])
 
-  const getStatusText = (state: AutoGenerateState): string => {
-    if (isLoading) {
-      if (loadingChapter) {
-        return `Đang tải nội dung chương ${loadingChapter}...`
-      }
-      return 'Đang tải nội dung các chương...'
-    }
-
-    if (error) {
-      return `Lỗi: ${error}`
-    }
-
+  const getStatusText = (): string => {
     if (state.isRunning) {
       if (state.currentChapter) {
         return `Đang xử lý chương ${state.currentChapter}...`
       }
       return 'Đang khởi tạo...'
     }
-
-    if (state.lastError) {
-      return `Lỗi: ${state.lastError}`
-    }
-
-    if (state.progress === 100) {
-      return 'Hoàn thành!'
-    }
-
-    if (state.canResume) {
-      return 'Tạm dừng - có thể tiếp tục'
-    }
-
-    if (state.completedChapters > 0) {
-      return `Đã hoàn thành ${state.completedChapters}/${state.totalChapters} chương`
-    }
-
     return 'Chưa bắt đầu'
   }
 
-  const getStatusColor = (state: AutoGenerateState): string => {
+  const getStatusColor = (): string => {
     if (isLoading) return '#FF9500'
     if (error) return '#FF3B30'
     if (state.isRunning) return '#007AFF'
-    if (state.lastError) return '#FF3B30'
-    if (state.progress === 100) return '#34C759'
-    if (state.canResume) return '#FF9500'
     return '#8E8E93'
   }
 
@@ -210,7 +174,7 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
       <View style={styles.header}>
         <Text style={styles.title}>Tự động tạo Summary & TTS</Text>
         <Text style={styles.bookTitle}>{bookTitle}</Text>
-        {onClose && (
+        {!!onClose && (
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
@@ -221,16 +185,21 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
       <View style={styles.statusSection}>
         <Text style={styles.sectionTitle}>Trạng thái</Text>
         <View style={styles.statusCard}>
-          <Text style={[styles.statusText, { color: getStatusColor(state) }]}>
-            {getStatusText(state)}
-          </Text>
+          <Text style={[styles.statusText, { color: getStatusColor() }]}>{getStatusText()}</Text>
 
           {/* Progress Bar */}
           <View style={styles.progressBarContainer}>
             <View style={styles.progressBarBackground}>
-              <View style={[styles.progressBarFill, { width: `${state.progress}%` }]} />
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${Math.round((state.currentChapter / totalChapters) * 100)}%` },
+                ]}
+              />
             </View>
-            <Text style={styles.progressText}>{state.progress}%</Text>
+            <Text style={styles.progressText}>
+              {`${Math.round((state.currentChapter / totalChapters) * 100)}%`}
+            </Text>
           </View>
 
           {/* Stats */}
@@ -238,16 +207,16 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Hoàn thành</Text>
               <Text style={styles.statValue}>
-                {state.completedChapters}/{state.totalChapters || totalChapters}
+                {state.currentChapter}/{totalChapters}
               </Text>
             </View>
-            {state.currentChapter && (
+            {!!state.currentChapter && (
               <View style={styles.statItem}>
                 <Text style={styles.statLabel}>Chương hiện tại</Text>
                 <Text style={styles.statValue}>{state.currentChapter}</Text>
               </View>
             )}
-            {loadingChapter && (
+            {!!loadingChapter && (
               <View style={styles.statItem}>
                 <Text style={styles.statLabel}>Đang load</Text>
                 <Text style={styles.statValue}>Chương {loadingChapter}</Text>
@@ -261,33 +230,31 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
       <View style={styles.controlsSection}>
         <Text style={styles.sectionTitle}>Điều khiển</Text>
 
-        {!state.isRunning && !state.canResume && !isLoading && (
+        {!state.isRunning && !isLoading && (
           <TouchableOpacity
             style={[styles.primaryButton, { opacity: isLoading ? 0.5 : 1 }]}
             onPress={handleStart}
             disabled={isLoading}>
-            <Text style={styles.primaryButtonText}>
-              {state.completedChapters > 0 ? 'Bắt đầu lại' : 'Bắt đầu'}
-            </Text>
+            <Text style={styles.primaryButtonText}>{'Bắt đầu'}</Text>
           </TouchableOpacity>
         )}
 
-        {!state.isRunning && state.canResume && !isLoading && (
+        {!state.isRunning && !isLoading && (
           <TouchableOpacity
             style={[styles.primaryButton, { opacity: isLoading ? 0.5 : 1 }]}
             onPress={handleStart}
             disabled={isLoading}>
-            <Text style={styles.primaryButtonText}>Tiếp tục</Text>
+            <Text style={styles.primaryButtonText}>{'Tiếp tục'}</Text>
           </TouchableOpacity>
         )}
 
-        {isLoading && (
+        {!!isLoading && (
           <TouchableOpacity style={styles.loadingButton} disabled>
             <Text style={styles.loadingButtonText}>Đang tải nội dung chương...</Text>
           </TouchableOpacity>
         )}
 
-        {state.isRunning && (
+        {!!state.isRunning && (
           <TouchableOpacity style={styles.dangerButton} onPress={handleStop}>
             <Text style={styles.dangerButtonText}>Dừng</Text>
           </TouchableOpacity>
@@ -296,16 +263,9 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
         <View style={styles.secondaryButtonsContainer}>
           <TouchableOpacity
             style={[styles.secondaryButton, { opacity: state.isRunning || isLoading ? 0.5 : 1 }]}
-            onPress={refreshState}
-            disabled={state.isRunning || isLoading}>
-            <Text style={styles.secondaryButtonText}>Làm mới</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.secondaryButton, { opacity: state.isRunning || isLoading ? 0.5 : 1 }]}
             onPress={handleClearCache}
             disabled={state.isRunning || isLoading}>
-            <Text style={styles.secondaryButtonText}>Xóa cache</Text>
+            <Text style={styles.secondaryButtonText}>{'Xóa cache'}</Text>
           </TouchableOpacity>
         </View>
       </View>

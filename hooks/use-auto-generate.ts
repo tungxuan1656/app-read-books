@@ -180,33 +180,6 @@ export default function useAutoGenerate(bookId: string): AutoGenerateHookReturn 
     [bookId],
   )
 
-  // Resume generate function
-  const resumeGenerate = useCallback(
-    async (
-      chapters: ChapterData[],
-      options: {
-        voice?: string
-        totalChapters?: number
-      } = {},
-    ) => {
-      try {
-        await startAutoGenerate(bookId, chapters, {
-          voice: options.voice || 'BV421_vivn_streaming',
-          resumeFromProgress: true,
-          totalChapters: options.totalChapters,
-        })
-      } catch (error) {
-        console.error('Error resuming auto generate:', error)
-        setState((prev) => ({
-          ...prev,
-          lastError: error instanceof Error ? error.message : 'Unknown error',
-          isRunning: false,
-        }))
-      }
-    },
-    [bookId],
-  )
-
   // Stop generate function
   const stopGenerate = useCallback(() => {
     stopAutoGenerate(bookId)

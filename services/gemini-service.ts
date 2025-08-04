@@ -12,7 +12,7 @@ export interface GeminiSummaryResponse {
 // Common configuration for Gemini API
 const GEMINI_API_KEY =
   process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyAQGVLSryDfxi4KikDE_3wHy8C-AtgT7rg'
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
 
 const COMMON_HEADERS = new Headers()
 COMMON_HEADERS.append('Content-Type', 'application/json')

@@ -9,7 +9,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Alert, DeviceEventEmitter } from 'react-native'
 import { Event, RepeatMode, useIsPlaying, useTrackPlayerEvents } from 'react-native-track-player'
 
-export default function useTtsAudio() {
+export default function useTtsAudio(autoPlay = true) {
   const [listAudios, setListAudios] = useState<string[]>([])
   const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
   const isPlaying = useIsPlaying()
@@ -23,9 +23,11 @@ export default function useTtsAudio() {
         setListAudios([])
         setCurrentAudioIndex(null)
         await convertTTSCapcut(sentences, `${bookId}_${chapter}`)
+        return true
       } catch (error) {
         Alert.alert('Lỗi TTS', 'Không thể tạo audio từ nội dung tóm tắt')
       }
+      return false
     },
     [],
   )
@@ -42,35 +44,35 @@ export default function useTtsAudio() {
       'tts_audio_ready',
       async (data: { filePath: string; audioTaskId: string; index: number }) => {
         try {
-          const track = {
-            id: data.audioTaskId,
-            url: data.filePath.startsWith('file://') ? data.filePath : `file://${data.filePath}`,
-            title: `${data.audioTaskId}`,
-            artist: 'TTS Capcut',
-          }
-
-          await trackPlayerService.addTracks([track])
-
           setListAudios((prev) => {
             const newPaths = [...prev]
             newPaths.push(data.filePath)
             return newPaths
           })
 
-          // Auto-play first track only
-          if (data.index === 3) {
-            setCurrentAudioIndex(0)
-            await trackPlayerService.setRepeatMode(RepeatMode.Off)
-            await trackPlayerService.skipToTrack(0)
-            await trackPlayerService.setRate(1.5)
+          if (autoPlay) {
+            const track = {
+              id: data.audioTaskId,
+              url: data.filePath.startsWith('file://') ? data.filePath : `file://${data.filePath}`,
+              title: `${data.audioTaskId}`,
+              artist: 'TTS Capcut',
+            }
+            await trackPlayerService.addTracks([track])
+            // Auto-play first track only
+            if (data.index === 3) {
+              setCurrentAudioIndex(0)
+              await trackPlayerService.setRepeatMode(RepeatMode.Off)
+              await trackPlayerService.skipToTrack(0)
+              await trackPlayerService.setRate(1.5)
 
-            setTimeout(async () => {
-              try {
-                await trackPlayerService.play()
-              } catch (error) {
-                console.error('🎵 [Audio] Auto-play error:', error)
-              }
-            }, 100)
+              setTimeout(async () => {
+                try {
+                  await trackPlayerService.play()
+                } catch (error) {
+                  console.error('🎵 [Audio] Auto-play error:', error)
+                }
+              }, 100)
+            }
           }
         } catch (error) {
           console.error('🎵 [Audio] Error adding track:', error)
@@ -79,7 +81,7 @@ export default function useTtsAudio() {
     )
 
     return () => subscrition.remove()
-  }, [])
+  }, [autoPlay])
 
   useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], (event) => {
     if (event.type === Event.PlaybackActiveTrackChanged && event.index !== undefined) {
