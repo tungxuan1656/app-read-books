@@ -102,34 +102,34 @@ export const summarizeChapter = async (request: GeminiSummaryRequest): Promise<s
 Bạn là một biên tập viên chuyên nghiệp, thực hiện nhiệm vụ cô đọng lại chương truyện.
 
 **NHIỆM VỤ CỐT LÕI:**
-Rút ngắn độ dài của chương truyện dưới đây bằng cách lược bỏ những phần không cần thiết, trong khi vẫn giữ nguyên hoàn toàn kết cấu và các yếu tố quan trọng của truyện.
+Rút ngắn độ dài của chương truyện dưới đây xuống còn **50-60% độ dài bản gốc** bằng cách lược bỏ triệt để các chi tiết, mô tả, hoặc đoạn văn dư thừa, không ảnh hưởng đến mạch truyện chính, trong khi vẫn giữ nguyên hoàn toàn kết cấu và các yếu tố quan trọng của truyện.
 
-**YÊU CẦU TUYỆT ĐỐI (BẮT BUỘC PHẢI TUÂN THỦ):**
-1. Chỉnh sửa các lỗi chính tả sai từ tiếng việt. các từ viết chưa chính xác, ví dụ: n·gười c·hết -> người chết. Đây là yêu cầu rất quan trọng.
+**YÊU CẦU BẮT BUỘC:**
+1. 🏗️ **GIỮ NGUYÊN KẾT CẤU:**
+   - Bảo toàn tuyệt đối trình tự các tình tiết, sự kiện.
+   - Giữ nguyên dòng chảy của bối cảnh.
+   - Duy trì đầy đủ các tương tác quan trọng giữa các nhân vật, bao gồm cả hội thoại cốt lõi.
 
-2.  ✍️ **GIỮ NGUYÊN 100% HỘI THOẠI:** Tất cả các đoạn hội thoại (văn bản trong dấu ngoặc kép "...") phải được giữ lại y nguyên, không thêm, không bớt, trừ chỉnh sửa chính tả. Đây là yêu cầu quan trọng nhất.
+2. ✂️ **CHỈ LƯỢC BỎ, KHÔNG VIẾT LẠI:**
+   - **Chỉ cắt bỏ:** Loại bỏ các câu văn, đoạn mô tả, hoặc chi tiết không cần thiết (như mô tả cảnh vật, cảm xúc dư thừa, hoặc thông tin nền không liên quan trực tiếp đến mạch truyện).
+   - **Không viết lại:** Tuyệt đối không diễn giải, tóm tắt, hoặc thay đổi văn phong của nguyên tác. Chỉ giữ lại các câu văn gốc, không chỉnh sửa cách diễn đạt.
 
-3.  🏗️ **GIỮ NGUYÊN KẾT CẤU:** Phải bảo toàn tuyệt đối trình tự của chương truyện, bao gồm:
-    *   Thứ tự các tình tiết, sự kiện.
-    *   Dòng chảy của bối cảnh.
-    *   Tương tác giữa các nhân vật.
-
-4.  ✂️ **MỤC TIÊU LÀ RÚT GỌN, KHÔNG VIẾT LẠI TRỪ CHỈNH SỬA CHÍNH TẢ:**
-    *   **CHỈ LƯỢC BỎ:** Bạn chỉ được phép cắt bỏ những từ ngữ, câu văn mô tả được cho là dư thừa, không ảnh hưởng đến mạch truyện chính.
-    *   **KHÔNG VIẾT LẠI:** Tuyệt đối không được diễn giải, tóm tắt hay viết lại câu văn theo văn phong của bạn. Hãy tôn trọng nguyên tác.
+3. 🎯 **MỤC TIÊU RÚT GỌN:**
+   - Ưu tiên loại bỏ các đoạn văn mô tả dài dòng, thông tin nền không quan trọng, hoặc các chi tiết không ảnh hưởng đến cốt truyện chính (ví dụ: mô tả ngoại cảnh, cảm xúc lặp lại, hoặc thông tin phụ về nhân vật không liên quan trực tiếp).
+   - Đảm bảo nội dung sau khi rút gọn vẫn truyền tải đầy đủ các sự kiện chính, tương tác nhân vật, và ý nghĩa cốt lõi của chương.
 
 **VÍ DỤ VỀ VIỆC LƯỢC BỎ:**
-*   **Gốc:** "Bầu trời trong xanh, cao vời vợi, không một gợn mây, và những tia nắng vàng óng ả, ấm áp nhẹ nhàng chiếu xuống con đường đất nhỏ quanh co."
-*   **Sau khi rút gọn:** "Nắng vàng chiếu xuống con đường đất nhỏ."
+- **Gốc:** "Bầu trời trong xanh, cao vời vợi, không một gợn mây, và những tia nắng vàng óng ả, ấm áp nhẹ nhàng chiếu xuống con đường đất nhỏ quanh co."
+- **Sau khi rút gọn:** "Nắng vàng chiếu xuống con đường đất nhỏ."
 
 **ĐỘ DÀI MỤC TIÊU:**
-Phiên bản sau khi cô đọng nên có độ dài khoảng 50-60% so với bản gốc.
+- Phiên bản sau khi cô đọng phải đạt độ dài **50-60% so với bản gốc**, không được vượt quá hoặc thấp hơn mức này quá nhiều (ví dụ: không được chỉ rút gọn xuống 85% hoặc ít hơn 50%).
 
 ${request.bookTitle ? `**Tên truyện:** ${request.bookTitle}\n` : ''}
 **Nội dung chương gốc cần cô đọng:**
 ${processedContent}
 
-Hãy bắt đầu thực hiện việc cô đọng.
+Hãy bắt đầu thực hiện việc cô đọng, đảm bảo loại bỏ triệt để các chi tiết dư thừa và đạt đúng mục tiêu độ dài.
 
 **QUAN TRỌNG**: Trả về kết quả dưới dạng JSON với format sau:
 {

@@ -27,7 +27,7 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
   })
 
   const startSummary = useSummary()
-  const { startGenerateAudio, stopGenerateAudio } = useTtsAudio()
+  const { startGenerateAudio, stopGenerateAudio } = useTtsAudio(false)
 
   // Function để load content của 1 chapter
   const loadChapterContent = useCallback(
