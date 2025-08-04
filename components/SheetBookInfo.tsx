@@ -64,8 +64,10 @@ const SheetBookInfo = ({
   }
 
   const handleGenerateSummaryAndAudio = () => {
+    onClose()
     router.push({
       pathname: '/generate-summary-tts',
+      params: { bookId },
     })
   }
 

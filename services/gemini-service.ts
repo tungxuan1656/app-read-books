@@ -12,10 +12,11 @@ export interface GeminiSummaryResponse {
 // Common configuration for Gemini API
 const GEMINI_API_KEY =
   process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyAQGVLSryDfxi4KikDE_3wHy8C-AtgT7rg'
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`
 
 const COMMON_HEADERS = new Headers()
 COMMON_HEADERS.append('Content-Type', 'application/json')
+COMMON_HEADERS.append('x-goog-api-key', GEMINI_API_KEY)
 
 const COMMON_SAFETY_SETTINGS = [
   { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -51,22 +52,14 @@ const parseGeminiResult = (result: any, errorContext: string) => {
   }
 
   if (!rawJson) {
-    throw new Error(
-      `Không nhận được kết quả từ Gemini. Context: ${errorContext}`,
-    )
+    throw new Error(`Không nhận được kết quả từ Gemini. Context: ${errorContext}`)
   }
 
   try {
     return JSON.parse(rawJson)
   } catch (e) {
-    console.log(
-      `Lỗi khi parse JSON từ Gemini (${errorContext}):`,
-      e,
-      JSON.stringify(result),
-    )
-    throw new Error(
-      `Gemini trả về văn bản không phải JSON hợp lệ: ${rawJson.substring(0, 200)}...`,
-    )
+    console.log(`Lỗi khi parse JSON từ Gemini (${errorContext}):`, e, JSON.stringify(result))
+    throw new Error(`Gemini trả về văn bản không phải JSON hợp lệ: ${rawJson.substring(0, 200)}...`)
   }
 }
 
@@ -139,7 +132,7 @@ Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn.
       generationConfig: {
         ...COMMON_GENERATION_CONFIG_BASE,
         responseSchema: CONTENT_SCHEMA,
-        responseMimeType: "application/json",
+        responseMimeType: 'application/json',
         maxOutputTokens: 8096,
       },
       safetySettings: COMMON_SAFETY_SETTINGS,

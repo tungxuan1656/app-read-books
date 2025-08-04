@@ -56,7 +56,6 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
       currentAudioIndex,
       listAudios,
     } = useTtsAudio()
-
     useImperativeHandle(ref, () => ({
       present: async ({ content, bookId, chapterNumber }) => {
         setChapterContent(content)
