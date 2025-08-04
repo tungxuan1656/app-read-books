@@ -1,7 +1,7 @@
 import { encode } from 'base-64'
 import * as FileSystem from 'expo-file-system'
 import { DeviceEventEmitter } from 'react-native'
-import { preprocessSentence, splitContentToParagraph } from '../utils/string-helpers'
+import { preprocessSentence } from '../utils/string-helpers'
 import { CACHE_FOLDER } from '../utils/tts-cache'
 
 // Global variable to track cancellation
@@ -223,3 +223,4 @@ export const convertTTSCapcut = async (
 
 export { splitContentToParagraph } from '../utils/string-helpers'
 export { getTTSCacheStats, initTTSCache } from '../utils/tts-cache'
+

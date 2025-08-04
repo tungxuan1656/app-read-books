@@ -1,3 +1,5 @@
+import { formatContentForTTS } from '@/utils/string-helpers'
+
 export interface GeminiSummaryRequest {
   chapterHtml: string
   bookTitle?: string
@@ -12,7 +14,7 @@ export interface GeminiSummaryResponse {
 // Common configuration for Gemini API
 const GEMINI_API_KEY =
   process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyAQGVLSryDfxi4KikDE_3wHy8C-AtgT7rg'
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`
 
 const COMMON_HEADERS = new Headers()
 COMMON_HEADERS.append('Content-Type', 'application/json')
@@ -78,10 +80,12 @@ export const CONTENT_SCHEMA = {
 export const summarizeChapter = async (request: GeminiSummaryRequest): Promise<string> => {
   try {
     // Loại bỏ HTML tags để lấy text thuần
-    const textContent = request.chapterHtml
-      .replace(/<[^>]*>/g, ' ')
+    let textContent = request.chapterHtml
+      .replace(/<[^><]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
+
+    textContent = formatContentForTTS(textContent)
 
     if (!textContent || textContent.length < 50) {
       throw new Error('Nội dung chương quá ngắn để tóm tắt')
@@ -95,31 +99,41 @@ export const summarizeChapter = async (request: GeminiSummaryRequest): Promise<s
         : textContent
 
     const prompt = `
-Bạn là một trợ lý tóm tắt truyện chuyên nghiệp. Hãy tóm tắt nội dung chương truyện sau đây bằng tiếng Việt theo yêu cầu:
+Bạn là một biên tập viên chuyên nghiệp, thực hiện nhiệm vụ cô đọng lại chương truyện.
 
-**YÊU CẦU QUAN TRỌNG:**
-1. 🎭 **GIỮ NGUYÊN** các đoạn hội thoại quan trọng, đặc sắc (đặt trong dấu ngoặc kép)
-2. 💎 **GIỮ NGUYÊN** các đoạn mô tả hay, cảm xúc sâu sắc, chi tiết đẹp
-3. 👥 **GIỮ ĐẦY ĐỦ** tên các nhân vật và mối quan hệ tương tác giữa họ
-4. 🎯 **BẢO TOÀN** tinh thần, phong cách và thông điệp của chương gốc
-5. 📏 **ĐỘ DÀI** tóm tắt khoảng 40-60% so với bài gốc (không quá ngắn)
-6. Chỉnh sửa các từ về đúng tiếng việt, không có từ ngữ bị lỗi chính tả, ví dụ: "c.hết" thành "chết".
+**NHIỆM VỤ CỐT LÕI:**
+Rút ngắn độ dài của chương truyện dưới đây bằng cách lược bỏ những phần không cần thiết, trong khi vẫn giữ nguyên hoàn toàn kết cấu và các yếu tố quan trọng của truyện.
 
-**HƯỚNG DẪN CHI TIẾT:**
-- Ưu tiên giữ lại các câu thoại có tính cách, thể hiện emotion
-- Bảo toàn các đoạn mô tả bối cảnh, không khí quan trọng
-- Giữ nguyên tên địa danh, thuật ngữ đặc biệt trong truyện
-- Nếu có action scenes, mô tả súc tích nhưng đầy đủ
+**YÊU CẦU TUYỆT ĐỐI (BẮT BUỘC PHẢI TUÂN THỦ):**
+1. Chỉnh sửa các lỗi chính tả sai từ tiếng việt. các từ viết chưa chính xác, ví dụ: n·gười c·hết -> người chết. Đây là yêu cầu rất quan trọng.
+
+2.  ✍️ **GIỮ NGUYÊN 100% HỘI THOẠI:** Tất cả các đoạn hội thoại (văn bản trong dấu ngoặc kép "...") phải được giữ lại y nguyên, không thêm, không bớt, trừ chỉnh sửa chính tả. Đây là yêu cầu quan trọng nhất.
+
+3.  🏗️ **GIỮ NGUYÊN KẾT CẤU:** Phải bảo toàn tuyệt đối trình tự của chương truyện, bao gồm:
+    *   Thứ tự các tình tiết, sự kiện.
+    *   Dòng chảy của bối cảnh.
+    *   Tương tác giữa các nhân vật.
+
+4.  ✂️ **MỤC TIÊU LÀ RÚT GỌN, KHÔNG VIẾT LẠI TRỪ CHỈNH SỬA CHÍNH TẢ:**
+    *   **CHỈ LƯỢC BỎ:** Bạn chỉ được phép cắt bỏ những từ ngữ, câu văn mô tả được cho là dư thừa, không ảnh hưởng đến mạch truyện chính.
+    *   **KHÔNG VIẾT LẠI:** Tuyệt đối không được diễn giải, tóm tắt hay viết lại câu văn theo văn phong của bạn. Hãy tôn trọng nguyên tác.
+
+**VÍ DỤ VỀ VIỆC LƯỢC BỎ:**
+*   **Gốc:** "Bầu trời trong xanh, cao vời vợi, không một gợn mây, và những tia nắng vàng óng ả, ấm áp nhẹ nhàng chiếu xuống con đường đất nhỏ quanh co."
+*   **Sau khi rút gọn:** "Nắng vàng chiếu xuống con đường đất nhỏ."
+
+**ĐỘ DÀI MỤC TIÊU:**
+Phiên bản sau khi cô đọng nên có độ dài khoảng 50-60% so với bản gốc.
 
 ${request.bookTitle ? `**Tên truyện:** ${request.bookTitle}\n` : ''}
-**Nội dung chương:**
+**Nội dung chương gốc cần cô đọng:**
 ${processedContent}
 
-Hãy tạo ra bản tóm tắt chất lượng cao, dễ đọc và hấp dẫn.
+Hãy bắt đầu thực hiện việc cô đọng.
 
 **QUAN TRỌNG**: Trả về kết quả dưới dạng JSON với format sau:
 {
-  "content": "Nội dung tóm tắt ở đây..."
+  "content": "Nội dung chương truyện đã được cô đọng ở đây..."
 }
 `
 

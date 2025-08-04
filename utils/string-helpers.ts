@@ -91,3 +91,26 @@ export const breakSummaryIntoLines = (summary: string): string[] => {
   // Filter out any resulting empty lines or lines that are too short to be meaningful
   return newArrLines2.filter((line) => line.trim().length > 5)
 }
+
+function removeDotsAndDashesComma(str: string): string {
+  const words = str.split(' ')
+  const processedWords = words.map((word) => {
+    const res = word.replace(/[.,-]/g, '').replaceAll('·', '')
+
+    if (word.endsWith('.')) return res + '.'
+    if (word.endsWith(',')) return res + ','
+    return res
+  })
+  return processedWords.join(' ')
+}
+
+export const formatContentForTTS = (content: string): string => {
+  let cleanedText = content
+    .split('\n')
+    .map((line) => removeDotsAndDashesComma(line))
+    .map((line) => line.trim())
+    .filter((line) => line.trim().length > 1)
+    .join('\n')
+
+  return cleanedText
+}

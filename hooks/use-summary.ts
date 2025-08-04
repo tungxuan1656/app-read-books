@@ -21,7 +21,7 @@ export default function useSummary() {
         } else {
           summary = await summarizeChapter({
             chapterHtml: chapterContent,
-            bookTitle: bookTitle,
+            bookTitle: bookTitle!,
           })
           setCachedSummary(bookId, chapterNumber, summary)
         }

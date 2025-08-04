@@ -14,7 +14,7 @@ interface AutoGenerateControllerProps {
 const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId, onClose }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingChapter, setLoadingChapter] = useState<number | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // Lấy thông tin book từ bookId
   const bookInfo = useBookInfo(bookId)
@@ -91,29 +91,30 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
         }
         const content = await loadChapterContent(chapter)
         if (!content) {
-          Alert.alert('Lỗi', `Không thể tải nội dung chương ${chapter}`)
+          setErrorMessage(`Không thể tải nội dung chương ${chapter}`)
           continue
         }
 
         // Tạo tóm tắt cho chương
         const summary = await startSummary(bookId, bookTitle, chapter, content)
         if (!summary) {
-          Alert.alert('Lỗi', `Không thể tạo tóm tắt cho chương ${chapter}`)
+          setErrorMessage(`Không thể tạo tóm tắt cho chương ${chapter}`)
           continue
         }
-        console.log(`Tóm tắt chương ${chapter}:`, summary);
-        
+        console.log('Đã rút gọn chương:', chapter, content.length, '->', summary.length)
+        console.log(`Tóm tắt chương ${chapter}:`, summary)
+
         // Tạo audio từ tóm tắt
         const success = await startGenerateAudio(summary, bookId, chapter)
         if (!success) {
-          Alert.alert('Lỗi', `Không thể tạo audio cho chương ${chapter}`)
+          setErrorMessage(`Không thể tạo audio cho chương ${chapter}`)
           continue
         }
       }
       Alert.alert('Hoàn thành', 'Đã tạo tóm tắt và audio cho tất cả các chương.')
     } catch (error) {
       console.error('Error starting auto-generate:', error)
-      setError(error instanceof Error ? error.message : 'Unknown error')
+      setErrorMessage(error instanceof Error ? error.message : 'Unknown error')
     } finally {
       setIsLoading(false)
     }
@@ -141,7 +142,7 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
         style: 'destructive',
         onPress: () => {
           clearBookCache(bookId)
-          setError(null)
+          setErrorMessage(null)
         },
       },
     ])
@@ -149,7 +150,7 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
 
   // Clear error when component mounts or bookId changes
   useEffect(() => {
-    setError(null)
+    setErrorMessage(null)
   }, [bookId])
 
   const getStatusText = (): string => {
@@ -164,7 +165,7 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
 
   const getStatusColor = (): string => {
     if (isLoading) return '#FF9500'
-    if (error) return '#FF3B30'
+    if (errorMessage) return '#FF3B30'
     if (state.isRunning) return '#007AFF'
     return '#8E8E93'
   }
@@ -224,6 +225,12 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
             )}
           </View>
         </View>
+      </View>
+
+      <View>
+        {!!errorMessage && (
+          <Text style={{ color: '#FF3B30', padding: 20, textAlign: 'center' }}>{errorMessage}</Text>
+        )}
       </View>
 
       {/* Controls Section */}
