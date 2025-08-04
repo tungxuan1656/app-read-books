@@ -31,13 +31,6 @@ export interface AutoGenerateHookReturn {
     },
   ) => Promise<void>
   stopGenerate: () => void
-  resumeGenerate: (
-    chapters: ChapterData[],
-    options?: {
-      voice?: string
-      totalChapters?: number
-    },
-  ) => Promise<void>
   clearCache: () => void
   refreshState: () => void
 }
@@ -229,7 +222,6 @@ export default function useAutoGenerate(bookId: string): AutoGenerateHookReturn 
     state,
     startGenerate,
     stopGenerate,
-    resumeGenerate,
     clearCache,
     refreshState,
   }
