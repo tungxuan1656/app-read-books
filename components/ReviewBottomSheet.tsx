@@ -15,6 +15,7 @@ import React, {
 import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native'
 import PlayAudioControl from './PlayAudioControl'
 import useTtsAudio from '@/hooks/use-tts-audio'
+import useSummary from '@/hooks/use-summary'
 
 export interface ReviewBottomSheetRef {
   present: ({
@@ -46,6 +47,8 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     const [chapterNumber, setChapterNumber] = useState<number | null>(null)
     const bookInfo = useBookInfo(bookId ?? '')
 
+    const startSummary = useSummary()
+
     const {
       startGenerateAudio,
       stopGenerateAudio,
@@ -71,28 +74,10 @@ const ReviewBottomSheet = forwardRef<ReviewBottomSheetRef, ReviewBottomSheetProp
     }, [chapterContent, bookId, chapterNumber])
 
     const handleSummarize = async () => {
-      if (!bookId || !chapterNumber || !chapterContent) {
-        return
-      }
-      try {
-        let summary = getCachedSummary(bookId, chapterNumber)
-        if (summary) {
-          setSummaryContent(summary)
-        } else {
-          summary = await summarizeChapter({
-            chapterHtml: chapterContent,
-            bookTitle: bookInfo?.name,
-          })
-          setCachedSummary(bookId, chapterNumber, summary)
-        }
+      const summary = await startSummary(bookId, bookInfo?.name, chapterNumber, chapterContent)
+      if (summary) {
         setSummaryContent(summary)
-        startGenerateAudio(summary, bookId, chapterNumber)
-      } catch (error) {
-        console.error('📝 [Summary Cache] Error summarizing:', error)
-        Alert.alert(
-          'Lỗi tóm tắt',
-          error instanceof Error ? error.message : 'Có lỗi xảy ra khi tóm tắt chương truyện',
-        )
+        startGenerateAudio(summary, bookId!, chapterNumber!)
       }
     }
 
