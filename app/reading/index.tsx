@@ -2,7 +2,7 @@ import { ContentDisplay } from '@/components/ContentDisplay'
 import { VectorIcon } from '@/components/Icon'
 import ReviewBottomSheet, { ReviewBottomSheetRef } from '@/components/ReviewBottomSheet'
 import { Screen } from '@/components/Screen'
-import SheetBookInfo from '@/components/SheetBookInfo'
+import SheetBookInfo, { SheetBookInfoRef } from '@/components/SheetBookInfo'
 import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
 import useAppStore from '@/controllers/store'
@@ -27,7 +27,7 @@ const Reading = () => {
   const refTimeout = useRef<number | undefined>(undefined)
   const refTimeoutSave = useRef<number | undefined>(undefined)
   const [chapterContent, setChapterContent] = useState('')
-  const [visibleSheet, setVisibleSheet] = useState(false)
+  const sheetBookInfoRef = useRef<SheetBookInfoRef>(null)
 
   // Use Zustand directly instead of context hooks
   const { readingOptions, updateReadingOptions, getBookById } = useAppStore()
@@ -225,7 +225,7 @@ const Reading = () => {
         size={18}
         buttonStyle={{ ...styles.buttonInfo, bottom: 12 + insets.bottom }}
         color={AppPalette.gray600}
-        onPress={() => setVisibleSheet(true)}
+        onPress={() => sheetBookInfoRef.current?.present(bookId)}
       />
       <VectorIcon
         name="wand-magic-sparkles"
@@ -235,11 +235,7 @@ const Reading = () => {
         color={AppPalette.gray600}
         onPress={openReviewBottomSheet}
       />
-      <SheetBookInfo
-        bookId={bookId}
-        isVisible={visibleSheet}
-        onClose={() => setVisibleSheet(false)}
-      />
+      <SheetBookInfo ref={sheetBookInfoRef} />
       <ReviewBottomSheet ref={reviewBottomSheetRef} onClose={() => {}} />
     </Screen.Container>
   )

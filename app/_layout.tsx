@@ -9,6 +9,7 @@ import TrackPlayer from 'react-native-track-player'
 import { MMKVStorage } from '../controllers/mmkv'
 import { initializeTTSCache } from '../controllers/tts-cache'
 import trackPlayerService from '../services/track-player-service'
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 
 SplashScreen.preventAutoHideAsync()
 try {
@@ -45,10 +46,12 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-      </Stack>
-      <GToastComponent />
+      <BottomSheetModalProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+        </Stack>
+        <GToastComponent />
+      </BottomSheetModalProvider>
     </GestureHandlerRootView>
   )
 }
