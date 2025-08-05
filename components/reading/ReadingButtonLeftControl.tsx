@@ -19,11 +19,11 @@ function ReadingButtonLeftControl({ openBook }: { openBook: () => void }) {
   return (
     <>
       <VectorIcon
-        name="book"
+        name="book-open-reader"
         font="FontAwesome6"
         size={18}
         buttonStyle={{ ...styles.buttonInfo, bottom: 12 + insets.bottom }}
-        color={AppPalette.gray600}
+        color={AppPalette.white}
         onPress={openBook}
       />
     </>
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 40,
-    backgroundColor: AppPalette.gray100,
+    backgroundColor: AppPalette.gray400,
     position: 'absolute',
     right: 12,
     bottom: 12,
