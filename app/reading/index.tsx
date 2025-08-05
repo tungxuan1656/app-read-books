@@ -1,5 +1,8 @@
 import { ContentDisplay } from '@/components/ContentDisplay'
-import { VectorIcon } from '@/components/Icon'
+import ReadingButtonBack from '@/components/reading/ReadingButtonBack'
+import ReadingButtonLeftControl from '@/components/reading/ReadingButtonLeftControl'
+import ReadingButtonScrollBottom from '@/components/reading/ReadingButtonScrollBottom'
+import ReadingButtonTopNavigation from '@/components/reading/ReadingButtonTopNavigation'
 import ReviewBottomSheet, { ReviewBottomSheetRef } from '@/components/ReviewBottomSheet'
 import { Screen } from '@/components/Screen'
 import SheetBookInfo, { SheetBookInfoRef } from '@/components/SheetBookInfo'
@@ -10,14 +13,10 @@ import useReadingActions from '@/hooks/use-reading-actions'
 import useReadingContent from '@/hooks/use-reading-content'
 import useReupdateReading from '@/hooks/use-reupdate-reading'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
-import { router } from 'expo-router'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AppPalette } from '../../assets'
 
 const Reading = () => {
-  const insets = useSafeAreaInsets()
   const params = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
   useReupdateReading(params.bookId)
 
@@ -61,11 +60,21 @@ const Reading = () => {
     })
   }, [currentChapterContent])
 
+  const openBook = useCallback(() => {
+    const bookId = useAppStore.getState().readingOptions.currentBook
+    sheetBookInfoRef.current?.present(bookId)
+  }, [])
+
+  const handleScrollToBottom = useCallback(() => {
+    refScroll.current?.scrollToEnd({ animated: true })
+  }, [])
+
   return (
     <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
       <Text style={[AppTypo.mini.regular, { marginHorizontal: 16 }]} numberOfLines={1}>
         {currentChapterName}
       </Text>
+      
       <ScrollView
         style={{ flex: 1 }}
         ref={refScroll}
@@ -76,67 +85,18 @@ const Reading = () => {
           <ContentDisplay chapterHtml={currentChapterContent} onLoaded={onLoaded} />
         ) : null}
       </ScrollView>
+      
       {isLoading ? (
         <View style={[styles.viewLoading, AppStyles.view.absoluteFill]}>
           <ActivityIndicator />
         </View>
       ) : null}
-      <VectorIcon
-        name="circle-chevron-left"
-        font="FontAwesome6"
-        size={22}
-        buttonStyle={{ ...styles.buttonBack }}
-        color={AppPalette.gray400}
-        onPress={router.back}
-      />
-      <View style={styles.viewNavigate}>
-        <VectorIcon
-          name="arrow-left"
-          font="FontAwesome6"
-          size={14}
-          buttonStyle={{ width: 28, height: 28 }}
-          color={AppPalette.white}
-          onPress={previousChapter}
-        />
-        <VectorIcon
-          name="arrow-right"
-          font="FontAwesome6"
-          size={14}
-          buttonStyle={{ width: 28, height: 28 }}
-          color={AppPalette.white}
-          onPress={nextChapter}
-        />
-      </View>
-      <VectorIcon
-        name="book"
-        font="FontAwesome6"
-        size={18}
-        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + insets.bottom }}
-        color={AppPalette.gray600}
-        onPress={() => {
-          const bookId = useAppStore.getState().readingOptions.currentBook
-          sheetBookInfoRef.current?.present(bookId)
-        }}
-      />
-      <VectorIcon
-        name="wand-magic-sparkles"
-        font="FontAwesome6"
-        size={18}
-        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 + insets.bottom }}
-        color={AppPalette.red500}
-        onPress={openReviewBottomSheet}
-      />
-      <VectorIcon
-        name="circle-arrow-down"
-        font="FontAwesome6"
-        size={18}
-        buttonStyle={{
-          ...styles.buttonScrollToBottom,
-          bottom: 12 + insets.bottom,
-        }}
-        color={AppPalette.gray600}
-        onPress={() => refScroll.current?.scrollToEnd({ animated: true })}
-      />
+
+      <ReadingButtonBack />
+      <ReadingButtonTopNavigation nextChapter={nextChapter} previousChapter={previousChapter} />
+      <ReadingButtonLeftControl openBook={openBook} />
+      <ReadingButtonScrollBottom onScrollToBottom={handleScrollToBottom} />
+
       <SheetBookInfo ref={sheetBookInfoRef} />
       <ReviewBottomSheet ref={reviewBottomSheetRef} onClose={() => {}} />
     </Screen.Container>
@@ -146,46 +106,10 @@ const Reading = () => {
 export default Reading
 
 const styles = StyleSheet.create({
-  buttonInfo: {
-    width: 40,
-    height: 40,
-    borderRadius: 40,
-    backgroundColor: AppPalette.gray100,
-    position: 'absolute',
-    right: 12,
-    bottom: 12,
-  },
-  buttonBack: {
-    width: 44,
-    height: 44,
-    borderRadius: 40,
-    position: 'absolute',
-    left: 10,
-    top: 12,
-  },
-  viewNavigate: {
-    flexDirection: 'row',
-    height: 28,
-    paddingHorizontal: 2,
-    position: 'absolute',
-    right: 10,
-    top: 16,
-    backgroundColor: AppPalette.gray400,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   viewLoading: {
     height: AppConst.windowHeight(),
     backgroundColor: '#F5F1E5',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  buttonScrollToBottom: {
-    alignSelf: 'center',
-    borderRadius: 100,
-    backgroundColor: 'white',
-    right: 'auto',
-    left: 'auto',
   },
 })
