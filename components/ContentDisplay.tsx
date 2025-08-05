@@ -12,7 +12,7 @@ export const ContentDisplay = React.memo(
     return (
       <RenderHTML
         source={{ html: chapterHtml, baseUrl: '' }}
-        baseStyle={{ flex: 1, marginHorizontal: 16 }}
+        baseStyle={{ flex: 1, marginHorizontal: 16, marginBottom: 80 }}
         contentWidth={AppConst.windowWidth() - 32}
         systemFonts={[
           'Inter-Regular',

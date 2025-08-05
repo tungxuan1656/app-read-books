@@ -8,6 +8,7 @@ export default function useReadingContent() {
   const getBookById = useAppStore((s) => s.getBookById)
   const bookInfo = useMemo(() => getBookById(bookId), [bookId, getBookById])
   const [currentChapterContent, setCurrentChapterContent] = useState('')
+  const isSummaryMode = useAppStore((s) => s.isSummaryMode)
 
   const currentChapterName = useMemo(() => {
     if (bookInfo && reading.books) {

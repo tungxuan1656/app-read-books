@@ -1,11 +1,21 @@
-import React from 'react'
-import { VectorIcon } from '../Icon'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { StyleSheet } from 'react-native'
 import { AppPalette } from '@/assets'
+import React from 'react'
+import { StyleSheet } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { VectorIcon } from '../Icon'
 
 function ReadingButtonLeftControl({ openBook }: { openBook: () => void }) {
   const insets = useSafeAreaInsets()
+
+  //   const openReviewBottomSheet = useCallback(() => {
+  //   const reading = useAppStore.getState().readingOptions
+  //   reviewBottomSheetRef.current?.present({
+  //     content: currentChapterContent,
+  //     bookId: reading.currentBook,
+  //     chapterNumber: reading.books[reading.currentBook],
+  //   })
+  // }, [currentChapterContent])
+
   return (
     <>
       <VectorIcon
@@ -15,14 +25,6 @@ function ReadingButtonLeftControl({ openBook }: { openBook: () => void }) {
         buttonStyle={{ ...styles.buttonInfo, bottom: 12 + insets.bottom }}
         color={AppPalette.gray600}
         onPress={openBook}
-      />
-      <VectorIcon
-        name="wand-magic-sparkles"
-        font="FontAwesome6"
-        size={18}
-        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + 40 + 8 + insets.bottom }}
-        color={AppPalette.red500}
-        onPress={() => {}}
       />
     </>
   )

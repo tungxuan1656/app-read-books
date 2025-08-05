@@ -31,11 +31,8 @@ const Reading = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       const offset = MMKVStorage.get(MMKVKeys.CURRENT_READING_OFFSET)
-      if (offset) {
-        refScroll.current?.scrollTo({ y: offset, animated: false })
-      }
+      if (offset) refScroll.current?.scrollTo({ y: offset, animated: false })
     }, 200)
-
     return () => clearTimeout(timer)
   }, [])
 
@@ -51,15 +48,6 @@ const Reading = () => {
     [saveOffset, nextChapter, previousChapter],
   )
 
-  const openReviewBottomSheet = useCallback(() => {
-    const reading = useAppStore.getState().readingOptions
-    reviewBottomSheetRef.current?.present({
-      content: currentChapterContent,
-      bookId: reading.currentBook,
-      chapterNumber: reading.books[reading.currentBook],
-    })
-  }, [currentChapterContent])
-
   const openBook = useCallback(() => {
     const bookId = useAppStore.getState().readingOptions.currentBook
     sheetBookInfoRef.current?.present(bookId)
@@ -74,7 +62,7 @@ const Reading = () => {
       <Text style={[AppTypo.mini.regular, { marginHorizontal: 16 }]} numberOfLines={1}>
         {currentChapterName}
       </Text>
-      
+
       <ScrollView
         style={{ flex: 1 }}
         ref={refScroll}
@@ -85,7 +73,7 @@ const Reading = () => {
           <ContentDisplay chapterHtml={currentChapterContent} onLoaded={onLoaded} />
         ) : null}
       </ScrollView>
-      
+
       {isLoading ? (
         <View style={[styles.viewLoading, AppStyles.view.absoluteFill]}>
           <ActivityIndicator />

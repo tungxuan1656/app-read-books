@@ -11,6 +11,9 @@ interface AppState {
   setFontSize: (size: number) => void
   setLineHeight: (height: number) => void
 
+  isSummaryMode: boolean
+  setIsSummaryMode: (isSummaryMode: boolean) => void
+
   // Reading context
   readingOptions: Options
   setReadingOptions: (options: Options) => void
@@ -44,9 +47,9 @@ const useAppStore = create<AppState>()(
         // Reading context
         readingOptions: defaultReadingOptions,
         setReadingOptions: (options: Options) => set({ readingOptions: options }),
-        updateReadingOptions: (options: Partial<Options>) => 
-          set((state) => ({ 
-            readingOptions: { ...state.readingOptions, ...options } 
+        updateReadingOptions: (options: Partial<Options>) =>
+          set((state) => ({
+            readingOptions: { ...state.readingOptions, ...options },
           })),
 
         // Books context
@@ -64,6 +67,9 @@ const useAppStore = create<AppState>()(
           const state = get()
           return state.books.find((book) => book.id === bookId) || null
         },
+
+        isSummaryMode: false,
+        setIsSummaryMode: (isSummaryMode: boolean) => set({ isSummaryMode }),
       }),
       {
         name: 'appstore',
