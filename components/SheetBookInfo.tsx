@@ -96,11 +96,6 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
     bottomSheetRef.current?.close()
   }, [currentBookId])
 
-  const handleScrollToBottom = useCallback(() => {
-    DeviceEventEmitter.emit('READING_SCROLL_TO_BOTTOM')
-    bottomSheetRef.current?.close()
-  }, [])
-
   // Memoize font list for better performance
   const fontList = useMemo(() => getListFonts(), [])
 
@@ -207,14 +202,6 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
 
         {fontSizeControls}
         {lineHeightControls}
-
-        <TouchableOpacity
-          style={[styles.viewRow, { marginVertical: 20 }]}
-          onPress={handleScrollToBottom}>
-          <Text style={[AppTypo.body.medium, { color: AppColors.buttonFocus }]}>
-            {'Cuộn xuống cuối'}
-          </Text>
-        </TouchableOpacity>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <TouchableOpacity

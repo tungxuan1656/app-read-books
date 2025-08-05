@@ -38,11 +38,3 @@ export const useBooksActions = () => {
   }))
   return { setBooks, addBook, removeBook }
 }
-
-export const useReadingActions = () => {
-  const { setReadingOptions, updateReadingOptions } = useAppStore((state) => ({
-    setReadingOptions: state.setReadingOptions,
-    updateReadingOptions: state.updateReadingOptions,
-  }))
-  return { setReadingOptions, updateReadingOptions }
-}

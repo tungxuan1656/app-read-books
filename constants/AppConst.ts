@@ -59,4 +59,9 @@ export const MMKVKeys = {
   CURRENT_READING_OFFSET: 'CURRENT_READING_OFFSET',
 }
 
+export const EventKeys = {
+  READING_NEXT_CHAPTER_DONE: 'READING_NEXT_CHAPTER_DONE',
+  READING_PREVIOUS_CHAPTER_DONE: 'READING_PREVIOUS_CHAPTER_DONE',
+}
+
 // Note: EventKeys removed as we now use Zustand directly instead of events
