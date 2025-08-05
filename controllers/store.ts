@@ -12,7 +12,7 @@ interface AppState {
   setLineHeight: (height: number) => void
 
   isSummaryMode: boolean
-  setIsSummaryMode: (isSummaryMode: boolean) => void
+  toggleSummaryMode: () => void
 
   // Reading context
   readingOptions: Options
@@ -69,7 +69,7 @@ const useAppStore = create<AppState>()(
         },
 
         isSummaryMode: false,
-        setIsSummaryMode: (isSummaryMode: boolean) => set({ isSummaryMode }),
+        toggleSummaryMode: () => set((state) => ({ isSummaryMode: !state.isSummaryMode })),
       }),
       {
         name: 'appstore',

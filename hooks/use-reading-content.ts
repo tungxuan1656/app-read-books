@@ -29,7 +29,7 @@ export default function useReadingContent() {
       getBookChapterContent(reading.currentBook, chapter)
         .then((res) => {
           if (res) {
-            if (isSummaryMode) {
+            if (!isSummaryMode) {
               setCurrentChapterContent(getChapterHtml(res))
             } else {
               getChapterBySummary(res, chapter)

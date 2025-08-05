@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useBookInfo } from '../controllers/context'
 import { getBookChapterContent } from '../utils'
+import { breakSummaryIntoLines } from '@/utils/string-helpers'
 
 interface AutoGenerateControllerProps {
   bookId: string
@@ -104,8 +105,10 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
         console.log('Đã rút gọn chương:', chapter, content.length, '->', summary.length)
         console.log(`Tóm tắt chương ${chapter}:`, summary)
 
+        const ttsSummay = breakSummaryIntoLines(summary).slice(0, 5).join('\n')
+
         // Tạo audio từ tóm tắt
-        const success = await startGenerateAudio(summary, bookId, chapter)
+        const success = await startGenerateAudio(ttsSummay, bookId, chapter)
         if (!success) {
           setErrorMessage(`Không thể tạo audio cho chương ${chapter}`)
           continue

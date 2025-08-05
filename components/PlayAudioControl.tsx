@@ -34,7 +34,7 @@ export default function PlayAudioControl({
             name={'backward'}
             font="FontAwesome6"
             size={16}
-            buttonStyle={{ width: 32, height: 32 }}
+            buttonStyle={{ width: 28, height: 28 }}
             color={AppPalette.white}
             onPress={handlePrevious}
           />
@@ -42,7 +42,7 @@ export default function PlayAudioControl({
             name={isPlaying ? 'pause' : 'play'}
             font="FontAwesome6"
             size={16}
-            buttonStyle={{ width: 32, height: 32 }}
+            buttonStyle={{ width: 28, height: 28 }}
             color={AppPalette.white}
             onPress={handlePlayPause}
           />
@@ -50,7 +50,7 @@ export default function PlayAudioControl({
             name={'forward'}
             font="FontAwesome6"
             size={16}
-            buttonStyle={{ width: 32, height: 32 }}
+            buttonStyle={{ width: 28, height: 28 }}
             color={AppPalette.white}
             onPress={handleNext}
           />
@@ -68,8 +68,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     alignItems: 'center',
     paddingHorizontal: 12,
-    marginBottom: 16,
-    gap: 8,
+    gap: 4,
   },
   progressText: {
     color: AppPalette.white,

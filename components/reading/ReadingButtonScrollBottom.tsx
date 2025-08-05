@@ -13,9 +13,9 @@ function ReadingButtonScrollBottom({ onScrollToBottom }: { onScrollToBottom: () 
       size={18}
       buttonStyle={{
         ...styles.buttonScrollToBottom,
-        bottom: 12 + insets.bottom,
+        bottom: Math.max(10, insets.bottom),
       }}
-      color={AppPalette.gray600}
+      color={AppPalette.gray300}
       onPress={onScrollToBottom}
     />
   )

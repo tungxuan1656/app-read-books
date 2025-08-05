@@ -10,7 +10,7 @@ import { MMKVStorage } from '../controllers/mmkv'
 import { initializeTTSCache } from '../controllers/tts-cache'
 import trackPlayerService from '../services/track-player-service'
 
-SplashScreen.hideAsync()
+SplashScreen.preventAutoHideAsync()
 
 try {
   initializeTTSCache()

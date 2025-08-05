@@ -28,7 +28,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
   const bottomSheetRef = React.useRef<BottomSheet>(null)
 
   // Memoize snap points for better performance
-  const snapPoints = useMemo(() => ['50%'], [])
+  const snapPoints = useMemo(() => [360], [])
 
   // Use Zustand selectors for better performance
   const font = useAppStore((state) => state.font)
@@ -203,7 +203,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
         {fontSizeControls}
         {lineHeightControls}
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16 }}>
           <TouchableOpacity
             style={[styles.viewRow, { marginBottom: 20 }]}
             onPress={handleGenerateSummaryAndAudio}>

@@ -1,4 +1,5 @@
 import { ContentDisplay } from '@/components/ContentDisplay'
+import ReadingAudioControl from '@/components/reading/ReadingAudioControl'
 import ReadingButtonBack from '@/components/reading/ReadingButtonBack'
 import ReadingButtonLeftControl from '@/components/reading/ReadingButtonLeftControl'
 import ReadingButtonScrollBottom from '@/components/reading/ReadingButtonScrollBottom'
@@ -24,15 +25,17 @@ import {
 } from 'react-native'
 
 const Reading = () => {
+  console.log('RENDER Reading')
+
   const params = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
-  useReupdateReading(params.bookId)
+  const _ = useReupdateReading(params.bookId)
+  const isSummaryMode = useAppStore((s) => s.isSummaryMode)
 
   const { nextChapter, previousChapter, saveOffset, isLoading, onLoaded } = useReadingActions()
   const { currentChapterName, currentChapterContent } = useReadingContent()
 
   const refScroll = useRef<ScrollView | null>(null)
   const sheetBookInfoRef = useRef<SheetBookInfoRef>(null)
-  const reviewBottomSheetRef = useRef<ReviewBottomSheetRef>(null)
 
   // Load reading offset once when component mounts
   useEffect(() => {
@@ -94,13 +97,14 @@ const Reading = () => {
         </View>
       ) : null}
 
+      {isSummaryMode ? <ReadingAudioControl /> : null}
+
       <ReadingButtonBack />
       <ReadingButtonTopNavigation nextChapter={nextChapter} previousChapter={previousChapter} />
       <ReadingButtonLeftControl openBook={openBook} />
       <ReadingButtonScrollBottom onScrollToBottom={handleScrollToBottom} />
 
       <SheetBookInfo ref={sheetBookInfoRef} />
-      <ReviewBottomSheet ref={reviewBottomSheetRef} onClose={() => {}} />
     </Screen.Container>
   )
 }

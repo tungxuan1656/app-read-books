@@ -12,7 +12,7 @@ export default function ReadingButtonTopNavigation({
   nextChapter: () => void
 }) {
   const isSummaryMode = useAppStore((s) => s.isSummaryMode)
-  const setIsSummaryMode = useAppStore((s) => s.setIsSummaryMode)
+  const toggleSummaryMode = useAppStore((s) => s.toggleSummaryMode)
 
   return (
     <View style={styles.viewContainer}>
@@ -27,7 +27,7 @@ export default function ReadingButtonTopNavigation({
           backgroundColor: isSummaryMode ? AppPalette.green50 : 'white',
         }}
         color={isSummaryMode ? AppColors.textActivate : AppPalette.gray500}
-        onPress={() => setIsSummaryMode(!isSummaryMode)}
+        onPress={toggleSummaryMode}
       />
       <View style={styles.viewNavigate}>
         <VectorIcon
