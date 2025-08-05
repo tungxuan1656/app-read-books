@@ -1,4 +1,12 @@
+import { ContentDisplay } from '@/components/ContentDisplay'
+import { VectorIcon } from '@/components/Icon'
+import ReviewBottomSheet, { ReviewBottomSheetRef } from '@/components/ReviewBottomSheet'
 import { Screen } from '@/components/Screen'
+import SheetBookInfo from '@/components/SheetBookInfo'
+import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
+import { MMKVStorage } from '@/controllers/mmkv'
+import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
+import { router } from 'expo-router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
@@ -8,19 +16,10 @@ import {
   Text,
   View,
 } from 'react-native'
-import { VectorIcon } from '@/components/Icon'
-import { AppPalette } from '../../assets'
-import { router, useLocalSearchParams } from 'expo-router'
-import { getBookChapterContent, getChapterHtml, showToastError } from '../../utils'
-import { setReadingContext, useBookInfo, useReading } from '../../controllers/context'
-import SheetBookInfo from '@/components/SheetBookInfo'
-import ReviewBottomSheet, { ReviewBottomSheetRef } from '@/components/ReviewBottomSheet'
-import RenderHTML from 'react-native-render-html'
-import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
-import { MMKVStorage } from '@/controllers/mmkv'
-import { ContentDisplay } from '@/components/ContentDisplay'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
+import { AppPalette } from '../../assets'
+import { setReadingContext, useBookInfo, useReading } from '../../controllers/context'
+import { getBookChapterContent, getChapterHtml, showToastError } from '../../utils'
 
 const Reading = () => {
   const insets = useSafeAreaInsets()
