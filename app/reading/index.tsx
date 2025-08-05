@@ -30,10 +30,9 @@ const Reading = () => {
 
   const params = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
   const _ = useReupdateReading(params.bookId)
-  const isSummaryMode = useAppStore((s) => s.isSummaryMode)
 
   const { nextChapter, previousChapter, saveOffset, isLoading, onLoaded } = useReadingActions()
-  const { chapterName, content, bookId, chapter } = useCurrentReading()
+  const chapter = useCurrentReading()
 
   const refScroll = useRef<ScrollView | null>(null)
   const sheetBookInfoRef = useRef<SheetBookInfoRef>(null)
@@ -78,7 +77,7 @@ const Reading = () => {
   return (
     <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
       <Text style={[AppTypo.mini.regular, { marginHorizontal: 16 }]} numberOfLines={1}>
-        {chapterName || 'Chương không có tên'}
+        {chapter.name || 'Chương không có tên'}
       </Text>
 
       <ScrollView
@@ -87,7 +86,9 @@ const Reading = () => {
         scrollEventThrottle={300}
         contentContainerStyle={{ paddingVertical: 44 }}
         onScroll={handleScroll}>
-        {content !== '' ? <ContentDisplay chapterHtml={content} onLoaded={onLoaded} /> : null}
+        {chapter.content !== '' ? (
+          <ContentDisplay chapterHtml={chapter.content} onLoaded={onLoaded} />
+        ) : null}
       </ScrollView>
 
       {isLoading ? (
@@ -96,8 +97,12 @@ const Reading = () => {
         </View>
       ) : null}
 
-      {isSummaryMode ? (
-        <ReadingAudioControl bookId={bookId} chapter={chapter} content={content} />
+      {chapter.summary ? (
+        <ReadingAudioControl
+          bookId={chapter.bookId}
+          chapter={chapter.number}
+          content={chapter.content}
+        />
       ) : null}
 
       <ReadingButtonBack />

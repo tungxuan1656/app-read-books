@@ -27,7 +27,11 @@ export default function RootLayout() {
       if (IS_READING) {
         setTimeout(() => {
           router.push('/reading')
+          SplashScreen.hideAsync()
         }, 100)
+      }
+      else {
+        SplashScreen.hideAsync()
       }
     }
   }, [])

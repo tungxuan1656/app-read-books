@@ -13,27 +13,33 @@ export default function useReadingActions() {
   const refTimeout = useRef<number | undefined>(undefined)
   const refTimeoutSave = useRef<number | undefined>(undefined)
 
-  const nextChapter = useCallback(() => {
-    clearTimeout(refTimeout.current)
-    refTimeout.current = setTimeout(() => {
-      setIsLoading(true)
-      const books = { ...reading.books }
-      books[reading.currentBook] = books[reading.currentBook] + 1
-      updateReadingOptions({ books })
-      DeviceEventEmitter.emit(EventKeys.READING_NEXT_CHAPTER_DONE)
-    }, 500)
-  }, [reading.books, reading.currentBook, updateReadingOptions])
+  const nextChapter = useCallback(
+    (timeout?: number) => {
+      clearTimeout(refTimeout.current)
+      refTimeout.current = setTimeout(() => {
+        setIsLoading(true)
+        const books = { ...reading.books }
+        books[reading.currentBook] = books[reading.currentBook] + 1
+        updateReadingOptions({ books })
+        DeviceEventEmitter.emit(EventKeys.READING_NEXT_CHAPTER_DONE)
+      }, timeout || 50)
+    },
+    [reading.books, reading.currentBook, updateReadingOptions],
+  )
 
-  const previousChapter = useCallback(() => {
-    clearTimeout(refTimeout.current)
-    refTimeout.current = setTimeout(() => {
-      setIsLoading(true)
-      const books = { ...reading.books }
-      books[reading.currentBook] = Math.max(books[reading.currentBook] - 1, 0)
-      updateReadingOptions({ books })
-      DeviceEventEmitter.emit(EventKeys.READING_PREVIOUS_CHAPTER_DONE)
-    }, 500)
-  }, [reading.books, reading.currentBook, updateReadingOptions])
+  const previousChapter = useCallback(
+    (timeout?: number) => {
+      clearTimeout(refTimeout.current)
+      refTimeout.current = setTimeout(() => {
+        setIsLoading(true)
+        const books = { ...reading.books }
+        books[reading.currentBook] = Math.max(books[reading.currentBook] - 1, 0)
+        updateReadingOptions({ books })
+        DeviceEventEmitter.emit(EventKeys.READING_PREVIOUS_CHAPTER_DONE)
+      }, timeout || 50)
+    },
+    [reading.books, reading.currentBook, updateReadingOptions],
+  )
 
   const saveOffset = useCallback((offset: number) => {
     clearTimeout(refTimeoutSave.current)

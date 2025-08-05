@@ -9,7 +9,13 @@ export default function useCurrentReading() {
   const bookId = useAppStore((s) => s.readingOptions.currentBook)
   const getBookById = useAppStore((s) => s.getBookById)
   const bookInfo = useMemo(() => getBookById(bookId), [bookId, getBookById])
-  const [currentChapterContent, setCurrentChapterContent] = useState('')
+  const [chapter, setChapter] = useState({
+    content: '',
+    summary: false,
+    number: 1,
+    name: bookInfo?.name,
+    bookId,
+  })
   const isSummaryMode = useAppStore((s) => s.isSummaryMode)
 
   const startSummary = useSummary()
@@ -30,7 +36,12 @@ export default function useCurrentReading() {
         .then((res) => {
           if (res) {
             if (!isSummaryMode) {
-              setCurrentChapterContent(getChapterHtml(res))
+              setChapter((prev) => ({
+                ...prev,
+                content: getChapterHtml(res),
+                summary: false,
+                number: chapter,
+              }))
             } else {
               getChapterBySummary(res, chapter)
             }
@@ -40,19 +51,22 @@ export default function useCurrentReading() {
     }
   }, [reading.currentBook, reading.books, isSummaryMode])
 
-  const getChapterBySummary = useCallback(async (content: string, chapter: number) => {
-    const summary = await startSummary(bookId, bookInfo?.name, chapter, content)
-    if (summary) {
-      setCurrentChapterContent(getChapterHtml(summary))
-    } else {
-      GToast.error({ message: 'Thất bại khi tạo nội dung chương' })
-    }
-  }, [])
+  const getChapterBySummary = useCallback(
+    async (content: string, chapter: number) => {
+      const summary = await startSummary(bookId, currentChapterName, chapter, content)
+      if (summary) {
+        setChapter((prev) => ({
+          ...prev,
+          content: getChapterHtml(summary),
+          summary: true,
+          number: chapter,
+        }))
+      } else {
+        GToast.error({ message: 'Thất bại khi tạo nội dung chương' })
+      }
+    },
+    [currentChapterName, bookId],
+  )
 
-  return {
-    chapterName: currentChapterName,
-    content: currentChapterContent,
-    bookId: reading.currentBook,
-    chapter: reading.books[reading.currentBook] ?? 1,
-  }
+  return chapter
 }
