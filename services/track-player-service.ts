@@ -1,3 +1,4 @@
+import { DeviceEventEmitter } from 'react-native'
 import TrackPlayer, {
   AppKilledPlaybackBehavior,
   Capability,
@@ -52,6 +53,7 @@ const addTracks = async (
 ): Promise<void> => {
   try {
     await TrackPlayer.add(tracks)
+    DeviceEventEmitter.emit('trackPlayerTracksAdded')
   } catch (error) {
     console.error('🎵 [TrackPlayer] Error adding tracks:', error)
     throw error

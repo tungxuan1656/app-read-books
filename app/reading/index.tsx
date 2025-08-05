@@ -11,7 +11,7 @@ import { AppConst, AppStyles, AppTypo, EventKeys, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
 import useAppStore from '@/controllers/store'
 import useReadingActions from '@/hooks/use-reading-actions'
-import useReadingContent from '@/hooks/use-reading-content'
+import useReadingContent from '@/hooks/use-current-reading'
 import useReupdateReading from '@/hooks/use-reupdate-reading'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import React, { useCallback, useEffect, useRef } from 'react'
@@ -23,6 +23,7 @@ import {
   Text,
   View,
 } from 'react-native'
+import useCurrentReading from '@/hooks/use-current-reading'
 
 const Reading = () => {
   console.log('RENDER Reading')
@@ -32,7 +33,7 @@ const Reading = () => {
   const isSummaryMode = useAppStore((s) => s.isSummaryMode)
 
   const { nextChapter, previousChapter, saveOffset, isLoading, onLoaded } = useReadingActions()
-  const { currentChapterName, currentChapterContent } = useReadingContent()
+  const { chapterName, content, bookId, chapter } = useCurrentReading()
 
   const refScroll = useRef<ScrollView | null>(null)
   const sheetBookInfoRef = useRef<SheetBookInfoRef>(null)
@@ -77,7 +78,7 @@ const Reading = () => {
   return (
     <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
       <Text style={[AppTypo.mini.regular, { marginHorizontal: 16 }]} numberOfLines={1}>
-        {currentChapterName}
+        {chapterName || 'Chương không có tên'}
       </Text>
 
       <ScrollView
@@ -86,9 +87,7 @@ const Reading = () => {
         scrollEventThrottle={300}
         contentContainerStyle={{ paddingVertical: 44 }}
         onScroll={handleScroll}>
-        {currentChapterContent !== '' ? (
-          <ContentDisplay chapterHtml={currentChapterContent} onLoaded={onLoaded} />
-        ) : null}
+        {content !== '' ? <ContentDisplay chapterHtml={content} onLoaded={onLoaded} /> : null}
       </ScrollView>
 
       {isLoading ? (
@@ -97,7 +96,9 @@ const Reading = () => {
         </View>
       ) : null}
 
-      {isSummaryMode ? <ReadingAudioControl /> : null}
+      {isSummaryMode ? (
+        <ReadingAudioControl bookId={bookId} chapter={chapter} content={content} />
+      ) : null}
 
       <ReadingButtonBack />
       <ReadingButtonTopNavigation nextChapter={nextChapter} previousChapter={previousChapter} />

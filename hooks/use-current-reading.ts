@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import useSummary from './use-summary'
 import { GToast } from '@/components/GToast'
 
-export default function useReadingContent() {
+export default function useCurrentReading() {
   const reading = useAppStore((s) => s.readingOptions)
   const bookId = useAppStore((s) => s.readingOptions.currentBook)
   const getBookById = useAppStore((s) => s.getBookById)
@@ -50,7 +50,9 @@ export default function useReadingContent() {
   }, [])
 
   return {
-    currentChapterName,
-    currentChapterContent,
+    chapterName: currentChapterName,
+    content: currentChapterContent,
+    bookId: reading.currentBook,
+    chapter: reading.books[reading.currentBook] ?? 1,
   }
 }

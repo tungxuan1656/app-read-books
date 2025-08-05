@@ -1,64 +1,96 @@
 import { AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppTypo } from '@/constants'
-import React from 'react'
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import trackPlayerService from '@/services/track-player-service'
+import React, { useCallback, useEffect, useState } from 'react'
+import { ActivityIndicator, DeviceEventEmitter, StyleSheet, Text, View } from 'react-native'
+import TrackPlayer, {
+  Event,
+  State,
+  useIsPlaying,
+  useTrackPlayerEvents,
+} from 'react-native-track-player'
 
-interface PlayAudioControlProps {
-  currentIndex: number | null
-  maxIndex: number
-  handlePrevious: () => void
-  handleNext: () => void
-  handlePlayPause: () => void
-  isPlaying: boolean
-}
+function PlayAudioControl() {
+  const isPlaying = useIsPlaying().playing
+  const [currentIndex, setCurrentIndex] = useState<number | null>(null)
+  const [maxIndex, setMaxIndex] = useState<number | null>(null)
 
-export default function PlayAudioControl({
-  currentIndex,
-  maxIndex,
-  handlePrevious,
-  handleNext,
-  handlePlayPause,
-  isPlaying,
-}: PlayAudioControlProps) {
+  const handlePlayPause = useCallback(async () => {
+    if (isPlaying) {
+      await trackPlayerService.pause()
+    } else {
+      await trackPlayerService.play()
+    }
+  }, [isPlaying])
+
+  const handlePrevious = useCallback(() => {
+    trackPlayerService.skipToPrevious()
+  }, [])
+
+  const handleNext = useCallback(() => {
+    trackPlayerService.skipToNext()
+  }, [])
+
+  useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], (event) => {
+    if (event.type === Event.PlaybackActiveTrackChanged && event.index !== undefined) {
+      setCurrentIndex(event.index)
+    }
+  })
+
+  useTrackPlayerEvents([Event.PlaybackState], (event) => {
+    if (event.type === Event.PlaybackState) {
+      if (event.state === State.Paused || event.state === State.Stopped) {
+        setCurrentIndex(null)
+      }
+    }
+  })
+
+  useEffect(() => {
+    const unsubscribe = DeviceEventEmitter.addListener('trackPlayerTracksAdded', () => {
+      TrackPlayer.getQueue().then((queue) => {
+        setMaxIndex(queue.length - 1)
+      })
+    })
+    return () => unsubscribe.remove()
+  }, [])
+
   return (
     <View style={styles.ttsContainer}>
       <Text style={[AppTypo.caption.medium, styles.progressText]}>
-        {currentIndex !== null ? currentIndex + 1 : '-'} / {maxIndex}
+        {currentIndex !== null ? currentIndex + 1 : '-'} / {maxIndex ?? '-'}
       </Text>
-      {maxIndex === 0 ? (
-        <ActivityIndicator size={'small'} color={'#FFF'} style={{ paddingVertical: 4 }} />
-      ) : (
-        <>
-          <VectorIcon
-            name={'backward'}
-            font="FontAwesome6"
-            size={16}
-            buttonStyle={{ width: 28, height: 28 }}
-            color={AppPalette.white}
-            onPress={handlePrevious}
-          />
-          <VectorIcon
-            name={isPlaying ? 'pause' : 'play'}
-            font="FontAwesome6"
-            size={16}
-            buttonStyle={{ width: 28, height: 28 }}
-            color={AppPalette.white}
-            onPress={handlePlayPause}
-          />
-          <VectorIcon
-            name={'forward'}
-            font="FontAwesome6"
-            size={16}
-            buttonStyle={{ width: 28, height: 28 }}
-            color={AppPalette.white}
-            onPress={handleNext}
-          />
-        </>
-      )}
+      <>
+        <VectorIcon
+          name={'backward'}
+          font="FontAwesome6"
+          size={16}
+          buttonStyle={{ width: 28, height: 28 }}
+          color={AppPalette.white}
+          onPress={handlePrevious}
+        />
+        <VectorIcon
+          name={isPlaying ? 'pause' : 'play'}
+          font="FontAwesome6"
+          size={16}
+          buttonStyle={{ width: 28, height: 28 }}
+          color={AppPalette.white}
+          onPress={handlePlayPause}
+        />
+        <VectorIcon
+          name={'forward'}
+          font="FontAwesome6"
+          size={16}
+          buttonStyle={{ width: 28, height: 28 }}
+          color={AppPalette.white}
+          onPress={handleNext}
+        />
+      </>
     </View>
   )
 }
+
+export default React.memo(PlayAudioControl)
 
 const styles = StyleSheet.create({
   ttsContainer: {

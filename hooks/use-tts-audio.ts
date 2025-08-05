@@ -1,29 +1,18 @@
-import {
-  convertTTSCapcut,
-  resetTTSCancellation,
-  stopConvertTTSCapcut,
-} from '@/services/convert-tts'
+import { convertTTSCapcut, stopConvertTTSCapcut } from '@/services/convert-tts'
 import trackPlayerService from '@/services/track-player-service'
 import { breakSummaryIntoLines } from '@/utils/string-helpers'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { Alert, DeviceEventEmitter } from 'react-native'
-import { Event, RepeatMode, useIsPlaying, useTrackPlayerEvents } from 'react-native-track-player'
+import { RepeatMode } from 'react-native-track-player'
 
 export default function useTtsAudio(autoPlay = true) {
-  const [listAudios, setListAudios] = useState<string[]>([])
-  const [currentAudioIndex, setCurrentAudioIndex] = useState<number | null>(null)
-  const isPlaying = useIsPlaying()
-  const [isGenerating, setIsGenerating] = useState(false)
 
   const startGenerateAudio = useCallback(
     async (content: string, bookId: string, chapter: number) => {
       try {
         const sentences = breakSummaryIntoLines(content)
         if (sentences.length === 0) return
-        setIsGenerating(true)
         await trackPlayerService.reset()
-        setListAudios([])
-        setCurrentAudioIndex(null)
         await convertTTSCapcut(sentences, `${bookId}_${chapter}`)
         return true
       } catch (error) {
@@ -36,9 +25,6 @@ export default function useTtsAudio(autoPlay = true) {
 
   const stopGenerateAudio = useCallback(async () => {
     await trackPlayerService.reset()
-    setListAudios([])
-    setCurrentAudioIndex(null)
-    setIsGenerating(false)
     stopConvertTTSCapcut()
   }, [])
 
@@ -47,12 +33,7 @@ export default function useTtsAudio(autoPlay = true) {
       'tts_audio_ready',
       async (data: { filePath: string; audioTaskId: string; index: number }) => {
         try {
-          setListAudios((prev) => {
-            const newPaths = [...prev]
-            newPaths.push(data.filePath)
-            return newPaths
-          })
-          if (autoPlay && isGenerating) {
+          if (autoPlay) {
             const track = {
               id: data.audioTaskId,
               url: data.filePath.startsWith('file://') ? data.filePath : `file://${data.filePath}`,
@@ -62,7 +43,6 @@ export default function useTtsAudio(autoPlay = true) {
             await trackPlayerService.addTracks([track])
             // Auto-play first track only
             if (data.index === 3) {
-              setCurrentAudioIndex(0)
               await trackPlayerService.setRepeatMode(RepeatMode.Off)
               await trackPlayerService.skipToTrack(0)
               await trackPlayerService.setRate(1.2)
@@ -83,43 +63,13 @@ export default function useTtsAudio(autoPlay = true) {
     )
 
     return () => subscrition.remove()
-  }, [autoPlay, isGenerating])
+  }, [autoPlay])
 
-  useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], (event) => {
-    if (event.type === Event.PlaybackActiveTrackChanged && event.index !== undefined) {
-      trackPlayerService.pause()
-      setTimeout(() => {
-        trackPlayerService.play()
-      }, 100)
-      setCurrentAudioIndex(event.index)
-    }
-  })
-
-  const handlePlayPause = useCallback(async () => {
-    if (isPlaying) {
-      await trackPlayerService.pause()
-    } else {
-      await trackPlayerService.play()
-    }
-  }, [isPlaying])
-
-  // Navigation handlers
-  const handlePrevious = useCallback(() => {
-    trackPlayerService.skipToPrevious()
-  }, [])
-
-  const handleNext = useCallback(() => {
-    trackPlayerService.skipToNext()
-  }, [])
-
-  return {
-    listAudios,
-    currentAudioIndex,
-    isPlaying,
-    startGenerateAudio,
-    stopGenerateAudio,
-    handlePlayPause,
-    handlePrevious,
-    handleNext,
-  }
+  return React.useMemo(
+    () => ({
+      startGenerateAudio,
+      stopGenerateAudio,
+    }),
+    [startGenerateAudio, stopGenerateAudio],
+  )
 }
