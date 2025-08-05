@@ -5,6 +5,7 @@ import { Screen } from '@/components/Screen'
 import SheetBookInfo from '@/components/SheetBookInfo'
 import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
+import useAppStore from '@/controllers/store'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import { router } from 'expo-router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -18,7 +19,6 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppPalette } from '../../assets'
-import { setReadingContext, useBookInfo, useReading } from '../../controllers/context'
 import { getBookChapterContent, getChapterHtml, showToastError } from '../../utils'
 
 const Reading = () => {
@@ -28,13 +28,17 @@ const Reading = () => {
   const refTimeoutSave = useRef<number | undefined>(undefined)
   const [chapterContent, setChapterContent] = useState('')
   const [visibleSheet, setVisibleSheet] = useState(false)
-  const reading = useReading()
-  const bookId = reading.currentBook
+
+  // Use Zustand directly instead of context hooks
+  const { readingOptions, updateReadingOptions, getBookById } = useAppStore()
+  const bookId = readingOptions.currentBook
+  const reading = readingOptions // Alias for backward compatibility
+
   const refScroll = useRef<ScrollView | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const reviewBottomSheetRef = useRef<ReviewBottomSheetRef>(null)
 
-  const bookInfo = useBookInfo(bookId)
+  const bookInfo = getBookById(bookId)
 
   const currentChapter = useMemo(() => {
     if (bookInfo && reading.books) {
@@ -42,7 +46,7 @@ const Reading = () => {
       const chapter = reading.books[bookId] ?? 1
       return bookInfo.references?.[chapter - 1]
     }
-  }, [bookInfo, reading])
+  }, [bookInfo, reading.books, reading.currentBook]) // More specific dependencies
 
   const chapterHtml = useMemo(() => {
     if (!chapterContent) return ''
@@ -54,13 +58,12 @@ const Reading = () => {
     if (!reading.books[newId]) {
       const books = { ...reading.books }
       books[newId] = 1
-      setReadingContext({
+      updateReadingOptions({
         currentBook: newId,
         books,
       })
     } else {
-      setReadingContext({
-        ...reading,
+      updateReadingOptions({
         currentBook: newId,
       })
     }
@@ -70,7 +73,7 @@ const Reading = () => {
     return () => {
       MMKVStorage.set(MMKVKeys.IS_READING, false)
     }
-  }, [])
+  }, [params.bookId, updateReadingOptions]) // Only depend on params.bookId and updateReadingOptions
 
   useEffect(() => {
     const book = reading.currentBook
@@ -80,59 +83,87 @@ const Reading = () => {
         .then((c) => setChapterContent(c))
         .catch(showToastError)
     }
-  }, [reading])
+  }, [reading.currentBook, reading.books]) // Depend on specific reading properties
 
+  // Load reading offset once when component mounts
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       const offset = MMKVStorage.get(MMKVKeys.CURRENT_READING_OFFSET)
       if (offset) {
         refScroll.current?.scrollTo({ y: offset, animated: false })
       }
     }, 200)
+
+    return () => clearTimeout(timer)
   }, [])
 
+  // Handle scroll to bottom event
   useEffect(() => {
-    const e1 = DeviceEventEmitter.addListener('READING_SCROLL_TO_BOTTOM', () => {
-      refScroll.current?.scrollToEnd({ animated: true })
-    })
+    const scrollToBottomListener = DeviceEventEmitter.addListener(
+      'READING_SCROLL_TO_BOTTOM',
+      () => {
+        refScroll.current?.scrollToEnd({ animated: true })
+      },
+    )
 
     return () => {
-      e1.remove()
+      scrollToBottomListener.remove()
     }
   }, [])
 
-  const nextChapter = () => {
+  const nextChapter = useCallback(() => {
     clearTimeout(refTimeout.current)
     refTimeout.current = setTimeout(() => {
       setIsLoading(true)
       const books = { ...reading.books }
       books[reading.currentBook] = books[reading.currentBook] + 1
-      setReadingContext({ ...reading, books })
+      updateReadingOptions({ books })
       refScroll.current?.scrollTo({ y: 0, animated: false })
     }, 500)
-  }
-  const previousChapter = () => {
+  }, [reading.books, reading.currentBook, updateReadingOptions])
+
+  const previousChapter = useCallback(() => {
     clearTimeout(refTimeout.current)
     refTimeout.current = setTimeout(() => {
       setIsLoading(true)
       const books = { ...reading.books }
       books[reading.currentBook] = Math.max(books[reading.currentBook] - 1, 0)
-      setReadingContext({ ...reading, books })
+      updateReadingOptions({ books })
     }, 500)
-  }
+  }, [reading.books, reading.currentBook, updateReadingOptions])
 
-  const saveOffset = (offset: number) => {
+  const saveOffset = useCallback((offset: number) => {
     clearTimeout(refTimeoutSave.current)
     refTimeoutSave.current = setTimeout(() => {
       MMKVStorage.set(MMKVKeys.CURRENT_READING_OFFSET, offset)
     }, 500)
-  }
+  }, [])
 
   const onLoaded = useCallback(() => {
     setTimeout(() => {
       setIsLoading(false)
     }, 150)
   }, [])
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeout(refTimeout.current)
+      clearTimeout(refTimeoutSave.current)
+    }
+  }, [])
+
+  const handleScroll = useCallback(
+    (event: any) => {
+      const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent
+      const offset = Math.round(contentOffset.y + layoutMeasurement.height)
+      const contentHeight = Math.round(contentSize.height)
+      saveOffset(contentOffset.y)
+      if (offset > contentHeight + 30) nextChapter()
+      if (contentOffset.y < -40) previousChapter()
+    },
+    [saveOffset, nextChapter, previousChapter],
+  )
 
   const openReviewBottomSheet = useCallback(() => {
     reviewBottomSheetRef.current?.present({
@@ -152,14 +183,7 @@ const Reading = () => {
         ref={refScroll}
         scrollEventThrottle={300}
         contentContainerStyle={{ paddingVertical: 44 }}
-        onScroll={(event) => {
-          const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent
-          const offset = Math.round(contentOffset.y + layoutMeasurement.height)
-          const contentHeight = Math.round(contentSize.height)
-          saveOffset(contentOffset.y)
-          if (offset > contentHeight + 30) nextChapter()
-          if (contentOffset.y < -40) previousChapter()
-        }}>
+        onScroll={handleScroll}>
         {chapterHtml !== '' ? (
           <ContentDisplay chapterHtml={chapterHtml} onLoaded={onLoaded} />
         ) : null}
