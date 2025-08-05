@@ -6,7 +6,7 @@ import ReadingButtonTopNavigation from '@/components/reading/ReadingButtonTopNav
 import ReviewBottomSheet, { ReviewBottomSheetRef } from '@/components/ReviewBottomSheet'
 import { Screen } from '@/components/Screen'
 import SheetBookInfo, { SheetBookInfoRef } from '@/components/SheetBookInfo'
-import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
+import { AppConst, AppStyles, AppTypo, EventKeys, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
 import useAppStore from '@/controllers/store'
 import useReadingActions from '@/hooks/use-reading-actions'
@@ -14,7 +14,14 @@ import useReadingContent from '@/hooks/use-reading-content'
 import useReupdateReading from '@/hooks/use-reupdate-reading'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
+import {
+  ActivityIndicator,
+  DeviceEventEmitter,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 
 const Reading = () => {
   const params = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
@@ -34,6 +41,13 @@ const Reading = () => {
       if (offset) refScroll.current?.scrollTo({ y: offset, animated: false })
     }, 200)
     return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    const unsubscribe = DeviceEventEmitter.addListener(EventKeys.READING_NEXT_CHAPTER_DONE, () => {
+      refScroll.current?.scrollTo({ y: 0, animated: false })
+    })
+    return () => unsubscribe.remove()
   }, [])
 
   const handleScroll = useCallback(
@@ -76,7 +90,7 @@ const Reading = () => {
 
       {isLoading ? (
         <View style={[styles.viewLoading, AppStyles.view.absoluteFill]}>
-          <ActivityIndicator />
+          <ActivityIndicator size={'small'} style={{ top: -100 }} />
         </View>
       ) : null}
 
