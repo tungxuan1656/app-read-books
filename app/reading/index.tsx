@@ -20,10 +20,11 @@ import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
 import { ContentDisplay } from '@/components/ContentDisplay'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 
 const Reading = () => {
   const insets = useSafeAreaInsets()
-  const params = useLocalSearchParams<{ bookId: string }>()
+  const params = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
   const refTimeout = useRef<number | undefined>(undefined)
   const refTimeoutSave = useRef<number | undefined>(undefined)
   const [chapterContent, setChapterContent] = useState('')
@@ -31,9 +32,6 @@ const Reading = () => {
   const reading = useReading()
   const bookId = reading.currentBook
   const refScroll = useRef<ScrollView | null>(null)
-  const [font, setFont] = useState(MMKVStorage.get(MMKVKeys.CURRENT_FONT) ?? 'Inter-Regular')
-  const [fontSize, setFontSize] = useState(MMKVStorage.get(MMKVKeys.CURRENT_FONT_SIZE) ?? 24)
-  const [lineHeight, setLineHeight] = useState(MMKVStorage.get(MMKVKeys.CURRENT_LINE_HEIGHT) ?? 1.5)
   const [isLoading, setIsLoading] = useState(true)
   const reviewBottomSheetRef = useRef<ReviewBottomSheetRef>(null)
 
@@ -46,18 +44,6 @@ const Reading = () => {
       return bookInfo.references?.[chapter - 1]
     }
   }, [bookInfo, reading])
-
-  useEffect(() => {
-    MMKVStorage.set(MMKVKeys.CURRENT_FONT, font)
-  }, [font])
-
-  useEffect(() => {
-    MMKVStorage.set(MMKVKeys.CURRENT_FONT_SIZE, fontSize)
-  }, [fontSize])
-
-  useEffect(() => {
-    MMKVStorage.set(MMKVKeys.CURRENT_LINE_HEIGHT, lineHeight)
-  }, [lineHeight])
 
   const chapterHtml = useMemo(() => {
     if (!chapterContent) return ''
@@ -176,13 +162,7 @@ const Reading = () => {
           if (contentOffset.y < -40) previousChapter()
         }}>
         {chapterHtml !== '' ? (
-          <ContentDisplay
-            chapterHtml={chapterHtml}
-            font={font}
-            lineHeight={lineHeight}
-            fontSize={fontSize}
-            onLoaded={onLoaded}
-          />
+          <ContentDisplay chapterHtml={chapterHtml} onLoaded={onLoaded} />
         ) : null}
       </ScrollView>
       {isLoading ? (
@@ -236,20 +216,8 @@ const Reading = () => {
         bookId={bookId}
         isVisible={visibleSheet}
         onClose={() => setVisibleSheet(false)}
-        font={font}
-        setFont={setFont}
-        fontSize={fontSize}
-        setFontSize={setFontSize}
-        lineHeight={lineHeight}
-        setLineHeight={setLineHeight}
       />
-      <ReviewBottomSheet
-        ref={reviewBottomSheetRef}
-        font={font}
-        lineHeight={lineHeight}
-        fontSize={fontSize}
-        onClose={() => {}}
-      />
+      <ReviewBottomSheet ref={reviewBottomSheetRef} onClose={() => {}} />
     </Screen.Container>
   )
 }

@@ -1,7 +1,6 @@
 import { router, useFocusEffect } from 'expo-router'
 import {
   Alert,
-  DeviceEventEmitter,
   FlatList,
   StyleSheet,
   Text,
@@ -11,14 +10,16 @@ import {
 import { useCallback, useState } from 'react'
 import { Divider, Screen } from '@/components/Screen'
 import { Button } from '@/components/Button'
-import { AppTypo, EventKeys } from '../constants'
+import { AppTypo } from '../constants'
 import { deleteBook, getFolderBooks, readFolderBooks } from '../utils'
 import { GToast } from '@/components/GToast'
 import { VectorIcon } from '@/components/Icon'
 import { AppPalette } from '@/assets'
+import useAppStore from '../controllers/store'
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([])
+  const { setBooks: setGlobalBooks } = useAppStore()
 
   useFocusEffect(
     useCallback(() => {
@@ -27,10 +28,10 @@ export default function Home() {
           output.sort((a, b) => a.name.localeCompare(b.name))
 
           setBooks(output)
-          DeviceEventEmitter.emit(EventKeys.SET_BOOKS_CONTEXT, output)
+          setGlobalBooks(output)
         })
         .catch((error) => GToast.error({ message: JSON.stringify(error) }))
-    }, [])
+    }, [setGlobalBooks])
   )
 
   const onSelectBook = (book: Book) => {

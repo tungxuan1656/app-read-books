@@ -1,6 +1,4 @@
-import { EventKeys } from '@/constants'
-import { createContext, useContext } from 'react'
-import { DeviceEventEmitter } from 'react-native'
+import useAppStore from './store'
 
 export const defaultOptions: Options = {
   currentBook: '',
@@ -9,24 +7,42 @@ export const defaultOptions: Options = {
 
 export const defaultBooks: Book[] = []
 
-export const ReadingContext = createContext(defaultOptions)
-export const BooksContext = createContext(defaultBooks)
-
+// Zustand-based hooks to replace React Context
 export const useBookInfo = (bookId: string) => {
-  const books = useContext(BooksContext)
-  for (let index = 0; index < books.length; index++) {
-    const book = books[index]
-    if (book.id === bookId) return book
-  }
-
-  return null
+  const getBookById = useAppStore((state) => state.getBookById)
+  return getBookById(bookId)
 }
 
 export const useReading = () => {
-  const reading = useContext(ReadingContext)
-  return reading
+  const readingOptions = useAppStore((state) => state.readingOptions)
+  return readingOptions
 }
 
-export const setReadingContext = (data: Options) => {
-  DeviceEventEmitter.emit(EventKeys.SET_READING_CONTEXT, data)
+// Direct Zustand update instead of event emission
+export const setReadingContext = (data: Partial<Options>) => {
+  const { updateReadingOptions } = useAppStore.getState()
+  updateReadingOptions(data)
+}
+
+// Additional helper hooks for books
+export const useBooks = () => {
+  const books = useAppStore((state) => state.books)
+  return books
+}
+
+export const useBooksActions = () => {
+  const { setBooks, addBook, removeBook } = useAppStore((state) => ({
+    setBooks: state.setBooks,
+    addBook: state.addBook,
+    removeBook: state.removeBook,
+  }))
+  return { setBooks, addBook, removeBook }
+}
+
+export const useReadingActions = () => {
+  const { setReadingOptions, updateReadingOptions } = useAppStore((state) => ({
+    setReadingOptions: state.setReadingOptions,
+    updateReadingOptions: state.updateReadingOptions,
+  }))
+  return { setReadingOptions, updateReadingOptions }
 }

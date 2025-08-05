@@ -1,21 +1,14 @@
-import { AppConst } from "@/constants"
-import React from "react"
-import RenderHTML from "react-native-render-html"
+import { AppConst } from '@/constants'
+import useAppStore from '@/controllers/store'
+import React from 'react'
+import RenderHTML from 'react-native-render-html'
 
 export const ContentDisplay = React.memo(
-  ({
-    chapterHtml,
-    font,
-    lineHeight,
-    fontSize,
-    onLoaded,
-  }: {
-    chapterHtml: string
-    font: string
-    lineHeight: number
-    fontSize: number
-    onLoaded: () => void
-  }) => {
+  ({ chapterHtml, onLoaded }: { chapterHtml: string; onLoaded: () => void }) => {
+    const font = useAppStore((state) => state.font)
+    const fontSize = useAppStore((state) => state.fontSize)
+    const lineHeight = useAppStore((state) => state.lineHeight)
+
     return (
       <RenderHTML
         source={{ html: chapterHtml, baseUrl: '' }}

@@ -1,6 +1,7 @@
 import { AppColors, AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppStyles, AppTypo } from '@/constants'
+import useAppStore from '@/controllers/store'
 import { getListFonts } from '@/utils'
 import { clearBookCache } from '@/utils/cache-manager'
 import { router } from 'expo-router'
@@ -21,25 +22,16 @@ type SheetBookInfoProps = {
   bookId: string
   isVisible: boolean
   onClose: () => void
-  font: string
-  setFont: React.Dispatch<React.SetStateAction<string>>
-  fontSize: number
-  setFontSize: React.Dispatch<React.SetStateAction<number>>
-  lineHeight: number
-  setLineHeight: React.Dispatch<React.SetStateAction<number>>
 }
 
-const SheetBookInfo = ({
-  isVisible,
-  onClose,
-  bookId,
-  font,
-  setFont,
-  fontSize,
-  setFontSize,
-  lineHeight,
-  setLineHeight,
-}: SheetBookInfoProps) => {
+const SheetBookInfo = ({ isVisible, onClose, bookId }: SheetBookInfoProps) => {
+  const font = useAppStore((state) => state.font)
+  const setFont = useAppStore((state) => state.setFont)
+  const fontSize = useAppStore((state) => state.fontSize)
+  const setFontSize = useAppStore((state) => state.setFontSize)
+  const lineHeight = useAppStore((state) => state.lineHeight)
+  const setLineHeight = useAppStore((state) => state.setLineHeight)
+
   const handleClearCache = async () => {
     Alert.alert(
       'Xóa Cache',
@@ -112,7 +104,7 @@ const SheetBookInfo = ({
                 font="FontAwesome6"
                 color={AppPalette.gray300}
                 size={20}
-                onPress={() => setFontSize((s) => s - 1)}
+                onPress={() => setFontSize(fontSize - 1)}
               />
               <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
                 {fontSize}
@@ -122,7 +114,7 @@ const SheetBookInfo = ({
                 font="FontAwesome6"
                 color={AppPalette.gray300}
                 size={20}
-                onPress={() => setFontSize((s) => s + 1)}
+                onPress={() => setFontSize(fontSize + 1)}
               />
             </View>
             <Text style={styles.titleSection}>{'Chiều cao dòng'}</Text>
@@ -132,7 +124,7 @@ const SheetBookInfo = ({
                 font="FontAwesome6"
                 color={AppPalette.gray300}
                 size={20}
-                onPress={() => setLineHeight((h) => (h * 10 - 1) / 10)}
+                onPress={() => setLineHeight((lineHeight * 10 - 1) / 10)}
               />
               <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
                 {Math.round(lineHeight * 10) / 10}
@@ -142,7 +134,7 @@ const SheetBookInfo = ({
                 font="FontAwesome6"
                 color={AppPalette.gray300}
                 size={20}
-                onPress={() => setLineHeight((h) => (h * 10 + 1) / 10)}
+                onPress={() => setLineHeight((lineHeight * 10 + 1) / 10)}
               />
             </View>
             <TouchableOpacity

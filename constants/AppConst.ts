@@ -55,15 +55,8 @@ export const AppSize = {
 }
 
 export const MMKVKeys = {
-  READING_OPTION: 'READING_OPTION',
   IS_READING: 'IS_READING',
   CURRENT_READING_OFFSET: 'CURRENT_READING_OFFSET',
-  CURRENT_FONT: 'CURRENT_FONT',
-  CURRENT_FONT_SIZE: 'CURRENT_FONT_SIZE',
-  CURRENT_LINE_HEIGHT: 'CURRENT_LINE_HEIGHT',
 }
 
-export const EventKeys = {
-  SET_READING_CONTEXT: 'SET_READING_CONTEXT',
-  SET_BOOKS_CONTEXT: 'SET_BOOKS_CONTEXT',
-}
+// Note: EventKeys removed as we now use Zustand directly instead of events
