@@ -6,68 +6,27 @@ import SheetBookInfo, { SheetBookInfoRef } from '@/components/SheetBookInfo'
 import { AppConst, AppStyles, AppTypo, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
 import useAppStore from '@/controllers/store'
-import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
-import { router } from 'expo-router'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  ActivityIndicator,
-  DeviceEventEmitter,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AppPalette } from '../../assets'
-import { getBookChapterContent, getChapterHtml, showToastError } from '../../utils'
 import useReadingActions from '@/hooks/use-reading-actions'
 import useReadingContent from '@/hooks/use-reading-content'
+import useReupdateReading from '@/hooks/use-reupdate-reading'
+import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
+import { router } from 'expo-router'
+import React, { useCallback, useEffect, useRef } from 'react'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { AppPalette } from '../../assets'
 
 const Reading = () => {
   const insets = useSafeAreaInsets()
   const params = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
-  const [chapterContent, setChapterContent] = useState('')
-  const sheetBookInfoRef = useRef<SheetBookInfoRef>(null)
+  useReupdateReading(params.bookId)
 
   const { nextChapter, previousChapter, saveOffset, isLoading, onLoaded } = useReadingActions()
   const { currentChapterName, currentChapterContent } = useReadingContent()
 
-  const { readingOptions: reading, updateReadingOptions } = useAppStore()
-  const bookId = reading.currentBook
-
   const refScroll = useRef<ScrollView | null>(null)
+  const sheetBookInfoRef = useRef<SheetBookInfoRef>(null)
   const reviewBottomSheetRef = useRef<ReviewBottomSheetRef>(null)
-
-  useEffect(() => {
-    const newId = params.bookId ? params.bookId : reading.currentBook
-    if (!reading.books[newId]) {
-      const books = { ...reading.books }
-      books[newId] = 1
-      updateReadingOptions({
-        currentBook: newId,
-        books,
-      })
-    } else {
-      updateReadingOptions({
-        currentBook: newId,
-      })
-    }
-
-    MMKVStorage.set(MMKVKeys.IS_READING, true)
-    return () => {
-      MMKVStorage.set(MMKVKeys.IS_READING, false)
-    }
-  }, [params.bookId, updateReadingOptions]) // Only depend on params.bookId and updateReadingOptions
-
-  useEffect(() => {
-    const book = reading.currentBook
-    const chapter = reading.books[book] ?? 1
-    if (chapter && reading.currentBook) {
-      getBookChapterContent(reading.currentBook, chapter)
-        .then((c) => setChapterContent(c))
-        .catch(showToastError)
-    }
-  }, [reading.currentBook, reading.books]) // Depend on specific reading properties
 
   // Load reading offset once when component mounts
   useEffect(() => {
@@ -94,12 +53,13 @@ const Reading = () => {
   )
 
   const openReviewBottomSheet = useCallback(() => {
+    const reading = useAppStore.getState().readingOptions
     reviewBottomSheetRef.current?.present({
-      content: chapterContent,
-      bookId: bookId,
+      content: currentChapterContent,
+      bookId: reading.currentBook,
       chapterNumber: reading.books[reading.currentBook],
     })
-  }, [chapterContent, bookId, reading])
+  }, [currentChapterContent])
 
   return (
     <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
@@ -153,7 +113,10 @@ const Reading = () => {
         size={18}
         buttonStyle={{ ...styles.buttonInfo, bottom: 12 + insets.bottom }}
         color={AppPalette.gray600}
-        onPress={() => sheetBookInfoRef.current?.present(bookId)}
+        onPress={() => {
+          const bookId = useAppStore.getState().readingOptions.currentBook
+          sheetBookInfoRef.current?.present(bookId)
+        }}
       />
       <VectorIcon
         name="wand-magic-sparkles"

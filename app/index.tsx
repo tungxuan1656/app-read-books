@@ -1,12 +1,5 @@
 import { router, useFocusEffect } from 'expo-router'
-import {
-  Alert,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useCallback, useState } from 'react'
 import { Divider, Screen } from '@/components/Screen'
 import { Button } from '@/components/Button'
@@ -18,24 +11,22 @@ import { AppPalette } from '@/assets'
 import useAppStore from '../controllers/store'
 
 export default function Home() {
-  const [books, setBooks] = useState<Book[]>([])
-  const { setBooks: setGlobalBooks } = useAppStore()
+  const books = useAppStore((state) => state.books)
+  const setGlobalBooks = useAppStore((state) => state.setBooks)
 
   useFocusEffect(
     useCallback(() => {
       readFolderBooks()
         .then((output) => {
           output.sort((a, b) => a.name.localeCompare(b.name))
-
-          setBooks(output)
           setGlobalBooks(output)
         })
         .catch((error) => GToast.error({ message: JSON.stringify(error) }))
-    }, [setGlobalBooks])
+    }, [setGlobalBooks]),
   )
 
   const onSelectBook = (book: Book) => {
-    router.navigate({ pathname: '/reading', params: { bookId: book.id } })
+    router.push({ pathname: '/reading', params: { bookId: book.id } })
   }
 
   const onLongSelectBook = (book: Book) => {
@@ -53,7 +44,23 @@ export default function Home() {
 
   return (
     <Screen.Container safe={'all'}>
-      <Text style={[AppTypo.h2.semiBold, { margin: 16 }]}>{'Danh sách truyện'}</Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          justifyContent: 'space-between',
+        }}>
+        <Text style={[AppTypo.h3.semiBold, { marginLeft: 16 }]}>{'Danh sách truyện'}</Text>
+        <VectorIcon
+          name="plus"
+          font="FontAwesome6"
+          size={16}
+          buttonStyle={{ marginLeft: 8, width: 44, height: 44 }}
+          color={AppPalette.gray600}
+          onPress={() => router.push('/add-book')}
+        />
+      </View>
       <Divider />
       <Screen.Content style={{}} contentContainerStyle={{ paddingVertical: 0 }}>
         <FlatList
@@ -79,11 +86,6 @@ export default function Home() {
           ListFooterComponent={<View style={{ height: 44 }} />}
         />
       </Screen.Content>
-      <Button
-        title={'Thêm truyện mới'}
-        style={{ marginHorizontal: 16 }}
-        onPress={() => router.navigate('/add-book')}
-      />
     </Screen.Container>
   )
 }

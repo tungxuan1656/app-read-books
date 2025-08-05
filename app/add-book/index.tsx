@@ -1,7 +1,7 @@
 import { Button } from '@/components/Button'
 import { GToast } from '@/components/GToast'
 import { Divider, Screen } from '@/components/Screen'
-import { Stack } from 'expo-router'
+import { router, Stack } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useEffect, useState } from 'react'
 import {
@@ -22,6 +22,7 @@ import {
   getNameOfFile,
 } from '../../services/download-file'
 import { createFolderBooks, getFolderBooks, getPathSaveZipBook, showToastError } from '../../utils'
+import { VectorIcon } from '@/components/Icon'
 
 const AddBook = (props: any) => {
   const [linkDownload, setLinkDownload] = useState('')
@@ -61,10 +62,19 @@ const AddBook = (props: any) => {
   }
 
   return (
-    <Screen.Container>
-      <Stack.Screen
-        options={{ title: 'Thêm truyện mới', headerShown: true }}
-      />
+    <Screen.Container safe="all">
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <VectorIcon
+          name="angle-left"
+          font="FontAwesome6"
+          size={16}
+          buttonStyle={{ width: 44, height: 44 }}
+          color={AppPalette.gray600}
+          onPress={() => router.back()}
+        />
+        <Text style={[AppTypo.h3.semiBold, { marginLeft: 4 }]}>{'Thêm truyện mới'}</Text>
+      </View>
+      <Divider />
       <Divider />
       <Screen.Content useScroll contentContainerStyle={{ padding: 20, gap: 20 }}>
         <TouchableOpacity onPress={onPressLinkSource}>
@@ -92,7 +102,12 @@ const AddBook = (props: any) => {
       </Screen.Content>
       <Button title={'Tải xuống'} style={{ marginHorizontal: 16 }} onPress={downloadBook} />
       {processing ? (
-        <View style={[AppStyles.view.absoluteFill, AppStyles.view.contentCenter, { gap: 10, backgroundColor: '#fefefeaa' }]}>
+        <View
+          style={[
+            AppStyles.view.absoluteFill,
+            AppStyles.view.contentCenter,
+            { gap: 10, backgroundColor: '#fefefeaa' },
+          ]}>
           <ActivityIndicator />
           <Text style={[AppTypo.caption.semiBold]}>{processing}</Text>
         </View>
