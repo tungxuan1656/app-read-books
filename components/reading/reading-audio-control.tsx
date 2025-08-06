@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { StyleSheet, View } from 'react-native'
-import PlayAudioControl from '../PlayAudioControl'
+import PlayAudioControl from '../play-audio-control'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import useTtsAudio from '@/hooks/use-tts-audio'
 

@@ -12,7 +12,7 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet'
 import { router } from 'expo-router'
 import React, { forwardRef, useCallback, useMemo } from 'react'
-import { Alert, DeviceEventEmitter, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export interface SheetBookInfoRef {
   present: (bookId: string) => void

@@ -1,4 +1,4 @@
-import { GToastComponent } from '@/components/GToast'
+import { GToastComponent } from '@/components/g-toast'
 import { MMKVKeys } from '@/constants'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { router, Stack } from 'expo-router'

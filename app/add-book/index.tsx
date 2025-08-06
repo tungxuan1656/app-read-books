@@ -1,5 +1,5 @@
 import { Button } from '@/components/Button'
-import { GToast } from '@/components/GToast'
+import { GToast } from '@/components/g-toast'
 import { Divider, Screen } from '@/components/Screen'
 import { router, Stack } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'

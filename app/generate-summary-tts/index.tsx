@@ -1,4 +1,4 @@
-import AutoGenerateController from '@/components/AutoGenerateController'
+import AutoGenerateController from '@/components/auto-generate-controller'
 import { Screen } from '@/components/Screen'
 import { router, useLocalSearchParams } from 'expo-router'
 import React from 'react'

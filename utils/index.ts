@@ -1,4 +1,4 @@
-import { GToast } from '@/components/GToast'
+import { GToast } from '@/components/g-toast'
 import * as FileSystem from 'expo-file-system'
 
 export const showToastError = (error: any) => {

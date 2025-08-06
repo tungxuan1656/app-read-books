@@ -2,7 +2,7 @@ import useAppStore from '@/controllers/store'
 import { getBookChapterContent, getChapterHtml, showToastError } from '@/utils'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import useSummary from './use-summary'
-import { GToast } from '@/components/GToast'
+import { GToast } from '@/components/g-toast'
 
 export default function useCurrentReading() {
   const reading = useAppStore((s) => s.readingOptions)

@@ -1,16 +1,15 @@
-import { ContentDisplay } from '@/components/ContentDisplay'
-import ReadingAudioControl from '@/components/reading/ReadingAudioControl'
-import ReadingButtonBack from '@/components/reading/ReadingButtonBack'
-import ReadingButtonLeftControl from '@/components/reading/ReadingButtonLeftControl'
-import ReadingButtonScrollBottom from '@/components/reading/ReadingButtonScrollBottom'
-import ReadingButtonTopNavigation from '@/components/reading/ReadingButtonTopNavigation'
+import { ContentDisplay } from '@/components/content-display'
+import ReadingAudioControl from '@/components/reading/reading-audio-control'
+import ReadingButtonBack from '@/components/reading/reading-button-back'
+import ReadingButtonLeftControl from '@/components/reading/reading-button-left-control'
+import ReadingButtonScrollBottom from '@/components/reading/reading-button-scroll-bottom'
+import ReadingButtonTopNavigation from '@/components/reading/reading-button-top-navigation'
 import { Screen } from '@/components/Screen'
-import SheetBookInfo, { SheetBookInfoRef } from '@/components/SheetBookInfo'
+import SheetBookInfo, { SheetBookInfoRef } from '@/components/sheet-book-info'
 import { AppConst, AppStyles, AppTypo, EventKeys, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
 import useAppStore from '@/controllers/store'
 import useReadingActions from '@/hooks/use-reading-actions'
-import useReadingContent from '@/hooks/use-current-reading'
 import useReupdateReading from '@/hooks/use-reupdate-reading'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import React, { useCallback, useEffect, useRef } from 'react'
@@ -28,7 +27,6 @@ const Reading = () => {
   console.log('RENDER Reading')
 
   const params = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
-  const _ = useReupdateReading(params.bookId)
 
   const { nextChapter, previousChapter, saveOffset, isLoading, onLoaded } = useReadingActions()
   const chapter = useCurrentReading()
