@@ -1,46 +1,33 @@
-import { router, useFocusEffect } from 'expo-router'
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { useCallback, useState } from 'react'
-import { Divider, Screen } from '@/components/Screen'
-import { Button } from '@/components/Button'
-import { AppTypo } from '../constants'
-import { deleteBook, getFolderBooks, readFolderBooks } from '../utils'
-import { GToast } from '@/components/g-toast'
-import { VectorIcon } from '@/components/Icon'
 import { AppPalette } from '@/assets'
-import useAppStore from '../controllers/store'
+import { GToast } from '@/components/g-toast'
+import HomeBookItem from '@/components/home-book-item'
+import { VectorIcon } from '@/components/Icon'
+import { Divider, Screen } from '@/components/Screen'
+import { router, useFocusEffect } from 'expo-router'
+import { useCallback } from 'react'
+import { FlatList, ListRenderItem, Text, View } from 'react-native'
+import { AppTypo } from '../constants'
+import useAppStore, { storeActions } from '../controllers/store'
+import { readFolderBooks } from '../utils'
 
 export default function Home() {
-  const books = useAppStore((state) => state.books)
-  const setGlobalBooks = useAppStore((state) => state.setBooks)
+  const bookIds = useAppStore((state) => state.bookIds)
 
   useFocusEffect(
     useCallback(() => {
       readFolderBooks()
         .then((output) => {
           output.sort((a, b) => a.name.localeCompare(b.name))
-          setGlobalBooks(output)
+          storeActions.updateBooks(output)
         })
         .catch((error) => GToast.error({ message: JSON.stringify(error) }))
-    }, [setGlobalBooks]),
+    }, []),
   )
 
-  const onSelectBook = (book: Book) => {
-    router.push({ pathname: '/reading', params: { bookId: book.id } })
-  }
-
-  const onLongSelectBook = (book: Book) => {
-    Alert.alert('Xoá truyện', 'Bạn có chắc chắn muốn xoá bộ truyện này?', [
-      {
-        text: 'Đồng ý',
-        style: 'destructive',
-        onPress: () => {
-          deleteBook(getFolderBooks() + book.id)
-        },
-      },
-      { text: 'Huỷ', style: 'cancel' },
-    ])
-  }
+  const renderItem: ListRenderItem<string> = useCallback(
+    ({ item }) => <HomeBookItem id={item} />,
+    [],
+  )
 
   return (
     <Screen.Container safe={'all'}>
@@ -64,38 +51,13 @@ export default function Home() {
       <Divider />
       <Screen.Content style={{}} contentContainerStyle={{ paddingVertical: 0 }}>
         <FlatList
-          data={books}
-          ItemSeparatorComponent={() => <Divider />}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.item}
-              key={item.name}
-              onLongPress={() => onLongSelectBook(item)}
-              onPress={() => onSelectBook(item)}>
-              <View style={{ gap: 4, flex: 1 }}>
-                <Text style={[AppTypo.body.medium]} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <Text style={[AppTypo.caption.regular, { color: AppPalette.gray700 }]}>
-                  {`${item.author || '#'} - ${item.count} chương`}
-                </Text>
-              </View>
-              <VectorIcon name="chevron-right" font="FontAwesome5" size={12} />
-            </TouchableOpacity>
-          )}
-          ListFooterComponent={<View style={{ height: 44 }} />}
+          data={bookIds}
+          ItemSeparatorComponent={Divider}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 80 }}
+          keyExtractor={(item) => item}
         />
       </Screen.Content>
     </Screen.Container>
   )
 }
-
-const styles = StyleSheet.create({
-  item: {
-    flexDirection: 'row',
-    height: 72,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-  },
-})

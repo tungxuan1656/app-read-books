@@ -1,38 +1,32 @@
 import { GToast } from '@/components/g-toast'
 import useAppStore from '@/controllers/store'
 import { getBookChapterContent, getChapterHtml, showToastError } from '@/utils'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import useSummary from './use-summary'
+import { GSpinner } from '@/components/g-spinner'
 
-export default function useCurrentReading() {
-  const reading = useAppStore((s) => s.readingOptions)
-  const bookId = useAppStore((s) => s.readingOptions.currentBook)
-  const getBookById = useAppStore((s) => s.getBookById)
-  const bookInfo = useMemo(() => getBookById(bookId), [bookId, getBookById])
+export default function useReadingChapter(bookId: string) {
+  const book = useAppStore((s) => s.id2Book[bookId])
+  const chapterNumber = useAppStore((s) => s.id2BookReadingChapter[bookId] || 1)
+
   const [chapter, setChapter] = useState({
     content: '',
     summary: false,
-    number: 1,
-    name: bookInfo?.name,
+    index: chapterNumber,
+    name: book?.references?.[chapterNumber - 1] || '',
     bookId,
   })
   const isSummaryMode = useAppStore((s) => s.isSummaryMode)
-
   const startSummary = useSummary()
 
-  const currentChapterName = useMemo(() => {
-    if (bookInfo && reading.books) {
-      const bookId = reading.currentBook
-      const chapter = reading.books[bookId] ?? 1
-      return bookInfo.references?.[chapter - 1]
-    }
-  }, [bookInfo, reading.books, reading.currentBook])
-
   useEffect(() => {
-    const book = reading.currentBook
-    const chapter = reading.books[book] ?? 1
-    if (chapter && reading.currentBook) {
-      getBookChapterContent(reading.currentBook, chapter)
+    if (chapterNumber && book) {
+      setChapter((prev) => ({
+        ...prev,
+        content: '',
+      }))
+      GSpinner.show({ label: 'Đang tải chương...' })
+      getBookChapterContent(book.id, chapterNumber)
         .then((res) => {
           if (res) {
             if (!isSummaryMode) {
@@ -40,20 +34,22 @@ export default function useCurrentReading() {
                 ...prev,
                 content: getChapterHtml(res),
                 summary: false,
-                number: chapter,
+                number: chapterNumber,
               }))
+              GSpinner.hide()
             } else {
-              getChapterBySummary(res, chapter)
+              getChapterBySummary(res, chapterNumber)
             }
           }
         })
         .catch(showToastError)
     }
-  }, [reading.currentBook, reading.books, isSummaryMode])
+  }, [book, chapterNumber, isSummaryMode])
 
   const getChapterBySummary = useCallback(
     async (content: string, chapter: number) => {
-      const summary = await startSummary(bookId, currentChapterName, chapter, content)
+      GSpinner.show({ label: 'Đang tóm tắt...' })
+      const summary = await startSummary(bookId, chapter, content)
       if (summary) {
         setChapter((prev) => ({
           ...prev,
@@ -64,8 +60,9 @@ export default function useCurrentReading() {
       } else {
         GToast.error({ message: 'Thất bại khi tạo nội dung chương' })
       }
+      GSpinner.hide()
     },
-    [currentChapterName, bookId],
+    [bookId],
   )
 
   return chapter

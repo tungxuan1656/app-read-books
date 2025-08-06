@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native'
 import PlayAudioControl from '../play-audio-control'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import useTtsAudio from '@/hooks/use-tts-audio'
+import useAppStore from '@/controllers/store'
 
 export default function ReadingAudioControl({
   chapter,
@@ -18,6 +19,8 @@ export default function ReadingAudioControl({
   const { startGenerateAudio, stopGenerateAudio } = useTtsAudio()
 
   useEffect(() => {
+    console.log(content, bookId, chapter)
+    console.log('store', useAppStore.getState().id2BookReadingChapter[bookId])
     startGenerateAudio(content, bookId, chapter)
     return () => {
       stopGenerateAudio()

@@ -77,10 +77,10 @@ export const CONTENT_SCHEMA = {
   required: ['content'],
 }
 
-export const summarizeChapter = async (request: GeminiSummaryRequest): Promise<string> => {
+export const summarizeChapter = async (content: string): Promise<string> => {
   try {
     // Loại bỏ HTML tags để lấy text thuần
-    let textContent = request.chapterHtml
+    let textContent = content
       .replace(/<[^><]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
@@ -124,8 +124,6 @@ Rút ngắn độ dài của chương truyện dưới đây xuống còn **50-6
 
 **ĐỘ DÀI MỤC TIÊU:**
 - Phiên bản sau khi cô đọng phải đạt độ dài **50-60% so với bản gốc**, không được vượt quá hoặc thấp hơn mức này quá nhiều (ví dụ: không được chỉ rút gọn xuống 85% hoặc ít hơn 50%).
-
-${request.bookTitle ? `**Tên truyện:** ${request.bookTitle}\n` : ''}
 **Nội dung chương gốc cần cô đọng:**
 ${processedContent}
 
@@ -177,83 +175,6 @@ Hãy bắt đầu thực hiện việc cô đọng, đảm bảo loại bỏ tri
   }
 }
 
-// Thêm function để tóm tắt tự động theo độ dài
-export const summarizeChapterWithLength = async (
-  request: GeminiSummaryRequest,
-  targetLength: 'short' | 'medium' | 'long' = 'medium',
-): Promise<string> => {
-  const lengthConfig = {
-    short: { percentage: '20-30%', maxTokens: 1500 },
-    medium: { percentage: '40-60%', maxTokens: 3000 },
-    long: { percentage: '70-80%', maxTokens: 4096 },
-  }
-
-  const config = lengthConfig[targetLength]
-
-  // Modify the original request with length-specific config
-  const modifiedRequest = {
-    ...request,
-    targetPercentage: config.percentage,
-  }
-
-  return summarizeChapter(modifiedRequest)
-}
-
-// Function để lấy key points từ chapter
-export const extractKeyPoints = async (request: GeminiSummaryRequest): Promise<string[]> => {
-  try {
-    const textContent = request.chapterHtml
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-
-    if (!textContent || textContent.length < 50) {
-      throw new Error('Nội dung chương quá ngắn để trích xuất key points')
-    }
-
-    const prompt = `
-Hãy trích xuất 5-8 điểm chính quan trọng nhất từ chương truyện sau đây:
-
-${textContent.substring(0, 15000)}
-
-Trả về dưới dạng danh sách JSON array, mỗi item là một string ngắn gọn (không quá 100 ký tự).
-Ví dụ: ["Nhân vật A gặp gỡ nhân vật B", "Xảy ra xung đột tại địa điểm X", "Tiết lộ bí mật quan trọng"]
-`
-
-    const requestBody = {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        ...COMMON_GENERATION_CONFIG_BASE,
-        maxOutputTokens: 500,
-        temperature: 0.1,
-      },
-      safetySettings: COMMON_SAFETY_SETTINGS,
-    }
-
-    const response = await fetch(GEMINI_API_URL, {
-      method: 'POST',
-      headers: COMMON_HEADERS,
-      body: JSON.stringify(requestBody),
-    })
-
-    const data = await handleGeminiResponse(response)
-    const resultText = parseGeminiResult(data, 'key points extraction')
-
-    try {
-      return JSON.parse(resultText)
-    } catch {
-      // Fallback: parse manually if JSON parsing fails
-      return resultText
-        .split('\n')
-        .filter((line: string) => line.trim().length > 0)
-        .slice(0, 8)
-    }
-  } catch (error) {
-    console.error('Error extracting key points:', error)
-    return []
-  }
-}
-
 // Helper function để kiểm tra API key
 export const validateGeminiApiKey = (): boolean => {
   return (
@@ -266,7 +187,5 @@ export const validateGeminiApiKey = (): boolean => {
 // Export service object tương tự như trong file tham khảo
 export const geminiServices = {
   summarizeChapter,
-  summarizeChapterWithLength,
-  extractKeyPoints,
   validateGeminiApiKey,
 }

@@ -1,8 +1,8 @@
 import { AppColors, AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppStyles, AppTypo } from '@/constants'
-import useAppStore from '@/controllers/store'
-import { getListFonts } from '@/utils'
+import useAppStore, { storeActions } from '@/controllers/store'
+import { getCurrentBookId, getListFonts } from '@/utils'
 import { clearBookCache } from '@/utils/cache-manager'
 import BottomSheet, {
   BottomSheetView,
@@ -24,24 +24,16 @@ type SheetBookInfoProps = {
 }
 
 const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClose }, ref) => {
-  const [currentBookId, setCurrentBookId] = React.useState<string>('')
+  const currentBookId = useMemo(() => getCurrentBookId(), [])
   const bottomSheetRef = React.useRef<BottomSheet>(null)
-
-  // Memoize snap points for better performance
   const snapPoints = useMemo(() => [360], [])
-
-  // Use Zustand selectors for better performance
   const font = useAppStore((state) => state.font)
-  const setFont = useAppStore((state) => state.setFont)
   const fontSize = useAppStore((state) => state.fontSize)
-  const setFontSize = useAppStore((state) => state.setFontSize)
   const lineHeight = useAppStore((state) => state.lineHeight)
-  const setLineHeight = useAppStore((state) => state.setLineHeight)
 
   // Expose methods through ref
   React.useImperativeHandle(ref, () => ({
-    present: (bookId: string) => {
-      setCurrentBookId(bookId)
+    present: () => {
       bottomSheetRef.current?.expand()
     },
     dismiss: () => {
@@ -51,7 +43,6 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
 
   const handleClose = useCallback(() => {
     onClose?.()
-    setCurrentBookId('')
   }, [onClose])
 
   const handleClearCache = useCallback(async () => {
@@ -110,7 +101,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray300}
             size={20}
-            onPress={() => setFontSize(fontSize - 1)}
+            onPress={() => storeActions.setFontSize(fontSize - 1)}
           />
           <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
             {fontSize}
@@ -120,12 +111,12 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray300}
             size={20}
-            onPress={() => setFontSize(fontSize + 1)}
+            onPress={() => storeActions.setFontSize(fontSize + 1)}
           />
         </View>
       </>
     ),
-    [fontSize, setFontSize],
+    [fontSize],
   )
 
   const lineHeightControls = useMemo(
@@ -138,7 +129,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray300}
             size={20}
-            onPress={() => setLineHeight((lineHeight * 10 - 1) / 10)}
+            onPress={() => storeActions.setLineHeight((lineHeight * 10 - 1) / 10)}
           />
           <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
             {Math.round(lineHeight * 10) / 10}
@@ -148,24 +139,24 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray300}
             size={20}
-            onPress={() => setLineHeight((lineHeight * 10 + 1) / 10)}
+            onPress={() => storeActions.setLineHeight((lineHeight * 10 + 1) / 10)}
           />
         </View>
       </>
     ),
-    [lineHeight, setLineHeight],
+    [lineHeight],
   )
 
   const renderFontItem = useCallback(
     (fontName: string) => (
       <TouchableOpacity
         key={fontName}
-        onPress={() => setFont(fontName)}
+        onPress={() => storeActions.setFont(fontName)}
         style={[styles.viewItemFont, font === fontName && styles.viewItemSelected]}>
         <Text style={styles.textItemFont}>{fontName}</Text>
       </TouchableOpacity>
     ),
-    [font, setFont],
+    [font],
   )
 
   return (

@@ -1,15 +1,10 @@
 import { EventKeys, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
-import useAppStore from '@/controllers/store'
+import useAppStore, { storeActions } from '@/controllers/store'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { DeviceEventEmitter } from 'react-native'
 
-export default function useReadingActions() {
-  const reading = useAppStore((s) => s.readingOptions)
-  const updateReadingOptions = useAppStore((s) => s.updateReadingOptions)
-
-  const [isLoading, setIsLoading] = useState(true)
-
+export default function useReadingController(bookId: string) {
   const refTimeout = useRef<number | undefined>(undefined)
   const refTimeoutSave = useRef<number | undefined>(undefined)
 
@@ -17,28 +12,22 @@ export default function useReadingActions() {
     (timeout?: number) => {
       clearTimeout(refTimeout.current)
       refTimeout.current = setTimeout(() => {
-        setIsLoading(true)
-        const books = { ...reading.books }
-        books[reading.currentBook] = books[reading.currentBook] + 1
-        updateReadingOptions({ books })
+        storeActions.nextReadingChapter(bookId)
         DeviceEventEmitter.emit(EventKeys.READING_NEXT_CHAPTER_DONE)
       }, timeout || 50)
     },
-    [reading.books, reading.currentBook, updateReadingOptions],
+    [bookId],
   )
 
   const previousChapter = useCallback(
     (timeout?: number) => {
       clearTimeout(refTimeout.current)
       refTimeout.current = setTimeout(() => {
-        setIsLoading(true)
-        const books = { ...reading.books }
-        books[reading.currentBook] = Math.max(books[reading.currentBook] - 1, 0)
-        updateReadingOptions({ books })
+        storeActions.previousReadingChapter(bookId)
         DeviceEventEmitter.emit(EventKeys.READING_PREVIOUS_CHAPTER_DONE)
       }, timeout || 50)
     },
-    [reading.books, reading.currentBook, updateReadingOptions],
+    [bookId],
   )
 
   const saveOffset = useCallback((offset: number) => {
@@ -55,17 +44,12 @@ export default function useReadingActions() {
     }
   }, [])
 
-  const onLoaded = useCallback(() => {
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 150)
-  }, [])
-
-  return {
-    nextChapter,
-    previousChapter,
-    saveOffset,
-    isLoading,
-    onLoaded,
-  }
+  return React.useMemo(
+    () => ({
+      nextChapter,
+      previousChapter,
+      saveOffset,
+    }),
+    [nextChapter, previousChapter, saveOffset],
+  )
 }

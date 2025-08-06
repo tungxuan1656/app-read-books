@@ -6,35 +6,26 @@ import ReadingButtonScrollBottom from '@/components/reading/reading-button-scrol
 import ReadingButtonTopNavigation from '@/components/reading/reading-button-top-navigation'
 import { Screen } from '@/components/Screen'
 import SheetBookInfo, { SheetBookInfoRef } from '@/components/sheet-book-info'
-import { AppConst, AppStyles, AppTypo, EventKeys, MMKVKeys } from '@/constants'
+import { AppConst, AppTypo, EventKeys, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
-import useAppStore from '@/controllers/store'
-import useReadingActions from '@/hooks/use-reading-actions'
+import useReadingChapter from '@/hooks/use-reading-chapter'
+import useReadingController from '@/hooks/use-reading-controller'
 import useReupdateReading from '@/hooks/use-reupdate-reading'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
+import { getCurrentBookId } from '@/utils'
 import React, { useCallback, useEffect, useRef } from 'react'
-import {
-  ActivityIndicator,
-  DeviceEventEmitter,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
-import useCurrentReading from '@/hooks/use-current-reading'
+import { DeviceEventEmitter, ScrollView, StyleSheet, Text } from 'react-native'
 
 const Reading = () => {
   console.log('RENDER Reading')
-
-  const params = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
-
-  const { nextChapter, previousChapter, saveOffset, isLoading, onLoaded } = useReadingActions()
-  const chapter = useCurrentReading()
+  const { bookId } = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
+  useReupdateReading(bookId)
+  const { nextChapter, previousChapter, saveOffset } = useReadingController(bookId)
+  const chapter = useReadingChapter(bookId)
 
   const refScroll = useRef<ScrollView | null>(null)
-  const sheetBookInfoRef = useRef<SheetBookInfoRef>(null)
+  const refBookInfoSheet = useRef<SheetBookInfoRef>(null)
 
-  // Load reading offset once when component mounts
   useEffect(() => {
     const timer = setTimeout(() => {
       const offset = MMKVStorage.get(MMKVKeys.CURRENT_READING_OFFSET)
@@ -56,15 +47,15 @@ const Reading = () => {
       const offset = Math.round(contentOffset.y + layoutMeasurement.height)
       const contentHeight = Math.round(contentSize.height)
       saveOffset(contentOffset.y)
-      if (offset > contentHeight + 30) nextChapter()
-      if (contentOffset.y < -40) previousChapter()
+      if (offset > contentHeight + 30) nextChapter(500)
+      if (contentOffset.y < -40) previousChapter(500)
     },
     [saveOffset, nextChapter, previousChapter],
   )
 
   const openBook = useCallback(() => {
-    const bookId = useAppStore.getState().readingOptions.currentBook
-    sheetBookInfoRef.current?.present(bookId)
+    const bookId = getCurrentBookId()
+    refBookInfoSheet.current?.present(bookId)
   }, [])
 
   const handleScrollToBottom = useCallback(() => {
@@ -83,21 +74,13 @@ const Reading = () => {
         scrollEventThrottle={300}
         contentContainerStyle={{ paddingVertical: 44 }}
         onScroll={handleScroll}>
-        {chapter.content !== '' ? (
-          <ContentDisplay chapterHtml={chapter.content} onLoaded={onLoaded} />
-        ) : null}
+        {chapter.content !== '' ? <ContentDisplay chapterHtml={chapter.content} /> : null}
       </ScrollView>
-
-      {isLoading ? (
-        <View style={[styles.viewLoading, AppStyles.view.absoluteFill]}>
-          <ActivityIndicator size={'small'} style={{ top: -100 }} />
-        </View>
-      ) : null}
 
       {chapter.summary ? (
         <ReadingAudioControl
           bookId={chapter.bookId}
-          chapter={chapter.number}
+          chapter={chapter.index}
           content={chapter.content}
         />
       ) : null}
@@ -107,7 +90,7 @@ const Reading = () => {
       <ReadingButtonLeftControl openBook={openBook} />
       <ReadingButtonScrollBottom onScrollToBottom={handleScrollToBottom} />
 
-      <SheetBookInfo ref={sheetBookInfoRef} />
+      <SheetBookInfo ref={refBookInfoSheet} />
     </Screen.Container>
   )
 }

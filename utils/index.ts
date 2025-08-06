@@ -1,4 +1,6 @@
 import { GToast } from '@/components/g-toast'
+import { MMKVKeys } from '@/constants'
+import { MMKVStorage } from '@/controllers/mmkv'
 import * as FileSystem from 'expo-file-system'
 
 export const showToastError = (error: any) => {
@@ -135,4 +137,12 @@ export const formatBytes = (bytes: number, decimals = 2): string => {
   const i = Math.floor(Math.log(bytes) / Math.log(k))
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+}
+
+export const getCurrentBookId = () => {
+  return (MMKVStorage.get(MMKVKeys.CURRENT_BOOK_ID) as string) || ''
+}
+
+export const saveCurrentBookId = (bookId: string) => {
+  MMKVStorage.set(MMKVKeys.CURRENT_BOOK_ID, bookId)
 }

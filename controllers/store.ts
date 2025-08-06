@@ -14,22 +14,13 @@ interface AppState {
   isSummaryMode: boolean
   toggleSummaryMode: () => void
 
-  // Reading context
-  readingOptions: Options
-  setReadingOptions: (options: Options) => void
-  updateReadingOptions: (options: Partial<Options>) => void
-
-  // Books context
-  books: Book[]
-  setBooks: (books: Book[]) => void
-  addBook: (book: Book) => void
-  removeBook: (bookId: string) => void
-  getBookById: (bookId: string) => Book | null
-}
-
-const defaultReadingOptions: Options = {
-  currentBook: '',
-  books: {},
+  bookIds: string[]
+  id2Book: Record<string, Book>
+  id2BookReadingChapter: Record<string, number>
+  updateBooks: (books: Book[]) => void
+  updateReadingChapter: (bookId: string, chapter: number) => void
+  nextReadingChapter: (bookId: string) => void
+  previousReadingChapter: (bookId: string) => void
 }
 
 const useAppStore = create<AppState>()(
@@ -44,32 +35,42 @@ const useAppStore = create<AppState>()(
         setFontSize: (fontSize: number) => set({ fontSize }),
         setLineHeight: (lineHeight: number) => set({ lineHeight }),
 
-        // Reading context
-        readingOptions: defaultReadingOptions,
-        setReadingOptions: (options: Options) => set({ readingOptions: options }),
-        updateReadingOptions: (options: Partial<Options>) =>
-          set((state) => ({
-            readingOptions: { ...state.readingOptions, ...options },
-          })),
-
-        // Books context
-        books: [],
-        setBooks: (books: Book[]) => set({ books }),
-        addBook: (book: Book) =>
-          set((state) => ({
-            books: [...state.books.filter((b) => b.id !== book.id), book],
-          })),
-        removeBook: (bookId: string) =>
-          set((state) => ({
-            books: state.books.filter((b) => b.id !== bookId),
-          })),
-        getBookById: (bookId: string) => {
-          const state = get()
-          return state.books.find((book) => book.id === bookId) || null
-        },
-
         isSummaryMode: false,
         toggleSummaryMode: () => set((state) => ({ isSummaryMode: !state.isSummaryMode })),
+
+        bookIds: [],
+        id2Book: {},
+        id2BookReadingChapter: {},
+        updateBooks: (books: Book[]) => {
+          const state = get()
+          const bookIds = books.map((book) => book.id)
+          const id2Book = Object.fromEntries(books.map((book) => [book.id, book]))
+          const id2BookReadingChapter = Object.fromEntries(
+            books.map((book) => [book.id, state.id2BookReadingChapter[book.id] || 1]),
+          )
+          set({ bookIds, id2Book, id2BookReadingChapter })
+        },
+        updateReadingChapter: (bookId: string, chapter: number) =>
+          set((state) => ({
+            id2BookReadingChapter: {
+              ...state.id2BookReadingChapter,
+              [bookId]: chapter,
+            },
+          })),
+        nextReadingChapter: (bookId: string) =>
+          set((state) => ({
+            id2BookReadingChapter: {
+              ...state.id2BookReadingChapter,
+              [bookId]: (state.id2BookReadingChapter[bookId] || 1) + 1,
+            },
+          })),
+        previousReadingChapter: (bookId: string) =>
+          set((state) => ({
+            id2BookReadingChapter: {
+              ...state.id2BookReadingChapter,
+              [bookId]: Math.max((state.id2BookReadingChapter[bookId] || 1) - 1, 1),
+            },
+          })),
       }),
       {
         name: 'appstore',
@@ -82,5 +83,27 @@ const useAppStore = create<AppState>()(
     ),
   ),
 )
+
+const {
+  updateReadingChapter,
+  updateBooks,
+  setFont,
+  setFontSize,
+  setLineHeight,
+  toggleSummaryMode,
+  nextReadingChapter,
+  previousReadingChapter,
+} = useAppStore.getState()
+
+export const storeActions = {
+  updateReadingChapter,
+  updateBooks,
+  setFont,
+  setFontSize,
+  setLineHeight,
+  toggleSummaryMode,
+  nextReadingChapter,
+  previousReadingChapter,
+}
 
 export default useAppStore

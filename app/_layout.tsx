@@ -9,6 +9,9 @@ import TrackPlayer from 'react-native-track-player'
 import { MMKVStorage } from '../controllers/mmkv'
 import { initializeTTSCache } from '../controllers/tts-cache'
 import trackPlayerService from '../services/track-player-service'
+import { stringifyParams } from '@/hooks/use-typed-local-search-params'
+import { getCurrentBookId } from '@/utils'
+import { GSpinnerComponent } from '@/components/g-spinner'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -22,17 +25,17 @@ try {
 
 export default function RootLayout() {
   useEffect(() => {
-    if (true) {
-      const IS_READING = MMKVStorage.get(MMKVKeys.IS_READING)
-      if (IS_READING) {
-        setTimeout(() => {
-          router.push('/reading')
-          SplashScreen.hideAsync()
-        }, 100)
-      }
-      else {
+    const IS_READING = MMKVStorage.get(MMKVKeys.IS_READING)
+    if (IS_READING) {
+      setTimeout(() => {
+        router.push({
+          pathname: '/reading',
+          params: stringifyParams({ bookId: getCurrentBookId() }),
+        })
         SplashScreen.hideAsync()
-      }
+      }, 100)
+    } else {
+      SplashScreen.hideAsync()
     }
   }, [])
 
@@ -43,6 +46,7 @@ export default function RootLayout() {
           <Stack.Screen name="reading/index" options={{ gestureEnabled: false }} />
         </Stack>
         <GToastComponent />
+        <GSpinnerComponent />
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
   )

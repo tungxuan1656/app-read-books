@@ -3,9 +3,9 @@ import useTtsAudio from '@/hooks/use-tts-audio'
 import { clearBookCache } from '@/utils/cache-manager'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { useBookInfo } from '../controllers/context'
 import { getBookChapterContent } from '../utils'
 import { breakSummaryIntoLines } from '@/utils/string-helpers'
+import useAppStore from '@/controllers/store'
 
 interface AutoGenerateControllerProps {
   bookId: string
@@ -18,9 +18,10 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // Lấy thông tin book từ bookId
-  const bookInfo = useBookInfo(bookId)
-  const bookTitle = bookInfo?.name || 'Chưa xác định'
+  const bookInfo = useAppStore((s) => s.id2Book[bookId])
+  const bookTitle = bookInfo?.name || 'Truyện không rõ tên'
   const totalChapters = bookInfo?.references?.length || 0
+
   const refStopProcess = useRef(false)
   const [state, setState] = useState({
     isRunning: false,

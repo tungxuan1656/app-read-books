@@ -6,13 +6,20 @@ import { Alert, DeviceEventEmitter } from 'react-native'
 import { RepeatMode } from 'react-native-track-player'
 
 export default function useTtsAudio(autoPlay = true) {
-
   const startGenerateAudio = useCallback(
     async (content: string, bookId: string, chapter: number) => {
       try {
-        const sentences = breakSummaryIntoLines(content)
+        const sentences = breakSummaryIntoLines(
+          content
+            .replace(/<[^><]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim(),
+        )
+
         if (sentences.length === 0) return
         await trackPlayerService.reset()
+        console.log(sentences.slice(0, 3))
+
         await convertTTSCapcut(sentences, `${bookId}_${chapter}`)
         return true
       } catch (error) {

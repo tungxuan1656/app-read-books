@@ -7,7 +7,6 @@ export default function useSummary() {
   const startSummary = useCallback(
     async (
       bookId: string | undefined | null,
-      bookTitle: string | undefined | null,
       chapterNumber: number | undefined | null,
       chapterContent: string | undefined | null,
     ) => {
@@ -19,10 +18,7 @@ export default function useSummary() {
         if (summary) {
           return summary
         } else {
-          summary = await summarizeChapter({
-            chapterHtml: chapterContent,
-            bookTitle: bookTitle!,
-          })
+          summary = await summarizeChapter(chapterContent)
           setCachedSummary(bookId, chapterNumber, summary)
         }
         return summary

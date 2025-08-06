@@ -57,6 +57,7 @@ export const AppSize = {
 export const MMKVKeys = {
   IS_READING: 'IS_READING',
   CURRENT_READING_OFFSET: 'CURRENT_READING_OFFSET',
+  CURRENT_BOOK_ID: 'CURRENT_BOOK_ID',
 }
 
 export const EventKeys = {

@@ -1,32 +1,21 @@
 import { MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
-import useAppStore from '@/controllers/store'
-import React, { useEffect } from 'react'
+import useAppStore, { storeActions } from '@/controllers/store'
+import { saveCurrentBookId } from '@/utils'
+import { useEffect } from 'react'
 
 export default function useReupdateReading(bookId: string) {
-  const reading = useAppStore((s) => s.readingOptions)
-  const updateReadingOptions = useAppStore((s) => s.updateReadingOptions)
-
   useEffect(() => {
-    const newId = bookId ? bookId : reading.currentBook
-    if (!reading.books[newId]) {
-      const books = { ...reading.books }
-      books[newId] = 1
-      updateReadingOptions({
-        currentBook: newId,
-        books,
-      })
-    } else {
-      updateReadingOptions({
-        currentBook: newId,
-      })
+    saveCurrentBookId(bookId)
+    const currentIndex = useAppStore.getState().id2BookReadingChapter[bookId]
+    if (!currentIndex) {
+      storeActions.updateReadingChapter(bookId, 1)
     }
-
     MMKVStorage.set(MMKVKeys.IS_READING, true)
     return () => {
       MMKVStorage.set(MMKVKeys.IS_READING, false)
     }
-  }, [bookId, updateReadingOptions])
+  }, [bookId])
 
   return null
 }

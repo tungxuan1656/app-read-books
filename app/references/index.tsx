@@ -1,50 +1,38 @@
 import { Screen } from '@/components/Screen'
-import { getBook, getFolderBooks, showToastError } from '@/utils'
+import { getCurrentBookId } from '@/utils'
 import { router, Stack } from 'expo-router'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import { AppTypo } from '../../constants'
-import { setReadingContext, useReading } from '../../controllers/context'
+import useAppStore, { storeActions } from '@/controllers/store'
 
 const References = () => {
-  const reading = useReading()
-  const [book, setBook] = useState<Book>()
   const refList = useRef<FlatList | null>(null)
-
-  useEffect(() => {
-    getBook(getFolderBooks() + reading.currentBook)
-      .then((b) => {
-        if (b) setBook(b)
-      })
-      .catch(showToastError)
-  }, [reading])
+  const book = useAppStore((s) => s.id2Book[getCurrentBookId()])
+  const currentIndex = useAppStore((s) => s.id2BookReadingChapter[getCurrentBookId()] ?? 0)
 
   useEffect(() => {
     const references = book?.references ?? []
-    const currentChapter = reading.books[reading.currentBook]
+
     setTimeout(() => {
       if (
         Array.isArray(references) &&
         references.length > 0 &&
-        currentChapter - 1 < references.length - 1
+        currentIndex - 1 < references.length - 1
       ) {
-        refList.current?.scrollToIndex({ animated: true, index: currentChapter - 1 })
+        refList.current?.scrollToIndex({ animated: true, index: currentIndex - 1 })
       }
     }, 500)
-  }, [reading, book])
+  }, [book, currentIndex])
 
   const setChapter = (chapter: number) => {
-    const books = { ...reading.books }
-    books[reading.currentBook] = chapter
-    setReadingContext({ ...reading, books })
+    storeActions.updateReadingChapter(getCurrentBookId(), chapter)
     router.back()
   }
 
   return (
     <Screen.Container>
-      <Stack.Screen
-        options={{ title: 'Mục lục', headerShown: true}}
-      />
+      <Stack.Screen options={{ title: 'Mục lục', headerShown: true }} />
       <Screen.Content>
         <FlatList
           ref={refList}
@@ -54,10 +42,7 @@ const References = () => {
             <TouchableOpacity key={item} style={styles.item} onPress={() => setChapter(index + 1)}>
               <Text
                 numberOfLines={1}
-                style={[
-                  AppTypo.body.regular,
-                  reading.books[reading.currentBook] === index + 1 && AppTypo.body.semiBold,
-                ]}>
+                style={[AppTypo.body.regular, currentIndex === index + 1 && AppTypo.body.semiBold]}>
                 {item}
               </Text>
             </TouchableOpacity>
