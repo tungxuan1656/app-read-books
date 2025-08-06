@@ -51,6 +51,7 @@ const AddBook = (props: any) => {
         console.log(`unzip completed at ${path}`)
         deleteDownloadFile(uri)
         GToast.success({ message: 'Tải truyện thành công!' })
+        router.canGoBack() && router.back()
       })
       .catch(showToastError)
       .finally(() => setProcessing(''))

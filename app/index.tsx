@@ -13,19 +13,19 @@ import { readFolderBooks } from '../utils'
 export default function Home() {
   const bookIds = useAppStore((state) => state.bookIds)
 
-  useFocusEffect(
-    useCallback(() => {
-      readFolderBooks()
-        .then((output) => {
-          output.sort((a, b) => a.name.localeCompare(b.name))
-          storeActions.updateBooks(output)
-        })
-        .catch((error) => GToast.error({ message: JSON.stringify(error) }))
-    }, []),
-  )
+  const refetch = useCallback(() => {
+    readFolderBooks()
+      .then((output) => {
+        output.sort((a, b) => a.name.localeCompare(b.name))
+        storeActions.updateBooks(output)
+      })
+      .catch((error) => GToast.error({ message: JSON.stringify(error) }))
+  }, [])
+
+  useFocusEffect(refetch)
 
   const renderItem: ListRenderItem<string> = useCallback(
-    ({ item }) => <HomeBookItem id={item} />,
+    ({ item }) => <HomeBookItem id={item} onDeleteSuccess={refetch} />,
     [],
   )
 

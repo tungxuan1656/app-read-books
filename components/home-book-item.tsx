@@ -7,7 +7,7 @@ import { AppPalette } from '@/assets'
 import { router } from 'expo-router'
 import { deleteBook, getFolderBooks } from '@/utils'
 
-const HomeBookItem = ({ id }: { id: string }) => {
+const HomeBookItem = ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: () => void }) => {
   const book = useAppStore((state) => state.id2Book[id])
   const onSelectBook = useCallback((book: Book) => {
     router.push({
@@ -23,6 +23,7 @@ const HomeBookItem = ({ id }: { id: string }) => {
         style: 'destructive',
         onPress: () => {
           deleteBook(getFolderBooks() + book.id)
+          onDeleteSuccess()
         },
       },
       { text: 'Huỷ', style: 'cancel' },
