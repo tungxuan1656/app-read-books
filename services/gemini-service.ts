@@ -99,10 +99,10 @@ export const summarizeChapter = async (content: string): Promise<string> => {
         : textContent
 
     const prompt = `
-Bạn là một biên tập viên chuyên nghiệp, thực hiện nhiệm vụ cô đọng lại chương truyện.
+Bạn là một biên tập viên chuyên nghiệp, thực hiện nhiệm vụ cô đọng lại chương truyện, chuyển đổi câu chữ từ thể loại truyện convert trung quốc sang truyện dịch việt nam.
 
 **NHIỆM VỤ CỐT LÕI:**
-Rút ngắn độ dài của chương truyện dưới đây xuống còn **50-60% độ dài bản gốc** bằng cách lược bỏ triệt để các chi tiết, mô tả, hoặc đoạn văn dư thừa, không ảnh hưởng đến mạch truyện chính, trong khi vẫn giữ nguyên hoàn toàn kết cấu và các yếu tố quan trọng của truyện.
+Rút ngắn độ dài của chương truyện dưới đây xuống còn **50-60% độ dài bản gốc** bằng cách lược bỏ triệt để các chi tiết, mô tả, hoặc đoạn văn dư thừa, không ảnh hưởng đến mạch truyện chính, trong khi vẫn giữ nguyên hoàn toàn kết cấu và các yếu tố quan trọng của truyện, viết lại câu chữ sao cho nếu là truyện convert thì phải phù hợp với văn phong của truyện dịch việt nam.
 
 **YÊU CẦU BẮT BUỘC:**
 1. 🏗️ **GIỮ NGUYÊN KẾT CẤU:**
@@ -110,9 +110,9 @@ Rút ngắn độ dài của chương truyện dưới đây xuống còn **50-6
    - Giữ nguyên dòng chảy của bối cảnh.
    - Duy trì đầy đủ các tương tác quan trọng giữa các nhân vật, bao gồm cả hội thoại cốt lõi.
 
-2. ✂️ **CHỈ LƯỢC BỎ, KHÔNG VIẾT LẠI:**
+2. ✂️ **CHỈ LƯỢC BỎ, GIỮ TỐI ĐA VĂN PHONG:**
    - **Chỉ cắt bỏ:** Loại bỏ các câu văn, đoạn mô tả, hoặc chi tiết không cần thiết (như mô tả cảnh vật, cảm xúc dư thừa, hoặc thông tin nền không liên quan trực tiếp đến mạch truyện).
-   - **Không viết lại:** Tuyệt đối không diễn giải, tóm tắt, hoặc thay đổi văn phong của nguyên tác. Chỉ giữ lại các câu văn gốc, không chỉnh sửa cách diễn đạt.
+   - **Giữ tối đa văn phong:** Không chỉnh sửa cách diễn đạt, nhưng có thể thay đổi cấu trúc câu để cô đọng hơn, miễn là vẫn giữ nguyên ý nghĩa và cảm xúc của đoạn văn, có thể dịch câu chữ từ thể loại convert sang văn phong truyện dịch việt nam. Ưu tiên giữ nguyên xưng hô: Hắn, Nó, Ta, Ngươi, v.v. để phù hợp với văn phong truyện dịch việt nam.
 
 3. 🎯 **MỤC TIÊU RÚT GỌN:**
    - Ưu tiên loại bỏ các đoạn văn mô tả dài dòng, thông tin nền không quan trọng, hoặc các chi tiết không ảnh hưởng đến cốt truyện chính (ví dụ: mô tả ngoại cảnh, cảm xúc lặp lại, hoặc thông tin phụ về nhân vật không liên quan trực tiếp).
