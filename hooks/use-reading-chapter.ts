@@ -27,6 +27,7 @@ export default function useReadingChapter(bookId: string) {
         content: '',
         summary: false,
         index: chapterNumber,
+        name: book.references?.[chapterNumber - 1] || '',
       }))
       DeviceEventEmitter.emit(EventKeys.EVENT_START_LOADING_CHAPTER)
       getBookChapterContent(book.id, chapterNumber)
