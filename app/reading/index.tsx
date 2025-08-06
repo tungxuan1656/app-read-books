@@ -1,4 +1,5 @@
 import { ContentDisplay } from '@/components/content-display'
+import { GSpinner } from '@/components/g-spinner'
 import ReadingAudioControl from '@/components/reading/reading-audio-control'
 import ReadingButtonBack from '@/components/reading/reading-button-back'
 import ReadingButtonLeftControl from '@/components/reading/reading-button-left-control'
@@ -35,10 +36,20 @@ const Reading = () => {
   }, [])
 
   useEffect(() => {
-    const unsubscribe = DeviceEventEmitter.addListener(EventKeys.READING_NEXT_CHAPTER_DONE, () => {
+    const u1 = DeviceEventEmitter.addListener(EventKeys.READING_NEXT_CHAPTER_DONE, () => {
       refScroll.current?.scrollTo({ y: 0, animated: false })
     })
-    return () => unsubscribe.remove()
+    const u2 = DeviceEventEmitter.addListener(EventKeys.EVENT_START_LOADING_CHAPTER, () => {
+      GSpinner.show()
+    })
+    const u3 = DeviceEventEmitter.addListener(EventKeys.EVENT_START_GENERATE_SUMMARY, () => {
+      GSpinner.show({ label: 'Đang tóm tắt...' })
+    })
+    return () => {
+      u1.remove()
+      u2.remove()
+      u3.remove()
+    }
   }, [])
 
   const handleScroll = useCallback(
@@ -74,10 +85,12 @@ const Reading = () => {
         scrollEventThrottle={300}
         contentContainerStyle={{ paddingVertical: 44 }}
         onScroll={handleScroll}>
-        {chapter.content !== '' ? <ContentDisplay chapterHtml={chapter.content} /> : null}
+        {chapter.content !== '' ? (
+          <ContentDisplay chapterHtml={chapter.content} onLoaded={GSpinner.hide} />
+        ) : null}
       </ScrollView>
 
-      {chapter.summary ? (
+      {chapter.summary && chapter.content.length > 0 ? (
         <ReadingAudioControl
           bookId={chapter.bookId}
           chapter={chapter.index}

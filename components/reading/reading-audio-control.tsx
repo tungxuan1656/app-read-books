@@ -19,8 +19,6 @@ export default function ReadingAudioControl({
   const { startGenerateAudio, stopGenerateAudio } = useTtsAudio()
 
   useEffect(() => {
-    console.log(content, bookId, chapter)
-    console.log('store', useAppStore.getState().id2BookReadingChapter[bookId])
     startGenerateAudio(content, bookId, chapter)
     return () => {
       stopGenerateAudio()

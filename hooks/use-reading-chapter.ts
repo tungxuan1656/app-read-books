@@ -2,8 +2,9 @@ import { GToast } from '@/components/g-toast'
 import useAppStore from '@/controllers/store'
 import { getBookChapterContent, getChapterHtml, showToastError } from '@/utils'
 import { useCallback, useEffect, useState } from 'react'
+import { DeviceEventEmitter } from 'react-native'
 import useSummary from './use-summary'
-import { GSpinner } from '@/components/g-spinner'
+import { EventKeys } from '@/constants'
 
 export default function useReadingChapter(bookId: string) {
   const book = useAppStore((s) => s.id2Book[bookId])
@@ -24,8 +25,10 @@ export default function useReadingChapter(bookId: string) {
       setChapter((prev) => ({
         ...prev,
         content: '',
+        summary: false,
+        index: chapterNumber,
       }))
-      GSpinner.show({ label: 'Đang tải chương...' })
+      DeviceEventEmitter.emit(EventKeys.EVENT_START_LOADING_CHAPTER)
       getBookChapterContent(book.id, chapterNumber)
         .then((res) => {
           if (res) {
@@ -34,9 +37,9 @@ export default function useReadingChapter(bookId: string) {
                 ...prev,
                 content: getChapterHtml(res),
                 summary: false,
-                number: chapterNumber,
+                index: chapterNumber,
               }))
-              GSpinner.hide()
+              DeviceEventEmitter.emit(EventKeys.EVENT_END_LOADING_CHAPTER)
             } else {
               getChapterBySummary(res, chapterNumber)
             }
@@ -48,19 +51,19 @@ export default function useReadingChapter(bookId: string) {
 
   const getChapterBySummary = useCallback(
     async (content: string, chapter: number) => {
-      GSpinner.show({ label: 'Đang tóm tắt...' })
+      DeviceEventEmitter.emit(EventKeys.EVENT_START_GENERATE_SUMMARY)
       const summary = await startSummary(bookId, chapter, content)
       if (summary) {
         setChapter((prev) => ({
           ...prev,
           content: getChapterHtml(summary),
           summary: true,
-          number: chapter,
+          index: chapter,
         }))
       } else {
         GToast.error({ message: 'Thất bại khi tạo nội dung chương' })
       }
-      GSpinner.hide()
+      DeviceEventEmitter.emit(EventKeys.EVENT_END_GENERATE_SUMMARY)
     },
     [bookId],
   )

@@ -21,14 +21,16 @@ const GSpinnerRef = React.createRef<GSpinnerProps | null>()
 export const GSpinnerComponent = ({ theme }: { theme?: GSpinnerTheme }) => {
   const [visible, setVisible] = useState(false)
   const [label, setLabel] = useState('')
+  const refTimeout = React.useRef<number | undefined>(undefined)
 
   useLayoutEffect(() => {
     // @ts-ignore
     GSpinnerRef.current = {
       show: ({ label, timeout = 20 }: GSpinnerShowProps = {}) => {
+        clearTimeout(refTimeout.current)
         setVisible(true)
         setLabel(label ?? '')
-        setTimeout(() => {
+        refTimeout.current = setTimeout(() => {
           setVisible(false)
         }, timeout * 1000)
       },
