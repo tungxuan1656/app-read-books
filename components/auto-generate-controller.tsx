@@ -98,7 +98,7 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
         }
 
         // Tạo tóm tắt cho chương
-        const summary = await startSummary(bookId, bookTitle, chapter, content)
+        const summary = await startSummary(bookId, chapter, content)
         if (!summary) {
           setErrorMessage(`Không thể tạo tóm tắt cho chương ${chapter}`)
           continue
