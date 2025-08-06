@@ -12,7 +12,8 @@
     "lint": "npx expo lint",
     "xcode": "open ios/*.xcworkspace",
     "studio": "open -a /Applications/Android\\ Studio.app ./android/",
-    "prebuild": "npx expo prebuild"
+    "prebuild": "npx expo prebuild",
+    "tsc": "tsc --noEmit"
   },
   "jest": {
     "preset": "jest-expo"
