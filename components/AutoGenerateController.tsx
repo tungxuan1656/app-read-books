@@ -28,7 +28,7 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
   })
 
   const startSummary = useSummary()
-  const { startGenerateAudio, stopGenerateAudio, listAudios } = useTtsAudio(false)
+  const { startGenerateAudio, stopGenerateAudio } = useTtsAudio(false)
 
   // Function để load content của 1 chapter
   const loadChapterContent = useCallback(
@@ -159,7 +159,7 @@ const AutoGenerateController: React.FC<AutoGenerateControllerProps> = ({ bookId,
   const getStatusText = (): string => {
     if (state.isRunning) {
       if (state.currentChapter) {
-        return `Đang xử lý chương ${state.currentChapter}... ${listAudios.length} audio đã tạo`
+        return `Đang xử lý chương ${state.currentChapter}...`
       }
       return 'Đang khởi tạo...'
     }
