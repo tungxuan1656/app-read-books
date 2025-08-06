@@ -1,10 +1,12 @@
-import { Screen } from '@/components/Screen'
+import { Divider, Screen } from '@/components/Screen'
 import { getCurrentBookId } from '@/utils'
 import { router, Stack } from 'expo-router'
 import React, { useEffect, useRef } from 'react'
-import { FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native'
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AppTypo } from '../../constants'
 import useAppStore, { storeActions } from '@/controllers/store'
+import { VectorIcon } from '@/components/Icon'
+import { AppPalette } from '@/assets'
 
 const References = () => {
   const refList = useRef<FlatList | null>(null)
@@ -31,8 +33,19 @@ const References = () => {
   }
 
   return (
-    <Screen.Container>
-      <Stack.Screen options={{ title: 'Mục lục', headerShown: true }} />
+    <Screen.Container safe='all'>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <VectorIcon
+          name="angle-left"
+          font="FontAwesome6"
+          size={16}
+          buttonStyle={{ width: 44, height: 44 }}
+          color={AppPalette.gray600}
+          onPress={() => router.back()}
+        />
+        <Text style={[AppTypo.h3.semiBold, { marginLeft: 4 }]}>{'Mục lục'}</Text>
+      </View>
+      <Divider />
       <Screen.Content>
         <FlatList
           ref={refList}
