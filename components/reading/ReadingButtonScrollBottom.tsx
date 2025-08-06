@@ -13,7 +13,7 @@ function ReadingButtonScrollBottom({ onScrollToBottom }: { onScrollToBottom: () 
       size={18}
       buttonStyle={{
         ...styles.buttonScrollToBottom,
-        bottom: Math.max(10, insets.bottom),
+        bottom: Math.max(10, insets.bottom) - 16,
       }}
       color={AppPalette.gray300}
       onPress={onScrollToBottom}
@@ -27,8 +27,11 @@ const styles = StyleSheet.create({
   buttonScrollToBottom: {
     alignSelf: 'center',
     borderRadius: 100,
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     right: 'auto',
     left: 'auto',
+    width: 48,
+    height: 48,
+    position: 'absolute',
   },
 })
