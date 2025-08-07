@@ -39,14 +39,24 @@ export default function Home() {
           justifyContent: 'space-between',
         }}>
         <Text style={[AppTypo.h3.semiBold, { marginLeft: 16 }]}>{'Danh sách truyện'}</Text>
-        <VectorIcon
-          name="plus"
-          font="FontAwesome6"
-          size={16}
-          buttonStyle={{ marginLeft: 8, width: 44, height: 44 }}
-          color={AppPalette.gray600}
-          onPress={() => router.push('/add-book')}
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <VectorIcon
+            name="settings"
+            font="MaterialIcons"
+            size={16}
+            buttonStyle={{ marginLeft: 8, width: 32, height: 44 }}
+            color={AppPalette.gray600}
+            onPress={() => router.push('/settings')}
+          />
+          <VectorIcon
+            name="plus"
+            font="FontAwesome6"
+            size={16}
+            buttonStyle={{ marginLeft: 8, width: 32, height: 44, marginRight: 12 }}
+            color={AppPalette.gray600}
+            onPress={() => router.push('/add-book')}
+          />
+        </View>
       </View>
       <Divider />
       <Screen.Content style={{}} contentContainerStyle={{ paddingVertical: 0 }}>

@@ -63,6 +63,7 @@ export default function useReadingChapter(bookId: string) {
         }))
       } else {
         GToast.error({ message: 'Thất bại khi tạo nội dung chương' })
+        DeviceEventEmitter.emit(EventKeys.EVENT_ERROR_GENERATE_SUMMARY)
       }
       DeviceEventEmitter.emit(EventKeys.EVENT_END_GENERATE_SUMMARY)
     },

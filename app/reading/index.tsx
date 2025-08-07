@@ -45,10 +45,14 @@ const Reading = () => {
     const u3 = DeviceEventEmitter.addListener(EventKeys.EVENT_START_GENERATE_SUMMARY, () => {
       GSpinner.show({ label: 'Đang tóm tắt...' })
     })
+    const u4 = DeviceEventEmitter.addListener(EventKeys.EVENT_ERROR_GENERATE_SUMMARY, () => {
+      GSpinner.hide()
+    })
     return () => {
       u1.remove()
       u2.remove()
       u3.remove()
+      u4.remove()
     }
   }, [])
 
