@@ -62,8 +62,8 @@ const Reading = () => {
       const offset = Math.round(contentOffset.y + layoutMeasurement.height)
       const contentHeight = Math.round(contentSize.height)
       saveOffset(contentOffset.y)
-      if (offset > contentHeight + 70) nextChapter(500)
-      if (contentOffset.y < -80) previousChapter(500)
+      if (offset > contentHeight + 50) nextChapter(500)
+      if (contentOffset.y < -60) previousChapter(500)
     },
     [saveOffset, nextChapter, previousChapter],
   )
