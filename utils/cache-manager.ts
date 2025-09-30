@@ -1,11 +1,16 @@
-import * as FileSystem from 'expo-file-system'
+import { File, Paths } from 'expo-file-system'
 import {
   clearBookSummaryCache,
   clearSummaryCache,
   deleteCachedSummary,
   getSummaryCountForBook,
 } from './summary-cache'
-import { CACHE_FOLDER } from './tts-cache'
+import { CACHE_DIRECTORY } from './tts-cache'
+
+const cacheDirectoryExists = () => {
+  const { exists, isDirectory } = Paths.info(CACHE_DIRECTORY.uri)
+  return exists && isDirectory === true
+}
 
 /**
  * Clears all cache for a specific book (both summary and TTS)
@@ -18,13 +23,12 @@ export const clearBookCache = async (bookId: string): Promise<void> => {
     clearBookSummaryCache(bookId)
 
     // 3. Clear TTS cache files for the book
-    const cacheDir = await FileSystem.getInfoAsync(CACHE_FOLDER)
-    if (cacheDir.exists && cacheDir.isDirectory) {
-      const files = await FileSystem.readDirectoryAsync(CACHE_FOLDER)
+    if (cacheDirectoryExists()) {
+      const files = CACHE_DIRECTORY.list().filter((entry): entry is File => entry instanceof File)
 
       // Filter files that belong to this book (format: bookId_chapter_index.mp3)
       const bookFiles = files.filter(
-        (file) => file.startsWith(`${bookId}_`) && file.endsWith('.mp3'),
+        (file) => file.name.startsWith(`${bookId}_`) && file.name.endsWith('.mp3'),
       )
 
       console.log(`🗑️ [Cache Manager] Found ${bookFiles.length} TTS files for book ${bookId}`)
@@ -32,10 +36,10 @@ export const clearBookCache = async (bookId: string): Promise<void> => {
       // Delete all TTS files for this book
       for (const file of bookFiles) {
         try {
-          await FileSystem.deleteAsync(`${CACHE_FOLDER}${file}`)
-          console.log(`🗑️ [Cache Manager] Deleted TTS file: ${file}`)
+          file.delete()
+          console.log(`🗑️ [Cache Manager] Deleted TTS file: ${file.name}`)
         } catch (error) {
-          console.error(`🗑️ [Cache Manager] Error deleting file ${file}:`, error)
+          console.error(`🗑️ [Cache Manager] Error deleting file ${file.name}:`, error)
         }
       }
     }
@@ -58,13 +62,12 @@ export const clearChapterCache = async (bookId: string, chapterNumber: number): 
     deleteCachedSummary(bookId, chapterNumber)
 
     // 2. Clear TTS cache files for the chapter
-    const cacheDir = await FileSystem.getInfoAsync(CACHE_FOLDER)
-    if (cacheDir.exists && cacheDir.isDirectory) {
-      const files = await FileSystem.readDirectoryAsync(CACHE_FOLDER)
+    if (cacheDirectoryExists()) {
+      const files = CACHE_DIRECTORY.list().filter((entry): entry is File => entry instanceof File)
 
       // Filter files that belong to this chapter (format: bookId_chapter_index.mp3)
       const chapterFiles = files.filter(
-        (file) => file.startsWith(`${bookId}_${chapterNumber}_`) && file.endsWith('.mp3'),
+        (file) => file.name.startsWith(`${bookId}_${chapterNumber}_`) && file.name.endsWith('.mp3'),
       )
 
       console.log(`🗑️ [Cache Manager] Found ${chapterFiles.length} TTS files for chapter`)
@@ -72,10 +75,10 @@ export const clearChapterCache = async (bookId: string, chapterNumber: number): 
       // Delete all TTS files for this chapter
       for (const file of chapterFiles) {
         try {
-          await FileSystem.deleteAsync(`${CACHE_FOLDER}${file}`)
-          console.log(`🗑️ [Cache Manager] Deleted TTS file: ${file}`)
+          file.delete()
+          console.log(`🗑️ [Cache Manager] Deleted TTS file: ${file.name}`)
         } catch (error) {
-          console.error(`🗑️ [Cache Manager] Error deleting file ${file}:`, error)
+          console.error(`🗑️ [Cache Manager] Error deleting file ${file.name}:`, error)
         }
       }
     }
@@ -103,23 +106,22 @@ export const getBookCacheStats = async (
     let summariesCount = 0
 
     // Count TTS files and calculate size
-    const cacheDir = await FileSystem.getInfoAsync(CACHE_FOLDER)
-    if (cacheDir.exists && cacheDir.isDirectory) {
-      const files = await FileSystem.readDirectoryAsync(CACHE_FOLDER)
+    if (cacheDirectoryExists()) {
+      const files = CACHE_DIRECTORY.list().filter((entry): entry is File => entry instanceof File)
       const bookFiles = files.filter(
-        (file) => file.startsWith(`${bookId}_`) && file.endsWith('.mp3'),
+        (file) => file.name.startsWith(`${bookId}_`) && file.name.endsWith('.mp3'),
       )
 
       totalTTSFiles = bookFiles.length
 
       for (const file of bookFiles) {
         try {
-          const fileInfo = await FileSystem.getInfoAsync(`${CACHE_FOLDER}${file}`)
+          const fileInfo = file.info()
           if (fileInfo.exists && fileInfo.size) {
             totalTTSSize += fileInfo.size
           }
         } catch (error) {
-          console.error(`Error getting file size for ${file}:`, error)
+          console.error(`Error getting file size for ${file.name}:`, error)
         }
       }
     }
@@ -150,12 +152,11 @@ export const clearAllCache = async (): Promise<void> => {
 
   try {
     // Clear TTS cache folder
-    const cacheDir = await FileSystem.getInfoAsync(CACHE_FOLDER)
-    if (cacheDir.exists) {
-      await FileSystem.deleteAsync(CACHE_FOLDER, { idempotent: true })
-      // Recreate the folder
-      await FileSystem.makeDirectoryAsync(CACHE_FOLDER, { intermediates: true })
+    if (cacheDirectoryExists()) {
+      CACHE_DIRECTORY.delete()
     }
+
+    CACHE_DIRECTORY.create({ idempotent: true, intermediates: true })
 
     // Clear summary cache
     clearSummaryCache()

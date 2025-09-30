@@ -33,7 +33,7 @@ const References = () => {
   }
 
   return (
-    <Screen.Container safe='all'>
+    <Screen.Container safe="all">
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <VectorIcon
           name="angle-left"

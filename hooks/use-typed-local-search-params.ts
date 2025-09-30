@@ -5,10 +5,7 @@ type Parser = 'boolean' | 'number' | 'json' | 'date' | 'string'
 
 type ParserMap = Record<string, Parser>
 
-const parseValue = (
-  value: string | string[] | undefined,
-  parser?: Parser,
-): any => {
+const parseValue = (value: string | string[] | undefined, parser?: Parser): any => {
   if (typeof value !== 'string') {
     return value
   }
@@ -68,9 +65,7 @@ const stringifyValue = (value: any): string | undefined => {
  * @param params - The object to stringify.
  * @returns An object where all values are strings.
  */
-export function stringifyParams<T extends Record<string, any>>(
-  params: T,
-): Record<string, string> {
+export function stringifyParams<T extends Record<string, any>>(params: T): Record<string, string> {
   const result: Record<string, string> = {}
 
   for (const key in params) {
@@ -92,9 +87,7 @@ export function stringifyParams<T extends Record<string, any>>(
  * @param parserMap - An object where keys are search param names and values are the desired type ('boolean', 'number', 'json', 'date').
  * @returns An object containing the parsed search parameters.
  */
-export function useTypedLocalSearchParams<T extends Record<string, any>>(
-  parserMap: ParserMap,
-): T {
+export function useTypedLocalSearchParams<T extends Record<string, any>>(parserMap: ParserMap): T {
   const params = useLocalSearchParams()
   const stableParserMap = useMemo(() => parserMap, [JSON.stringify(parserMap)])
   const stableParams = useMemo(() => params, [JSON.stringify(params)])

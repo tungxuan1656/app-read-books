@@ -1,5 +1,5 @@
 import { unzip } from 'react-native-zip-archive'
-import * as FileSystem from 'expo-file-system'
+import { File } from 'expo-file-system'
 import { isFileAsync } from '../utils'
 
 export const getFilenameOfUrl = (url: string) => {
@@ -13,23 +13,32 @@ export const getNameOfFile = (filename: string) => {
 }
 
 export const downloadFile = (url: string, fileUri: string) => {
-  return new Promise<string>((resolve, reject) => {
-    isFileAsync(fileUri).then(async (isFile) => {
-      if (isFile) {
+  return new Promise<string>(async (resolve, reject) => {
+    try {
+      const destination = new File(fileUri)
+
+      if (await isFileAsync(fileUri)) {
         console.log('ZIP file already downloaded => Delete file!')
-        await FileSystem.deleteAsync(fileUri).catch((error) => reject(error))
+        if (destination.exists) {
+          destination.delete()
+        }
       }
-      FileSystem.downloadAsync(url, fileUri)
-        .then(({ uri }) => {
-          resolve(uri)
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    })
+
+      const downloadedFile = await File.downloadFileAsync(url, destination)
+      resolve(downloadedFile.uri)
+    } catch (error) {
+      reject(error)
+    }
   })
 }
 
 export const deleteDownloadFile = (uri: string) => {
-  FileSystem.deleteAsync(uri).catch((error) => console.log(error))
+  try {
+    const file = new File(uri)
+    if (file.exists) {
+      file.delete()
+    }
+  } catch (error) {
+    console.log(error)
+  }
 }

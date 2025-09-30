@@ -34,7 +34,7 @@ const setupPlayer = async (): Promise<boolean> => {
     console.log('🎵 [TrackPlayer] Setup completed successfully')
     return true
   } catch (error) {
-    console.error('🎵 [TrackPlayer] Error setting up:', error)
+    // console.error('🎵 [TrackPlayer] Error setting up:', error)
     return false
   }
 }

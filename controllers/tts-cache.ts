@@ -17,7 +17,7 @@ export const logTTSCacheInfo = async () => {
   console.log('📊 TTS Cache Stats:', {
     totalFiles: stats.totalFiles,
     totalSizeMB: (stats.totalSize / (1024 * 1024)).toFixed(2),
-    cacheKeys: stats.cacheKeys
+    cacheKeys: stats.cacheKeys,
   })
 }
 

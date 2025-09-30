@@ -1,8 +1,7 @@
-import { encode } from 'base-64'
-import * as FileSystem from 'expo-file-system'
+import { File } from 'expo-file-system'
 import { DeviceEventEmitter } from 'react-native'
 import { preprocessSentence } from '../utils/string-helpers'
-import { CACHE_FOLDER } from '../utils/tts-cache'
+import { CACHE_DIRECTORY } from '../utils/tts-cache'
 
 // Global variable to track cancellation
 let isCancelled = false
@@ -127,10 +126,10 @@ const _getOrGenerateAudioFile = async (
     return null
   }
   const fileName = `${audioTaskId}.mp3`
-  const newCacheFilePath = `${CACHE_FOLDER}${fileName}`
+  const cacheFile = new File(CACHE_DIRECTORY, fileName)
+  const newCacheFilePath = cacheFile.uri
 
-  const info = await FileSystem.getInfoAsync(newCacheFilePath)
-  if (info.exists) {
+  if (cacheFile.exists) {
     console.log(`🎵 [TTS] Using cached audio: ${fileName}`)
     return newCacheFilePath
   }
@@ -150,15 +149,8 @@ const _getOrGenerateAudioFile = async (
   }
 
   try {
-    let binaryString = ''
-    for (let i = 0; i < audioData.byteLength; i++) {
-      binaryString += String.fromCharCode(audioData[i])
-    }
-    const base64Data = encode(binaryString)
-
-    await FileSystem.writeAsStringAsync(newCacheFilePath, base64Data, {
-      encoding: FileSystem.EncodingType.Base64,
-    })
+    cacheFile.create({ intermediates: true, overwrite: true })
+    cacheFile.write(audioData)
 
     console.log(`🎵 [TTS] Audio saved: ${fileName}`)
     return newCacheFilePath
@@ -223,4 +215,3 @@ export const convertTTSCapcut = async (
 
 export { splitContentToParagraph } from '../utils/string-helpers'
 export { getTTSCacheStats, initTTSCache } from '../utils/tts-cache'
-

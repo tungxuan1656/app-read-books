@@ -1,8 +1,10 @@
-import * as FileSystem from 'expo-file-system'
+import { Directory, File, Paths } from 'expo-file-system'
 import { MMKV } from 'react-native-mmkv'
 
 // --- Configuration ---
-export const CACHE_FOLDER = `${FileSystem.documentDirectory}tts_audio/`
+export const CACHE_DIRECTORY = new Directory(Paths.document, 'tts_audio')
+export const CACHE_FOLDER = CACHE_DIRECTORY.uri
+
 const ttsCache = new MMKV({
   id: 'tts-cache',
   encryptionKey: 'tts-audio-files',
@@ -16,7 +18,7 @@ const ttsCache = new MMKV({
  */
 export const initTTSCache = async () => {
   try {
-    await FileSystem.makeDirectoryAsync(CACHE_FOLDER, { intermediates: true })
+    CACHE_DIRECTORY.create({ idempotent: true, intermediates: true })
   } catch (error) {
     console.error('Error initializing TTS cache:', error)
   }
@@ -60,12 +62,21 @@ export const getTTSCacheStats = async (): Promise<{
   cacheKeys: number
 }> => {
   try {
-    const files = await FileSystem.readDirectoryAsync(CACHE_FOLDER)
+    const cacheInfo = Paths.info(CACHE_DIRECTORY.uri)
+    if (!cacheInfo.exists || cacheInfo.isDirectory === false) {
+      return { totalFiles: 0, totalSize: 0, cacheKeys: ttsCache.getAllKeys().length }
+    }
+
+    const files = CACHE_DIRECTORY.list().filter((entry): entry is File => entry instanceof File)
     let totalSize = 0
     for (const file of files) {
-      const info = await FileSystem.getInfoAsync(`${CACHE_FOLDER}${file}`)
-      if (info.exists && info.size) {
-        totalSize += info.size
+      try {
+        const info = file.info()
+        if (info.exists && info.size) {
+          totalSize += info.size
+        }
+      } catch (error) {
+        console.error('Error reading TTS cache file info:', error)
       }
     }
     return {
@@ -74,17 +85,7 @@ export const getTTSCacheStats = async (): Promise<{
       cacheKeys: ttsCache.getAllKeys().length,
     }
   } catch (error: unknown) {
-    // If cache folder doesn't exist, return zero stats.
-    // We perform a type check to safely access the 'code' property.
-    if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      (error as { code: unknown }).code === 'ERR_FILE_NOT_FOUND'
-    ) {
-      return { totalFiles: 0, totalSize: 0, cacheKeys: 0 }
-    }
     console.error('Error getting cache stats:', error)
-    return { totalFiles: 0, totalSize: 0, cacheKeys: 0 }
+    return { totalFiles: 0, totalSize: 0, cacheKeys: ttsCache.getAllKeys().length }
   }
 }
