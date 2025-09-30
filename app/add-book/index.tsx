@@ -1,4 +1,3 @@
-import { Button } from '@/components/Button'
 import DownloadBookItem, { ExportedBook } from '@/components/download-book-item'
 import { GToast } from '@/components/g-toast'
 import { Divider, Screen } from '@/components/Screen'
@@ -12,7 +11,6 @@ import {
   ListRenderItem,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -32,7 +30,6 @@ type ExportedBooksResponse = {
 }
 
 const AddBook = (props: any) => {
-  const [linkDownload, setLinkDownload] = useState('')
   const [processing, setProcessing] = useState('')
   const [exportedBooks, setExportedBooks] = useState<ExportedBook[]>([])
   const [fetchingBooks, setFetchingBooks] = useState(false)
@@ -88,23 +85,16 @@ const AddBook = (props: any) => {
   }, [])
 
   const downloadBook = useCallback(
-    (url?: string) => {
-      const targetUrl = url ?? linkDownload.trim()
-
-      if (!targetUrl) {
-        GToast.error({ message: 'Vui lòng nhập link tải truyện.' })
-        return
-      }
-
+    (url: string) => {
       setProcessing('Đang tải...')
-      const filename = getFilenameOfUrl(targetUrl)
+      const filename = getFilenameOfUrl(url)
       const fileUri = getPathSaveZipBook(filename)
-      downloadFile(targetUrl, fileUri)
+      downloadFile(url, fileUri)
         .then(unzipBook)
         .catch(showToastError)
         .finally(() => setProcessing(''))
     },
-    [linkDownload, unzipBook],
+    [unzipBook],
   )
 
   const handleDownloadExport = useCallback(
@@ -121,50 +111,6 @@ const AddBook = (props: any) => {
 
   const renderExportedBook: ListRenderItem<ExportedBook> = ({ item }) => (
     <DownloadBookItem item={item} onDownload={handleDownloadExport} />
-  )
-
-  const renderListHeader = () => (
-    <View style={styles.listHeader}>
-      <TouchableOpacity onPress={onPressLinkSource}>
-        <Text
-          style={[
-            AppTypo.headline.semiBold,
-            { color: AppPalette.blue500, textDecorationLine: 'underline' },
-          ]}>
-          {'https://tx-book-source.web.app/'}
-        </Text>
-      </TouchableOpacity>
-      <Text style={[AppTypo.caption.regular, { color: AppPalette.gray200 }]}>
-        {
-          'Ví dụ: https://gitlab.com/tungxuan1656/file-storages/-/raw/main/books/ta-tro-thanh-phu-nhi-dai-phan-phai.zip'
-        }
-      </Text>
-
-      <TextInput
-        placeholder="Nhập link tải truyện"
-        value={linkDownload}
-        onChangeText={setLinkDownload}
-        style={[AppTypo.body.medium, styles.input]}
-        clearButtonMode="while-editing"
-      />
-
-      <View style={{ gap: 4 }}>
-        <Text style={[AppTypo.caption.semiBold, { color: AppPalette.gray400 }]}>
-          {'Danh sách truyện đã xuất bản'}
-        </Text>
-        {supabaseAnonKey ? (
-          exportedBooks.length > 0 ? (
-            <Text style={[AppTypo.caption.regular, { color: AppPalette.gray300 }]}>
-              {`${exportedBooks.length} truyện có sẵn để tải xuống`}
-            </Text>
-          ) : null
-        ) : (
-          <Text style={[AppTypo.caption.regular, { color: AppPalette.red500 }]}>
-            {'Vui lòng cấu hình SUPABASE_ANON_KEY để hiển thị danh sách có sẵn.'}
-          </Text>
-        )}
-      </View>
-    </View>
   )
 
   const renderEmptyList = () => {
@@ -196,7 +142,7 @@ const AddBook = (props: any) => {
           color={AppPalette.gray600}
           onPress={() => router.back()}
         />
-        <Text style={[AppTypo.h3.semiBold, { marginLeft: 4 }]}>{'Thêm truyện mới'}</Text>
+        <Text style={[AppTypo.h3.semiBold, { marginLeft: 4 }]}>{'Tải truyện'}</Text>
       </View>
       <Divider />
       <Screen.Content style={{ flex: 1 }}>
@@ -208,14 +154,12 @@ const AddBook = (props: any) => {
           ItemSeparatorComponent={Divider}
           refreshing={fetchingBooks}
           onRefresh={fetchExportedBooks}
-          ListHeaderComponent={renderListHeader}
           ListEmptyComponent={renderEmptyList}
           contentContainerStyle={{ paddingBottom: 32 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         />
       </Screen.Content>
-      <Button title={'Tải xuống'} style={{ marginHorizontal: 16 }} onPress={() => downloadBook()} />
       {processing ? (
         <View
           style={[
@@ -238,13 +182,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
     gap: 20,
-  },
-  input: {
-    height: 48,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: AppColors.strokeExtra,
-    paddingHorizontal: 16,
   },
   emptyContainer: {
     paddingHorizontal: 20,
