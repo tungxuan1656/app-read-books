@@ -14,6 +14,10 @@ interface AppState {
   isSummaryMode: boolean
   toggleSummaryMode: () => void
 
+  // home
+  isEditingBook: boolean
+  setIsEditingBook: (isEditing: boolean) => void
+
   bookIds: string[]
   id2Book: Record<string, Book>
   id2BookReadingChapter: Record<string, number>
@@ -71,6 +75,9 @@ const useAppStore = create<AppState>()(
               [bookId]: Math.max((state.id2BookReadingChapter[bookId] || 1) - 1, 1),
             },
           })),
+
+        isEditingBook: false,
+        setIsEditingBook: (isEditing: boolean) => set({ isEditingBook: isEditing }),
       }),
       {
         name: 'appstore',
@@ -93,6 +100,7 @@ const {
   toggleSummaryMode,
   nextReadingChapter,
   previousReadingChapter,
+  setIsEditingBook,
 } = useAppStore.getState()
 
 export const storeActions = {
@@ -104,6 +112,7 @@ export const storeActions = {
   toggleSummaryMode,
   nextReadingChapter,
   previousReadingChapter,
+  setIsEditingBook,
 }
 
 export default useAppStore

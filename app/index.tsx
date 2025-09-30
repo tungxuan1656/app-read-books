@@ -9,9 +9,11 @@ import { FlatList, ListRenderItem, Text, View } from 'react-native'
 import { AppTypo } from '../constants'
 import useAppStore, { storeActions } from '../controllers/store'
 import { readFolderBooks } from '../utils'
+import { Button } from '@/components/Button'
 
 export default function Home() {
   const bookIds = useAppStore((state) => state.bookIds)
+  const isEditingBook = useAppStore((state) => state.isEditingBook)
 
   const refetch = useCallback(() => {
     readFolderBooks()
@@ -41,6 +43,14 @@ export default function Home() {
         <Text style={[AppTypo.h3.semiBold, { marginLeft: 16 }]}>{'Danh sách truyện'}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <VectorIcon
+            name="file-edit"
+            font="MaterialCommunityIcons"
+            size={16}
+            buttonStyle={{ marginLeft: 8, width: 32, height: 44 }}
+            color={AppPalette.gray600}
+            onPress={() => storeActions.setIsEditingBook(!isEditingBook)}
+          />
+          <VectorIcon
             name="settings"
             font="MaterialIcons"
             size={16}
@@ -68,6 +78,15 @@ export default function Home() {
           keyExtractor={(item) => item}
         />
       </Screen.Content>
+      {isEditingBook ? (
+        <Screen.Footer>
+          <Button
+            title={'Xong'}
+            onPress={() => storeActions.setIsEditingBook(false)}
+            style={{ flex: 1 }}
+          />
+        </Screen.Footer>
+      ) : null}
     </Screen.Container>
   )
 }

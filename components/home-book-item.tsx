@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { VectorIcon } from './Icon'
 import useAppStore from '@/controllers/store'
 import { AppTypo } from '@/constants'
@@ -9,14 +9,16 @@ import { deleteBook, getFolderBooks } from '@/utils'
 
 const HomeBookItem = ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: () => void }) => {
   const book = useAppStore((state) => state.id2Book[id])
-  const onSelectBook = useCallback((book: Book) => {
+  const isEditingBook = useAppStore((state) => state.isEditingBook)
+
+  const onSelectBook = () => {
     router.push({
       pathname: '/reading',
       params: { bookId: book.id },
     })
-  }, [])
+  }
 
-  const onLongSelectBook = useCallback((book: Book) => {
+  const onLongSelectBook = () => {
     Alert.alert('Xoá truyện', 'Bạn có chắc chắn muốn xoá bộ truyện này?', [
       {
         text: 'Đồng ý',
@@ -28,23 +30,41 @@ const HomeBookItem = ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: ()
       },
       { text: 'Huỷ', style: 'cancel' },
     ])
-  }, [])
+  }
 
   return (
-    <TouchableOpacity
-      style={styles.item}
-      key={book.name}
-      onLongPress={() => onLongSelectBook(book)}
-      onPress={() => onSelectBook(book)}>
+    <TouchableOpacity style={styles.item} key={book.name} onPress={onSelectBook}>
       <View style={{ gap: 4, flex: 1 }}>
-        <Text style={[AppTypo.body.medium]} numberOfLines={1}>
+        <Text style={[AppTypo.body.medium, { color: AppPalette.gray900 }]} numberOfLines={1}>
           {book.name}
         </Text>
-        <Text style={[AppTypo.caption.regular, { color: AppPalette.gray700 }]}>
+        <Text style={[AppTypo.caption.regular, { color: AppPalette.gray500 }]}>
           {`${book.author || '#'} - ${book.count} chương`}
         </Text>
       </View>
-      <VectorIcon name="chevron-right" font="FontAwesome5" size={12} />
+
+      {isEditingBook ? (
+        <VectorIcon
+          name="delete"
+          font="Feather"
+          size={16}
+          color={AppPalette.red500}
+          onPress={onLongSelectBook}
+          buttonStyle={{ padding: 8 }}
+        />
+      ) : (
+        <>
+          <VectorIcon
+            name="circle-info"
+            font="FontAwesome6"
+            size={16}
+            color={AppPalette.blue500}
+            onPress={() => Linking.openURL(`https://metruyencv.com/truyen/${book.id}`)}
+            buttonStyle={{ padding: 8 }}
+          />
+          <VectorIcon name="chevron-right" font="FontAwesome5" size={12} />
+        </>
+      )}
     </TouchableOpacity>
   )
 }
@@ -58,5 +78,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    gap: 6,
   },
 })
