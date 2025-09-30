@@ -104,11 +104,6 @@ const AddBook = (props: any) => {
     [downloadBook],
   )
 
-  const onPressLinkSource = async () => {
-    const res = await WebBrowser.openBrowserAsync('https://tx-book-source.web.app/')
-    console.log(res)
-  }
-
   const renderExportedBook: ListRenderItem<ExportedBook> = ({ item }) => (
     <DownloadBookItem item={item} onDownload={handleDownloadExport} />
   )

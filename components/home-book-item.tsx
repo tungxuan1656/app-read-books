@@ -35,7 +35,7 @@ const HomeBookItem = ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: ()
   return (
     <TouchableOpacity style={styles.item} key={book.name} onPress={onSelectBook}>
       <View style={{ gap: 4, flex: 1 }}>
-        <Text style={[AppTypo.body.medium, { color: AppPalette.gray900 }]} numberOfLines={1}>
+        <Text style={[AppTypo.body.medium, { color: AppPalette.gray900 }]} numberOfLines={2}>
           {book.name}
         </Text>
         <Text style={[AppTypo.caption.regular, { color: AppPalette.gray500 }]}>
@@ -58,7 +58,7 @@ const HomeBookItem = ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: ()
             name="circle-info"
             font="FontAwesome6"
             size={16}
-            color={AppPalette.blue500}
+            color={AppPalette.gray400}
             onPress={() => Linking.openURL(`https://metruyencv.com/truyen/${book.id}`)}
             buttonStyle={{ padding: 8 }}
           />
