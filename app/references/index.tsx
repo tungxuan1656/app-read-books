@@ -1,7 +1,7 @@
 import { Divider, Screen } from '@/components/Screen'
 import { getCurrentBookId } from '@/utils'
-import { router, Stack } from 'expo-router'
-import React, { useEffect, useRef } from 'react'
+import { router } from 'expo-router'
+import React, { useLayoutEffect, useRef } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AppTypo } from '../../constants'
 import useAppStore, { storeActions } from '@/controllers/store'
@@ -13,18 +13,15 @@ const References = () => {
   const book = useAppStore((s) => s.id2Book[getCurrentBookId()])
   const currentIndex = useAppStore((s) => s.id2BookReadingChapter[getCurrentBookId()] ?? 0)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const references = book?.references ?? []
-
-    setTimeout(() => {
-      if (
-        Array.isArray(references) &&
-        references.length > 0 &&
-        currentIndex - 1 < references.length - 1
-      ) {
-        refList.current?.scrollToIndex({ animated: true, index: currentIndex - 1 })
-      }
-    }, 500)
+    if (
+      Array.isArray(references) &&
+      references.length > 0 &&
+      currentIndex - 1 < references.length - 1
+    ) {
+      refList.current?.scrollToIndex({ animated: false, index: currentIndex - 1 })
+    }
   }, [book, currentIndex])
 
   const setChapter = (chapter: number) => {
@@ -51,6 +48,7 @@ const References = () => {
           ref={refList}
           data={book?.references ?? []}
           contentContainerStyle={{ paddingVertical: 20 }}
+          initialScrollIndex={currentIndex - 1}
           renderItem={({ item, index }) => (
             <TouchableOpacity key={item} style={styles.item} onPress={() => setChapter(index + 1)}>
               <Text

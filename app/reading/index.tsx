@@ -15,12 +15,13 @@ import useReupdateReading from '@/hooks/use-reupdate-reading'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import { getCurrentBookId } from '@/utils'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { DeviceEventEmitter, ScrollView, StyleSheet, Text } from 'react-native'
+import { DeviceEventEmitter, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 const Reading = () => {
   console.log('RENDER Reading')
   const { bookId } = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
   useReupdateReading(bookId)
+
   const { nextChapter, previousChapter, saveOffset } = useReadingController(bookId)
   const chapter = useReadingChapter(bookId)
 
@@ -45,14 +46,10 @@ const Reading = () => {
     const u3 = DeviceEventEmitter.addListener(EventKeys.EVENT_START_GENERATE_SUMMARY, () => {
       GSpinner.show({ label: 'Đang tóm tắt...' })
     })
-    const u4 = DeviceEventEmitter.addListener(EventKeys.EVENT_ERROR_GENERATE_SUMMARY, () => {
-      GSpinner.hide()
-    })
     return () => {
       u1.remove()
       u2.remove()
       u3.remove()
-      u4.remove()
     }
   }, [])
 
@@ -62,8 +59,8 @@ const Reading = () => {
       const offset = Math.round(contentOffset.y + layoutMeasurement.height)
       const contentHeight = Math.round(contentSize.height)
       saveOffset(contentOffset.y)
-      if (offset > contentHeight + 50) nextChapter(500)
-      if (contentOffset.y < -60) previousChapter(500)
+      if (offset > contentHeight + 70) nextChapter(500)
+      if (contentOffset.y < -80) previousChapter(500)
     },
     [saveOffset, nextChapter, previousChapter],
   )
@@ -78,37 +75,38 @@ const Reading = () => {
   }, [])
 
   return (
-    <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
-      <Text style={[AppTypo.mini.regular, { marginHorizontal: 16 }]} numberOfLines={1}>
-        {chapter.name || 'Chương không có tên'}
-      </Text>
+    <View style={{ flex: 1 }}>
+      <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
+        <Text style={[AppTypo.mini.regular, { marginHorizontal: 16 }]} numberOfLines={1}>
+          {chapter.name || 'Chương không có tên'}
+        </Text>
 
-      <ScrollView
-        style={{ flex: 1 }}
-        ref={refScroll}
-        scrollEventThrottle={300}
-        contentContainerStyle={{ paddingVertical: 44 }}
-        onScroll={handleScroll}>
-        {chapter.content !== '' ? (
-          <ContentDisplay chapterHtml={chapter.content} onLoaded={GSpinner.hide} />
+        <ScrollView
+          style={{ flex: 1 }}
+          ref={refScroll}
+          scrollEventThrottle={300}
+          contentContainerStyle={{ paddingVertical: 44 }}
+          onScroll={handleScroll}>
+          {chapter.content !== '' ? (
+            <ContentDisplay chapterHtml={chapter.content} onLoaded={GSpinner.hide} />
+          ) : null}
+        </ScrollView>
+
+        {chapter.summary && chapter.content.length > 0 ? (
+          <ReadingAudioControl
+            bookId={chapter.bookId}
+            chapter={chapter.index}
+            content={chapter.content}
+          />
         ) : null}
-      </ScrollView>
 
-      {chapter.summary && chapter.content.length > 0 ? (
-        <ReadingAudioControl
-          bookId={chapter.bookId}
-          chapter={chapter.index}
-          content={chapter.content}
-        />
-      ) : null}
-
-      <ReadingButtonBack />
-      <ReadingButtonTopNavigation nextChapter={nextChapter} previousChapter={previousChapter} />
-      <ReadingButtonLeftControl openBook={openBook} />
-      <ReadingButtonScrollBottom onScrollToBottom={handleScrollToBottom} />
-
+        <ReadingButtonBack />
+        <ReadingButtonTopNavigation nextChapter={nextChapter} previousChapter={previousChapter} />
+        <ReadingButtonLeftControl openBook={openBook} />
+        <ReadingButtonScrollBottom onScrollToBottom={handleScrollToBottom} />
+      </Screen.Container>
       <SheetBookInfo ref={refBookInfoSheet} />
-    </Screen.Container>
+    </View>
   )
 }
 
