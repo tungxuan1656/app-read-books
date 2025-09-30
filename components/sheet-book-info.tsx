@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     height: 44,
     borderBottomWidth: 1,
-    borderBottomColor: AppPalette.gray200,
+    borderBottomColor: AppPalette.gray100,
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
