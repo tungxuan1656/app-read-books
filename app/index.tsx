@@ -1,19 +1,60 @@
 import { AppPalette } from '@/assets'
 import { GToast } from '@/components/g-toast'
-import HomeBookItem from '@/components/home-book-item'
+import HomeBookItem, { useBookActions } from '@/components/home-book-item'
 import { VectorIcon } from '@/components/Icon'
+import { ItemSwipeable, SwipeableAction, ViewSwipeable } from '@/components/item-swipeable'
 import { Divider, Screen } from '@/components/Screen'
 import { router, useFocusEffect } from 'expo-router'
-import { useCallback } from 'react'
+import React, { useCallback } from 'react'
 import { FlatList, ListRenderItem, Text, View } from 'react-native'
 import { AppTypo } from '../constants'
 import useAppStore, { storeActions } from '../controllers/store'
 import { readFolderBooks } from '../utils'
-import { Button } from '@/components/Button'
+
+const BookItemWithSwipe = React.memo(
+  ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: () => void }) => {
+    const { onDeleteBook, onOpenInfo } = useBookActions(id, onDeleteSuccess)
+
+    const renderActions = useCallback(
+      (_item: any, cb?: () => void) => (
+        <ViewSwipeable>
+          <SwipeableAction
+            icon="circle-info"
+            iconFont="FontAwesome6"
+            title="Info"
+            backgroundColor={AppPalette.blue500}
+            onPress={() => {
+              cb?.()
+              onOpenInfo()
+            }}
+            item={id}
+          />
+          <SwipeableAction
+            icon="delete"
+            iconFont="Feather"
+            title="Xóa"
+            backgroundColor={AppPalette.red500}
+            onPress={() => {
+              cb?.()
+              onDeleteBook()
+            }}
+            item={id}
+          />
+        </ViewSwipeable>
+      ),
+      [id, onDeleteBook, onOpenInfo],
+    )
+
+    return (
+      <ItemSwipeable item={id} renderActions={renderActions}>
+        <HomeBookItem id={id} onDeleteSuccess={onDeleteSuccess} />
+      </ItemSwipeable>
+    )
+  },
+)
 
 export default function Home() {
   const bookIds = useAppStore((state) => state.bookIds)
-  const isEditingBook = useAppStore((state) => state.isEditingBook)
 
   const refetch = useCallback(() => {
     readFolderBooks()
@@ -27,8 +68,8 @@ export default function Home() {
   useFocusEffect(refetch)
 
   const renderItem: ListRenderItem<string> = useCallback(
-    ({ item }) => <HomeBookItem id={item} onDeleteSuccess={refetch} />,
-    [],
+    ({ item }) => <BookItemWithSwipe id={item} onDeleteSuccess={refetch} />,
+    [refetch],
   )
 
   return (
@@ -42,14 +83,6 @@ export default function Home() {
         }}>
         <Text style={[AppTypo.h3.semiBold, { marginLeft: 16 }]}>{'Danh sách truyện'}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <VectorIcon
-            name="file-edit"
-            font="MaterialCommunityIcons"
-            size={16}
-            buttonStyle={{ marginLeft: 8, width: 32, height: 44 }}
-            color={AppPalette.gray600}
-            onPress={() => storeActions.setIsEditingBook(!isEditingBook)}
-          />
           <VectorIcon
             name="settings"
             font="MaterialIcons"
@@ -78,15 +111,6 @@ export default function Home() {
           keyExtractor={(item) => item}
         />
       </Screen.Content>
-      {isEditingBook ? (
-        <Screen.Footer>
-          <Button
-            title={'Xong'}
-            onPress={() => storeActions.setIsEditingBook(false)}
-            style={{ flex: 1 }}
-          />
-        </Screen.Footer>
-      ) : null}
     </Screen.Container>
   )
 }
