@@ -26,7 +26,6 @@ type SheetBookInfoProps = {
 const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClose }, ref) => {
   const currentBookId = useMemo(() => getCurrentBookId(), [])
   const bottomSheetRef = React.useRef<BottomSheet>(null)
-  const snapPoints = useMemo(() => [360], [])
   const font = useAppStore((state) => state.font)
   const fontSize = useAppStore((state) => state.fontSize)
   const lineHeight = useAppStore((state) => state.lineHeight)
@@ -93,13 +92,13 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
   // Memoize font controls for better performance
   const fontSizeControls = useMemo(
     () => (
-      <>
+      <View style={{ flex: 1 }}>
         <Text style={styles.titleSection}>{'Cỡ chữ'}</Text>
         <View style={styles.viewRow}>
           <VectorIcon
             name="circle-minus"
             font="FontAwesome6"
-            color={AppPalette.gray300}
+            color={AppPalette.gray200}
             size={20}
             onPress={() => storeActions.setFontSize(fontSize - 1)}
           />
@@ -109,25 +108,25 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
           <VectorIcon
             name="circle-plus"
             font="FontAwesome6"
-            color={AppPalette.gray300}
+            color={AppPalette.gray200}
             size={20}
             onPress={() => storeActions.setFontSize(fontSize + 1)}
           />
         </View>
-      </>
+      </View>
     ),
     [fontSize],
   )
 
   const lineHeightControls = useMemo(
     () => (
-      <>
+      <View style={{ flex: 1 }}>
         <Text style={styles.titleSection}>{'Chiều cao dòng'}</Text>
         <View style={styles.viewRow}>
           <VectorIcon
             name="circle-minus"
             font="FontAwesome6"
-            color={AppPalette.gray300}
+            color={AppPalette.gray200}
             size={20}
             onPress={() => storeActions.setLineHeight((lineHeight * 10 - 1) / 10)}
           />
@@ -137,12 +136,12 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
           <VectorIcon
             name="circle-plus"
             font="FontAwesome6"
-            color={AppPalette.gray300}
+            color={AppPalette.gray200}
             size={20}
             onPress={() => storeActions.setLineHeight((lineHeight * 10 + 1) / 10)}
           />
         </View>
-      </>
+      </View>
     ),
     [lineHeight],
   )
@@ -163,38 +162,36 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
     <BottomSheet
       ref={bottomSheetRef}
       index={-1}
-      snapPoints={snapPoints}
+      // snapPoints={snapPoints}
       enablePanDownToClose
       onClose={handleClose}
-      enableDynamicSizing={false}
+      enableDynamicSizing={true}
       backdropComponent={renderBackdrop}
       backgroundStyle={styles.bottomSheetBackground}
       handleIndicatorStyle={styles.handleIndicator}>
       <BottomSheetView style={styles.titleContainer}>
-        <Text style={styles.title}>{'Cài đặt'}</Text>
-        <TouchableOpacity
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
-          onPress={handleViewReferences}>
-          <Text style={[AppTypo.body.semiBold]}>{'Xem mục lục'}</Text>
-          <VectorIcon name="chevron-right" font="FontAwesome5" />
-        </TouchableOpacity>
-      </BottomSheetView>
-
-      <BottomSheetScrollView
-        style={{ flex: 1, marginTop: 44 }}
-        contentContainerStyle={styles.scrollContent}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={styles.title}>{'Cài đặt'}</Text>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+            onPress={handleViewReferences}>
+            <Text style={[AppTypo.body.semiBold, { color: AppColors.textFocus }]}>
+              {'Xem mục lục'}
+            </Text>
+            <VectorIcon name="chevron-right" font="FontAwesome5" color={AppColors.textFocus} />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.titleSection}>{'Font chữ'}</Text>
-        <BottomSheetScrollView
-          horizontal
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
-          showsHorizontalScrollIndicator={false}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
           {fontList.map(renderFontItem)}
-        </BottomSheetScrollView>
+        </View>
 
-        {fontSizeControls}
-        {lineHeightControls}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          {fontSizeControls}
+          {lineHeightControls}
+        </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <TouchableOpacity
             style={[styles.viewRow, { marginBottom: 20 }]}
             onPress={handleGenerateSummaryAndAudio}>
@@ -216,7 +213,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             </Text>
           </TouchableOpacity>
         </View>
-      </BottomSheetScrollView>
+      </BottomSheetView>
     </BottomSheet>
   )
 })
@@ -237,28 +234,21 @@ const styles = StyleSheet.create({
     ...AppStyles.view.shadow3,
   },
   handleIndicator: {
-    backgroundColor: AppPalette.gray300,
+    backgroundColor: AppPalette.gray200,
     width: 40,
   },
   titleContainer: {
-    height: 44,
-    borderBottomWidth: 1,
-    borderBottomColor: AppPalette.gray100,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 60,
+    paddingTop: 12,
   },
   title: {
+  ...AppTypo.headline.medium,
     color: AppPalette.gray900,
-    fontSize: 16,
-  },
-  scrollContent: {
-    paddingBottom: 20,
   },
   titleSection: {
-    marginHorizontal: 20,
-    ...AppTypo.body.medium,
+    ...AppTypo.footnote.medium,
     marginTop: 16,
     marginBottom: 8,
   },
@@ -267,19 +257,18 @@ const styles = StyleSheet.create({
     backgroundColor: AppPalette.gray50,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 6,
   },
   viewItemSelected: {
     backgroundColor: AppPalette.blue50,
   },
   textItemFont: {
-    ...AppTypo.caption.medium,
+    ...AppTypo.caption.regular,
   },
   viewRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 20,
   },
 })
