@@ -1,9 +1,10 @@
-import { File } from 'expo-file-system'
+import { Directory, File, Paths } from 'expo-file-system'
 import { DeviceEventEmitter } from 'react-native'
 import { preprocessSentence } from '../utils/string-helpers'
-import { CACHE_DIRECTORY } from '../utils/tts-cache'
 import { MMKVStorage } from '@/controllers/mmkv'
 import { MMKVKeys } from '@/constants'
+
+const CACHE_DIRECTORY = new Directory(Paths.document, 'tts_audio')
 
 // Global variable to track cancellation
 let isCancelled = false
@@ -62,68 +63,120 @@ const generateAudioFromWebSocket = (
   sentence: string,
   voice: string,
 ): Promise<Uint8Array | null> => {
-  return new Promise((resolve) => {
-    const wsUrl = getCapcutWebSocketUrl()
-    const ws = new WebSocket(wsUrl)
-    const audioChunks: Uint8Array[] = []
+  return new Promise((resolve, reject) => {
+    let ws: WebSocket | null = null
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+    let isCompleted = false
+
+    const cleanup = () => {
+      isCompleted = true
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+        timeoutId = null
+      }
+      if (ws) {
+        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+          ws.close()
+        }
+        ws = null
+      }
+    }
 
     const closeConnection = (data: Uint8Array | null = null) => {
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-        ws.close()
-      }
+      if (isCompleted) return
+      cleanup()
       resolve(data)
     }
 
-    ws.onopen = () => {
-      ws.send(JSON.stringify(createCapcutMessage(sentence, voice)))
+    const rejectConnection = (error: Error) => {
+      if (isCompleted) return
+      cleanup()
+      reject(error)
     }
 
-    ws.onmessage = (event) => {
-      // JSON messages are for control, binary data is audio
-      if (typeof event.data === 'string') {
+    try {
+      const wsUrl = getCapcutWebSocketUrl()
+      ws = new WebSocket(wsUrl)
+      const audioChunks: Uint8Array[] = []
+
+      ws.onopen = () => {
+        if (isCompleted) return
         try {
-          const message = JSON.parse(event.data)
-          if (message.event === 'TaskFailed') {
-            console.error(`TTS task failed for: ${sentence.substring(0, 30)}...`)
-            closeConnection(null)
-          } else if (message.event === 'TaskEnd' || message.event === 'TaskFinished') {
-            // Combine all received audio chunks
-            const totalLength = audioChunks.reduce((acc, chunk) => acc + chunk.length, 0)
-            const combinedData = new Uint8Array(totalLength)
-            let offset = 0
-            for (const chunk of audioChunks) {
-              combinedData.set(chunk, offset)
-              offset += chunk.length
+          ws!.send(JSON.stringify(createCapcutMessage(sentence, voice)))
+        } catch (error) {
+          console.error('Error sending message to WebSocket:', error)
+          rejectConnection(new Error('Không thể gửi yêu cầu TTS'))
+        }
+      }
+
+      ws.onmessage = (event) => {
+        if (isCompleted) return
+        try {
+          // JSON messages are for control, binary data is audio
+          if (typeof event.data === 'string') {
+            try {
+              const message = JSON.parse(event.data)
+              if (message.event === 'TaskFailed') {
+                console.error(`TTS task failed for: ${sentence.substring(0, 30)}...`)
+                rejectConnection(new Error('Capcut TTS task failed'))
+              } else if (message.event === 'TaskEnd' || message.event === 'TaskFinished') {
+                // Combine all received audio chunks
+                const totalLength = audioChunks.reduce((acc, chunk) => acc + chunk.length, 0)
+                const combinedData = new Uint8Array(totalLength)
+                let offset = 0
+                for (const chunk of audioChunks) {
+                  combinedData.set(chunk, offset)
+                  offset += chunk.length
+                }
+                closeConnection(combinedData)
+              }
+            } catch (e) {
+              // Not a JSON message, ignore.
             }
-            closeConnection(combinedData)
+          } else if (event.data instanceof ArrayBuffer) {
+            audioChunks.push(new Uint8Array(event.data))
+          } else if (event.data instanceof Blob) {
+            // Fallback for environments where WebSocket returns Blob
+            const reader = new FileReader()
+            reader.onload = () => {
+              if (!isCompleted) {
+                audioChunks.push(new Uint8Array(reader.result as ArrayBuffer))
+              }
+            }
+            reader.onerror = () => {
+              rejectConnection(new Error('Không thể đọc audio data'))
+            }
+            reader.readAsArrayBuffer(event.data)
           }
-        } catch (e) {
-          // Not a JSON message, ignore.
+        } catch (error) {
+          console.error('Error processing WebSocket message:', error)
+          rejectConnection(error instanceof Error ? error : new Error('WebSocket message error'))
         }
-      } else if (event.data instanceof ArrayBuffer) {
-        audioChunks.push(new Uint8Array(event.data))
-      } else if (event.data instanceof Blob) {
-        // Fallback for environments where WebSocket returns Blob
-        const reader = new FileReader()
-        reader.onload = () => {
-          audioChunks.push(new Uint8Array(reader.result as ArrayBuffer))
+      }
+
+      ws.onerror = (error) => {
+        console.error('TTS WebSocket error:', error)
+        rejectConnection(new Error('Lỗi kết nối WebSocket. Vui lòng kiểm tra token và URL.'))
+      }
+
+      ws.onclose = () => {
+        if (!isCompleted) {
+          console.log('WebSocket closed before completion')
+          rejectConnection(new Error('WebSocket đóng kết nối bất thường'))
         }
-        reader.readAsArrayBuffer(event.data)
       }
-    }
 
-    ws.onerror = (error) => {
-      console.error('TTS WebSocket error:', error)
-      closeConnection(null)
+      // Timeout to prevent hanging connections
+      timeoutId = setTimeout(() => {
+        if (!isCompleted) {
+          console.error('TTS WebSocket connection timed out.')
+          rejectConnection(new Error('Kết nối WebSocket timeout (20s)'))
+        }
+      }, 20000) // 20-second timeout
+    } catch (error) {
+      console.error('Error initializing WebSocket:', error)
+      rejectConnection(error instanceof Error ? error : new Error('WebSocket initialization error'))
     }
-
-    // Timeout to prevent hanging connections
-    setTimeout(() => {
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-        console.error('TTS WebSocket connection timed out.')
-        closeConnection(null)
-      }
-    }, 20000) // 20-second timeout
   })
 }
 
@@ -138,6 +191,7 @@ const _getOrGenerateAudioFile = async (
   sentence: string,
   audioTaskId: string,
   voice: string,
+  cacheDir: string = CACHE_DIRECTORY.uri,
 ): Promise<string | null> => {
   // Check if operation was cancelled
   if (isCancelled) {
@@ -145,7 +199,7 @@ const _getOrGenerateAudioFile = async (
     return null
   }
   const fileName = `${audioTaskId}.mp3`
-  const cacheFile = new File(CACHE_DIRECTORY, fileName)
+  const cacheFile = new File(cacheDir, fileName)
   const newCacheFilePath = cacheFile.uri
 
   if (cacheFile.exists) {
@@ -155,27 +209,28 @@ const _getOrGenerateAudioFile = async (
 
   // 3. Generate new audio if not in cache
   console.log(`🎵 [TTS] Generating audio for: ${fileName}`)
-  const audioData = await generateAudioFromWebSocket(sentence, voice)
-
-  if (isCancelled) {
-    console.log('🎵 [TTS] Operation cancelled after audio generation')
-    return null
-  }
-
-  if (!audioData || audioData.length === 0) {
-    console.error(`Failed to generate audio for: ${sentence.substring(0, 50)}...`)
-    return null
-  }
-
+  
   try {
+    const audioData = await generateAudioFromWebSocket(sentence, voice)
+
+    if (isCancelled) {
+      console.log('🎵 [TTS] Operation cancelled after audio generation')
+      return null
+    }
+
+    if (!audioData || audioData.length === 0) {
+      console.error(`Failed to generate audio for: ${sentence.substring(0, 50)}...`)
+      throw new Error('Không nhận được dữ liệu audio từ Capcut')
+    }
+
     cacheFile.create({ intermediates: true, overwrite: true })
     cacheFile.write(audioData)
 
     console.log(`🎵 [TTS] Audio saved: ${fileName}`)
     return newCacheFilePath
   } catch (error) {
-    console.error(`Failed to write audio file ${newCacheFilePath}:`, error)
-    return null
+    console.error(`Error generating audio for sentence: ${sentence.substring(0, 50)}...`, error)
+    throw error
   }
 }
 
@@ -187,6 +242,7 @@ const _getOrGenerateAudioFile = async (
 export const convertTTSCapcut = async (
   sentences: string[],
   taskId: string = 'tts_default',
+  cacheDir?: string,
   voice: string = 'BV421_vivn_streaming',
 ): Promise<string[]> => {
   console.log(`🎤 Starting TTS conversion for ${sentences.length} sentences.`)
@@ -194,6 +250,7 @@ export const convertTTSCapcut = async (
 
   const finalAudioPaths: string[] = []
   const maxRetries = 2
+  const targetDir = cacheDir || CACHE_DIRECTORY.uri
 
   for (let i = 0; i < sentences.length; i++) {
     if (isCancelled) {
@@ -202,9 +259,11 @@ export const convertTTSCapcut = async (
     }
     const sentence = sentences[i]
     let success = false
+    let isCriticalError = false
+    
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const cachedAudioPath = await _getOrGenerateAudioFile(sentence, `${taskId}_${i}`, voice)
+        const cachedAudioPath = await _getOrGenerateAudioFile(sentence, `${taskId}_${i}`, voice, targetDir)
         if (cachedAudioPath) {
           DeviceEventEmitter.emit('tts_audio_ready', {
             filePath: cachedAudioPath,
@@ -219,12 +278,29 @@ export const convertTTSCapcut = async (
         }
       } catch (error) {
         console.error(`Error processing sentence ${i} (attempt ${attempt}):`, error)
+        
+        // Kiểm tra lỗi critical (token invalid, WS URL invalid)
+        if (error instanceof Error) {
+          if (error.message.includes('token chưa được cấu hình') || 
+              error.message.includes('Lỗi kết nối WebSocket')) {
+            isCriticalError = true
+            console.error('🎵 [TTS] Critical error detected, stopping all tasks:', error.message)
+            break
+          }
+        }
       }
 
-      if (!success && attempt < maxRetries) {
+      if (!success && !isCriticalError && attempt < maxRetries) {
         console.log(`Retrying sentence ${i} (attempt ${attempt + 1}/${maxRetries})...`)
-        await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait before retrying
+        await new Promise((resolve) => setTimeout(resolve, 1000))
       }
+    }
+    
+    // Dừng ngay khi gặp lỗi critical
+    if (isCriticalError) {
+      console.log('🎵 [TTS] Stopping conversion due to critical error')
+      isCancelled = true
+      return []
     }
   }
 
@@ -233,4 +309,3 @@ export const convertTTSCapcut = async (
 }
 
 export { splitContentToParagraph } from '../utils/string-helpers'
-export { getTTSCacheStats, initTTSCache } from '../utils/tts-cache'

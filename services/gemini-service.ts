@@ -31,6 +31,35 @@ const getCommonHeaders = () => {
   return COMMON_HEADERS
 }
 
+// Default prompts
+const DEFAULT_TRANSLATE_PROMPT = `Bạn là chuyên gia dịch thuật văn học tiếng Việt. Nhiệm vụ: chuyển đổi văn bản từ văn phong dịch máy (Trung-Việt) sang văn phong tiếng Việt tự nhiên, trôi chảy.
+
+NGUYÊN TẮC:
+1. Giữ nguyên 100% ý nghĩa, chi tiết, cảm xúc của nội dung gốc
+2. Sắp xếp lại từ ngữ theo ngữ pháp tiếng Việt chuẩn
+3. Thay cấu trúc Hán Việt bằng cấu trúc hiện đại, dễ hiểu
+4. Loại bỏ từ thừa, lặp từ không cần thiết
+5. Giữ nguyên: tên nhân vật, địa danh, thuật ngữ võ công
+6. Không thêm hoặc bớt nội dung
+7. Không tóm tắt
+
+VÍ DỤ CHUYỂN ĐỔI:
+Input: "Nhưng là lúc này tràng bên trong lại không hài hoà"
+Output: "Nhưng ở hiện trường lúc này lại không hài hoà"
+
+Input: "Một tên quần áo lộng lẫy lại sắc mặt âm tàn thanh niên chính giơ chân lên giẫm tại một tên khất cái mặt bên trên"
+Output: "Một thanh niên mặc quần áo lộng lẫy, sắc mặt âm tàn, đang giơ chân giẫm lên mặt của một người ăn mày"
+
+Input: "Hắn mắt nhìn chằm chằm cái phía trước không xa dương liễu, trong con mắt lộ ra cái khí tức quyết liệt."
+Output: "Hắn chằm chằm nhìn vào hàng dương liễu không xa phía trước, ánh mắt lộ ra khí tức quyết liệt."
+
+Hãy chuyển đổi văn bản sau sang văn phong tiếng Việt tự nhiên:`
+
+const getTranslatePrompt = () => {
+  const savedPrompt = MMKVStorage.get(MMKVKeys.GEMINI_TRANSLATE_PROMPT)
+  return savedPrompt || DEFAULT_TRANSLATE_PROMPT
+}
+
 const getPrompt = () => {
   const savedPrompt = MMKVStorage.get(MMKVKeys.GEMINI_SUMMARY_PROMPT)
   if (!!savedPrompt) {
@@ -134,6 +163,12 @@ export const CONTENT_SCHEMA = {
 
 export const summarizeChapter = async (content: string): Promise<string> => {
   try {
+    // Validate API key trước khi gọi
+    const apiKey = getGeminiApiKey()
+    if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY' || apiKey.length < 30) {
+      throw new Error('Gemini API Key chưa được cấu hình. Vui lòng vào Settings để thiết lập API key.')
+    }
+
     // Loại bỏ HTML tags để lấy text thuần
     let textContent = content
       .replace(/<[^><]*>/g, ' ')
@@ -195,6 +230,72 @@ export const summarizeChapter = async (content: string): Promise<string> => {
   }
 }
 
+export const translateChapter = async (content: string): Promise<string> => {
+  try {
+    // Validate API key trước khi gọi
+    const apiKey = getGeminiApiKey()
+    if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY' || apiKey.length < 30) {
+      throw new Error('Gemini API Key chưa được cấu hình. Vui lòng vào Settings để thiết lập API key.')
+    }
+
+    // Loại bỏ HTML tags để lấy text thuần
+    let textContent = content.replace(/<[^><]*>/g, ' ').replace(/\s+/g, ' ').trim()
+
+    textContent = formatContentForTTS(textContent)
+
+    if (!textContent || textContent.length < 50) {
+      throw new Error('Nội dung chương quá ngắn để dịch')
+    }
+
+    // Giới hạn độ dài input
+    const maxInputLength = 30000
+    const processedContent =
+      textContent.length > maxInputLength
+        ? textContent.substring(0, maxInputLength) + '...'
+        : textContent
+
+    const prompt = getTranslatePrompt() + '\n\n' + processedContent
+
+    const raw = JSON.stringify({
+      contents: [
+        {
+          parts: [{ text: prompt }],
+        },
+      ],
+      generationConfig: {
+        ...COMMON_GENERATION_CONFIG_BASE,
+        responseSchema: CONTENT_SCHEMA,
+        responseMimeType: 'application/json',
+        maxOutputTokens: 8096,
+      },
+      safetySettings: COMMON_SAFETY_SETTINGS,
+    })
+
+    const response = await fetch(getGeminiApiUrl(), {
+      method: 'POST',
+      headers: getCommonHeaders(),
+      body: raw,
+      redirect: 'follow',
+    })
+
+    const data = await handleGeminiResponse(response)
+    const result = parseGeminiResult(data, 'chapter translation')
+    const translated = result.content || result
+
+    if (!translated || translated.length === 0) {
+      throw new Error('Gemini API trả về nội dung trống')
+    }
+
+    return translated
+  } catch (error) {
+    console.error('Error in translateChapter:', error)
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Có lỗi xảy ra khi dịch chương truyện')
+  }
+}
+
 // Helper function để kiểm tra API key
 export const validateGeminiApiKey = (): boolean => {
   const apiKey = getGeminiApiKey()
@@ -208,5 +309,6 @@ export const validateGeminiApiKey = (): boolean => {
 // Export service object tương tự như trong file tham khảo
 export const geminiServices = {
   summarizeChapter,
+  translateChapter,
   validateGeminiApiKey,
 }

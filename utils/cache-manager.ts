@@ -1,11 +1,7 @@
-import { File, Paths } from 'expo-file-system'
-import {
-  clearBookSummaryCache,
-  clearSummaryCache,
-  deleteCachedSummary,
-  getSummaryCountForBook,
-} from './summary-cache'
-import { CACHE_DIRECTORY } from './tts-cache'
+import { Directory, File, Paths } from 'expo-file-system'
+import { dbService } from '@/services/database-service'
+
+const CACHE_DIRECTORY = new Directory(Paths.document, 'tts_audio')
 
 const cacheDirectoryExists = () => {
   const { exists, isDirectory } = Paths.info(CACHE_DIRECTORY.uri)
@@ -13,34 +9,23 @@ const cacheDirectoryExists = () => {
 }
 
 /**
- * Clears all cache for a specific book (both summary and TTS)
+ * Clears all cache for a specific book (both processed content and TTS)
  */
 export const clearBookCache = async (bookId: string): Promise<void> => {
   console.log(`🗑️ [Cache Manager] Clearing all cache for book: ${bookId}`)
 
   try {
-    // 2. Clear summary cache for the book
-    clearBookSummaryCache(bookId)
+    // Clear database cache for the book
+    await dbService.clearBookCache(bookId)
 
-    // 3. Clear TTS cache files for the book
+    // Clear TTS cache files for the book
     if (cacheDirectoryExists()) {
-      const files = CACHE_DIRECTORY.list().filter((entry): entry is File => entry instanceof File)
-
-      // Filter files that belong to this book (format: bookId_chapter_index.mp3)
-      const bookFiles = files.filter(
-        (file) => file.name.startsWith(`${bookId}_`) && file.name.endsWith('.mp3'),
-      )
-
-      console.log(`🗑️ [Cache Manager] Found ${bookFiles.length} TTS files for book ${bookId}`)
-
-      // Delete all TTS files for this book
-      for (const file of bookFiles) {
-        try {
-          file.delete()
-          console.log(`🗑️ [Cache Manager] Deleted TTS file: ${file.name}`)
-        } catch (error) {
-          console.error(`🗑️ [Cache Manager] Error deleting file ${file.name}:`, error)
-        }
+      const bookDir = new Directory(CACHE_DIRECTORY.uri, bookId)
+      const bookDirInfo = Paths.info(bookDir.uri)
+      
+      if (bookDirInfo.exists && bookDirInfo.isDirectory) {
+        bookDir.delete()
+        console.log(`🗑️ [Cache Manager] Deleted TTS directory for book: ${bookId}`)
       }
     }
 
@@ -52,34 +37,23 @@ export const clearBookCache = async (bookId: string): Promise<void> => {
 }
 
 /**
- * Clears cache for a specific chapter (both summary and TTS)
+ * Clears cache for a specific chapter (both processed content and TTS)
  */
 export const clearChapterCache = async (bookId: string, chapterNumber: number): Promise<void> => {
   console.log(`🗑️ [Cache Manager] Clearing cache for book ${bookId}, chapter ${chapterNumber}`)
 
   try {
-    // 1. Clear summary cache for the chapter
-    deleteCachedSummary(bookId, chapterNumber)
+    // Clear database cache for the chapter
+    await dbService.deleteProcessedChapter(bookId, chapterNumber)
 
-    // 2. Clear TTS cache files for the chapter
+    // Clear TTS cache files for the chapter (all modes)
     if (cacheDirectoryExists()) {
-      const files = CACHE_DIRECTORY.list().filter((entry): entry is File => entry instanceof File)
-
-      // Filter files that belong to this chapter (format: bookId_chapter_index.mp3)
-      const chapterFiles = files.filter(
-        (file) => file.name.startsWith(`${bookId}_${chapterNumber}_`) && file.name.endsWith('.mp3'),
-      )
-
-      console.log(`🗑️ [Cache Manager] Found ${chapterFiles.length} TTS files for chapter`)
-
-      // Delete all TTS files for this chapter
-      for (const file of chapterFiles) {
-        try {
-          file.delete()
-          console.log(`🗑️ [Cache Manager] Deleted TTS file: ${file.name}`)
-        } catch (error) {
-          console.error(`🗑️ [Cache Manager] Error deleting file ${file.name}:`, error)
-        }
+      const chapterDir = new Directory(CACHE_DIRECTORY.uri, `${bookId}/${chapterNumber}`)
+      const chapterDirInfo = Paths.info(chapterDir.uri)
+      
+      if (chapterDirInfo.exists && chapterDirInfo.isDirectory) {
+        chapterDir.delete()
+        console.log(`🗑️ [Cache Manager] Deleted TTS directory for chapter ${chapterNumber}`)
       }
     }
 
@@ -103,31 +77,44 @@ export const getBookCacheStats = async (
   try {
     let totalTTSFiles = 0
     let totalTTSSize = 0
-    let summariesCount = 0
 
-    // Count TTS files and calculate size
+    // Count TTS files and calculate size from book directory
     if (cacheDirectoryExists()) {
-      const files = CACHE_DIRECTORY.list().filter((entry): entry is File => entry instanceof File)
-      const bookFiles = files.filter(
-        (file) => file.name.startsWith(`${bookId}_`) && file.name.endsWith('.mp3'),
-      )
-
-      totalTTSFiles = bookFiles.length
-
-      for (const file of bookFiles) {
-        try {
-          const fileInfo = file.info()
-          if (fileInfo.exists && fileInfo.size) {
-            totalTTSSize += fileInfo.size
+      const bookDir = new Directory(CACHE_DIRECTORY.uri, bookId)
+      const bookDirInfo = Paths.info(bookDir.uri)
+      
+      if (bookDirInfo.exists && bookDirInfo.isDirectory) {
+        const countFilesRecursively = (dir: Directory): { count: number; size: number } => {
+          let count = 0
+          let size = 0
+          
+          const entries = dir.list()
+          for (const entry of entries) {
+            if (entry instanceof File && entry.name.endsWith('.mp3')) {
+              count++
+              const fileInfo = entry.info()
+              if (fileInfo.exists && fileInfo.size) {
+                size += fileInfo.size
+              }
+            } else if (entry instanceof Directory) {
+              const subResult = countFilesRecursively(entry)
+              count += subResult.count
+              size += subResult.size
+            }
           }
-        } catch (error) {
-          console.error(`Error getting file size for ${file.name}:`, error)
+          
+          return { count, size }
         }
+        
+        const result = countFilesRecursively(bookDir)
+        totalTTSFiles = result.count
+        totalTTSSize = result.size
       }
     }
 
-    // Count summaries for a book
-    summariesCount = getSummaryCountForBook(bookId)
+    // Count processed chapters from database
+    const processedChapters = await dbService.getProcessedChaptersForBook(bookId)
+    const summariesCount = processedChapters.filter(c => c.mode === 'summary').length
 
     return {
       totalTTSFiles,
@@ -145,7 +132,7 @@ export const getBookCacheStats = async (
 }
 
 /**
- * Clears all cache (both summary and TTS) - use with caution
+ * Clears all cache (both database and TTS files) - use with caution
  */
 export const clearAllCache = async (): Promise<void> => {
   console.log('🗑️ [Cache Manager] Clearing ALL cache')
@@ -158,8 +145,8 @@ export const clearAllCache = async (): Promise<void> => {
 
     CACHE_DIRECTORY.create({ idempotent: true, intermediates: true })
 
-    // Clear summary cache
-    clearSummaryCache()
+    // Clear database
+    await dbService.clearAllCache()
 
     console.log('🗑️ [Cache Manager] All cache cleared')
   } catch (error) {

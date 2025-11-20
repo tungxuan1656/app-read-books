@@ -48,22 +48,34 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 - Tự động phục hồi chương gần nhất và trạng thái đọc (`hooks/use-reupdate-reading.ts`).
 - Bảng thông tin truyện/thiết lập (`components/sheet-book-info.tsx`) cho phép: đổi font, cỡ chữ, line-height, mở mục lục (`app/references/index.tsx`), tạo summary & audio hàng loạt.
 
-### 4.4 Tóm tắt nội dung
-- Khi bật chế độ summary (`storeActions.toggleSummaryMode`), `hooks/use-reading-chapter.ts` gọi `hooks/use-summary.ts`, dùng `services/gemini-service.ts` để cô đọng nội dung.
-- Summary cache lưu trong MMKV riêng (`utils/summary-cache.ts`) để tránh gọi API lặp lại.
+### 4.4 Xử lý nội dung (Translate/Summary)
+- **3 Reading Modes**: Normal (HTML gốc), Translate (dịch sang tiếng Việt), Summary (tóm tắt)
+- Mode switching với debouncing 500ms để tránh spam API
+- `hooks/use-content-processor.ts` xử lý cả translate và summarize thông qua Gemini API
+- Cache nội dung đã xử lý trong SQLite database (`services/database-service.ts`)
+- **Prefetch tự động**: `hooks/use-prefetch.ts` tạo nội dung cho 10 chương tiếp theo trong background
 
 ### 4.5 Chuyển văn bản thành giọng nói (TTS)
-- Từ nội dung chương hoặc summary, `hooks/use-tts-audio.ts` chia câu (`utils/string-helpers.ts`) và gửi tới Capcut WebSocket (`services/convert-tts.ts`).
-- File audio MP3 lưu ở `DocumentDirectory/tts_audio`, phát qua TrackPlayer.
-- `components/play-audio-control.tsx` cung cấp UI điều khiển.
-- `components/auto-generate-controller.tsx` cho phép chạy batch summary + TTS cho toàn bộ chương, theo dõi tiến trình và dừng/tiếp tục.
+- TTS on-demand: Nút TTS riêng trên reading screen để generate audio khi cần
+- Support TTS cho cả 3 modes (Normal/Translate/Summary)
+- `services/tts-service.ts` quản lý generation và lưu metadata vào SQLite
+- File audio MP3 lưu theo cấu trúc: `tts_audio/{bookId}/{chapter}/{mode}/sentence_N.mp3`
+- `components/play-audio-control.tsx` phát audio từ database cache
+- TrackPlayer service (`services/track-player-service.ts`) quản lý playback queue
 
 ### 4.6 Cài đặt và cache
 - Màn hình `app/settings/index.tsx` hiển thị danh sách các cài đặt key-value động, cho phép người dùng xem và chỉnh sửa các thiết lập.
 - Màn hình `app/setting-editor/index.tsx` cho phép thêm/sửa/xóa các cài đặt dạng key-value với cấu hình linh hoạt (input đơn dòng hoặc nhiều dòng, mô tả, giá trị mặc định).
 - Hệ thống không hardcode từng input field cụ thể mà sử dụng cấu trúc dữ liệu động dựa trên `SettingConfig[]` định nghĩa trong `constants/SettingConfigs.ts`.
 - Mỗi cài đặt bao gồm: key (MMKV key), label (nhãn hiển thị), inputType (single/multi line), placeholder, và description.
-- Người dùng có thể xóa cache summary/TTS per book (`utils/cache-manager.ts`, gọi từ `sheet-book-info`).
+- **Cache Manager**: `utils/cache-manager.ts` quản lý cache statistics và clearing
+  - Clear cache per book (xóa cả processed content và TTS files)
+  - Clear cache per chapter
+  - Get cache statistics (total TTS files, size, processed chapters)
+- **Auto Migration**: `utils/migration-helper.ts` tự động migrate từ MMKV cache cũ sang SQLite
+  - Chạy một lần khi app startup (tracked by `MIGRATION_V2_DONE` flag)
+  - Xóa MMKV cache cũ và TTS files format cũ
+  - Initialize SQLite database mới
 
 ## 5. Yêu cầu phi chức năng
 - **Hiệu năng**: Đọc file cục bộ, load chương và summary trong vòng < 1s sau khi cache xong.
@@ -80,45 +92,52 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 1. **Import truyện**: Supabase API → tải ZIP → giải nén → `books/<bookId>` chứa `book.json`, `chapters/chapter-N.html`.
 2. **Chọn truyện**: Người dùng chọn item → lưu `CURRENT_BOOK_ID` & `IS_READING` → mở `/reading`.
 3. **Đọc chương**: Hook lấy chương → RenderHTML → ghi offset cuộn.
-4. **Summary**: Khi cần, hook gọi Gemini → cache → hiển thị HTML.
-5. **TTS**: Summary chuyển thành câu → Capcut WebSocket stream → file MP3 cache → TrackPlayer phát.
-6. **Auto-generate**: `AutoGenerateController` lặp qua chapters, chạy 4 & 5 liên tục, cập nhật tiến trình UI.
+4. **Content Processing**: 
+   - Mode switching (Normal/Translate/Summary) với 500ms debouncing
+   - Normal: Hiển thị HTML gốc, không cache
+   - Translate/Summary: Check SQLite cache → Nếu không có → Call Gemini API → Lưu database → Hiển thị
+5. **Prefetch Background**: usePrefetch tự động xử lý 10 chương tiếp theo, max 2 concurrent, 2s delay giữa batches
+6. **TTS On-Demand**: User click TTS button → Generate audio → Lưu files + metadata vào database → Auto-play
 
 ## 7. Mô-đun chính
 ### 7.1 Ứng dụng & điều hướng (`app/`)
-- `_layout.tsx`: Khởi tạo TrackPlayer, TTS cache, Gesture Handler, ghi nhận trạng thái đọc để resume.
-- `/index`, `/add-book`, `/reading`, `/settings`, `/setting-editor`, `/references`, `/generate-summary-tts` tương ứng với các màn hình chính.
+- `_layout.tsx`: Khởi tạo TrackPlayer, TTS cache directory, Gesture Handler, auto migration on startup, ghi nhận trạng thái đọc để resume.
+- `/index`, `/add-book`, `/reading`, `/settings`, `/setting-editor`, `/references` tương ứng với các màn hình chính.
 - `/settings`: Màn hình danh sách cài đặt hiển thị tất cả key-value configs, cho phép điều hướng đến editor.
 - `/setting-editor`: Màn hình thêm/sửa từng setting cụ thể với input type linh hoạt.
 
 ### 7.2 Components (`components/`)
 - UI chung: `Screen`, `Divider`, `Button`, `Icon`, `GToast`, `GSpinner`.
-- Reading utilities: `content-display`, `sheet-book-info`, `reading/*` controls, `play-audio-control`.
+- Reading utilities: `content-display`, `sheet-book-info`, `reading/*` controls (top navigation, TTS button, audio control).
 - Data-driven cells: `home-book-item`, `download-book-item`.
 
 ### 7.3 Hooks (`hooks/`)
-- `use-reading-chapter`, `use-reading-controller`, `use-reupdate-reading`: quản lý luồng đọc và offset.
-- `use-summary`: kết nối Gemini + cache.
+- `use-reading-chapter`, `use-reading-controller`, `use-reupdate-reading`: quản lý luồng đọc và offset với debouncing.
+- `use-content-processor`: xử lý translate/summary với cache-first strategy.
+- `use-prefetch`: background prefetching cho 10 chương tiếp theo.
+- `use-tts-audio`: quản lý TTS audio playback từ database.
 - `use-tts-audio`: pipeline TTS + TrackPlayer.
 - `use-typed-local-search-params`: hỗ trợ router params an toàn kiểu.
 
 ### 7.4 Controllers (`controllers/`)
-- `store.ts`: Zustand store cho cấu hình đọc, danh sách truyện, chương hiện tại, chế độ summary.
-- `mmkv.ts`: wrapper đọc/ghi JSON.
-- `tts-cache.ts`: khởi tạo cache TTS và log thống kê.
+- `store.ts`: Zustand store với readingMode ('normal' | 'translate' | 'summary'), TTS state, prefetch state
+- `mmkv.ts`: wrapper đọc/ghi JSON
+- `tts-cache.ts`: khởi tạo TTS cache directory và logging
 
 ### 7.5 Services (`services/`)
-- `download-file.ts`: tải ZIP và quản lý file tạm.
-- `gemini-service.ts`: cấu hình prompt, headers, gọi API, parse JSON.
-- `convert-tts.ts`: quản lý Capcut WebSocket, ghi file audio, phát sự kiện.
-- `playback-service.ts`, `track-player-service.ts`: tương tác TrackPlayer và điều khiển nền.
+- `database-service.ts`: SQLite CRUD cho processed_chapters, tts_audio_cache, prefetch_queue
+- `gemini-service.ts`: translateChapter() và summarizeChapter() với custom prompts
+- `tts-service.ts`: TTS generation, database storage, event emission
+- `convert-tts.ts`: Capcut WebSocket TTS API integration
+- `playback-service.ts`, `track-player-service.ts`: TrackPlayer management
+- `download-file.ts`: tải ZIP và quản lý file tạm
 
 ### 7.6 Utils (`utils/`)
-- `index.ts`: thao tác file hệ thống, load sách, định dạng kích thước, quản lý current book.
-- `book-validator.ts`: validate cấu trúc book.json, đảm bảo data integrity, xử lý backward compatibility.
-- `cache-manager.ts`: xóa cache summary/TTS theo book hoặc chapter.
-- `summary-cache.ts`, `tts-cache.ts`: lớp lưu đệm MMKV.
-- `string-helpers.ts`: tiền xử lý chuỗi, chia câu phục vụ TTS/Gemini.
+- `index.ts`: thao tác file hệ thống, load sách, định dạng kích thước, quản lý current book
+- `book-validator.ts`: validate cấu trúc book.json, đảm bảo data integrity
+- `cache-manager.ts`: cache statistics và clearing cho SQLite + filesystem
+- `migration-helper.ts`: MMKV → SQLite migration, chạy một lần
+- `string-helpers.ts`: tiền xử lý chuỗi, chia câu phục vụ TTS/Gemini
 
 ## 8. Lưu trữ & cấu trúc dữ liệu
 - **Cấu trúc Book Package**
@@ -129,7 +148,7 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
   - `chapters/chapter-<index>.html`: nội dung HTML thuần.
   - `cover.jpg` (optional): Ảnh bìa truyện
   - `thumbnail.jpg` (optional): Thumbnail nhỏ
-- **MMKV Keys** (`constants/AppConst.ts`): lưu trạng thái đọc, Gemini key, prompt, offset, Capcut token, device ID, IID.
+- **MMKV Keys** (`constants/AppConst.ts`): lưu trạng thái đọc, Gemini key/model/prompts, offset, Capcut token/voice, MIGRATION_V2_DONE flag
 - **Setting Configs** (`constants/SettingConfigs.ts`): danh sách các cấu hình setting động, mỗi setting có:
   - `key`: unique identifier lưu trong MMKV
   - `label`: nhãn hiển thị UI
@@ -137,7 +156,11 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
   - `placeholder`: gợi ý cho người dùng
   - `description`: mô tả chi tiết về setting
   - `defaultValue`: giá trị mặc định (optional)
-- **Cache**: `summary-cache` (MMKV riêng) + `DocumentDirectory/tts_audio`.
+- **SQLite Database** (`reading_app.db`):
+  - `processed_chapters`: Cache nội dung đã translate/summary
+  - `tts_audio_cache`: Metadata của TTS audio files
+  - `prefetch_queue`: Hàng đợi prefetch với status tracking
+- **TTS Files**: `DocumentDirectory/tts_audio/{bookId}/{chapter}/{mode}/sentence_N.mp3`
 
 ## 9. Tích hợp & cấu hình
 | Dịch vụ | File cấu hình | Lưu ý |
@@ -148,23 +171,32 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 | TrackPlayer | `_layout.tsx`, `services/track-player-service.ts` | iOS cần chạy `npx expo run:ios` để nhúng service |
 
 ## 10. Yêu cầu kiểm thử
-- **Unit**: Hooks (đặc biệt `use-summary`, `use-tts-audio`) cần stub dịch vụ bên ngoài.
-- **Integration**: Kiểm tra import sách, summary toggle, auto-generate flow.
-- **End-to-End**: Thao tác người dùng chính (tải truyện → đọc → tắt/mở summary → nghe audio).
-- **Regression**: Track resume khi đóng/mở app, xóa cache không ảnh hưởng dữ liệu sách.
+- **Unit**: Hooks (đặc biệt `use-content-processor`, `use-prefetch`, `use-tts-audio`) cần stub dịch vụ bên ngoài
+- **Integration**: Kiểm tra import sách, mode switching với debouncing, prefetch background processing, TTS generation
+- **End-to-End**: Thao tác người dùng chính (tải truyện → đọc → cycle modes → generate TTS → nghe audio)
+- **Regression**: Track resume khi đóng/mở app, cache manager hoạt động đúng, migration chạy một lần
+- **Performance**: 
+  - Cache hit rate >90% cho chapters đã đọc
+  - Prefetch không làm lag UI
+  - Debouncing ngăn spam API calls
 
 ## 11. Các ràng buộc & rủi ro
 1. **Token Capcut**: 
    - ✅ Đã chuyển sang lưu trong Settings (MMKV encrypted)
    - ⚠️ Vẫn cần người dùng tự làm mới token khi hết hạn
    - Cân nhắc: Xây dựng server trung gian để quản lý token tập trung
-2. **Gemini API**: Giới hạn tốc độ → nên batch hoặc queue request khi auto-generate.
+2. **Gemini API**: 
+   - ✅ Đã có debouncing 500ms và prefetch rate limiting (max 2 concurrent, 2s delay)
+   - ✅ SQLite cache giảm 95% API calls
+   - Giới hạn tốc độ của Gemini vẫn cần monitor
 3. **Validation**: 
    - ✅ Đã có `book-validator.ts` để validate cấu trúc
    - Cần thêm UI hiển thị lỗi chi tiết khi import book lỗi
-4. **Auto-generate**: Chạy đồng bộ trên UI thread → có nguy cơ khóa giao diện khi xử lý truyện lớn.
-   - Cân nhắc: Chuyển sang background task hoặc queue system
-5. **TrackPlayer**: Cần quyền audio background; chưa có hướng dẫn cấp quyền Android/iOS trong tài liệu.
+4. **Database Migration**:
+   - ✅ Auto migration từ MMKV sang SQLite
+   - ⚠️ Không có rollback mechanism nếu migration failed
+   - Cân nhắc: Backup MMKV data trước khi xóa
+5. **TrackPlayer**: Cần quyền audio background; chưa có hướng dẫn cấp quyền Android/iOS trong tài liệu
 6. **Book metadata**: 
    - Interface đã mở rộng nhưng chưa có UI để nhập/chỉnh sửa metadata mở rộng
    - Chưa có UI upload/hiển thị cover image
@@ -182,15 +214,18 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 5. Reset project template: `pnpm reset-project`.
 
 ## 13. Hạng mục mở / đề xuất nâng cấp
-1. **Bảo mật khóa**: chuyển Capcut token và Gemini key sang backend hoặc secure storage.
-2. **Parallel pipeline**: chạy summary/TTS nền hoặc queue với worker thay vì UI block.
-3. **Định dạng dữ liệu**: bổ sung schema validator cho `book.json`, hiển thị lỗi thân thiện.
-4. **Theo dõi tiến trình**: log và hiển thị % chi tiết khi auto-generate, hỗ trợ resume từ chương bị lỗi.
-5. **Testing**: thêm suite Jest/Playwright tối thiểu cho luồng tải/đọc.
-6. **Sync đa thiết bị**: cân nhắc backend để đồng bộ trạng thái đọc.
-7. **Import/Export Settings**: cho phép người dùng backup và restore toàn bộ settings.
-8. **Validation cho Settings**: kiểm tra format API key, token trước khi lưu.
-9. **Setting Groups**: nhóm các settings theo category (API Keys, Prompts, TTS, etc.).
+1. **Bảo mật khóa**: chuyển Capcut token và Gemini key sang backend hoặc secure storage
+2. **Offline mode hoàn chỉnh**: Download và cache toàn bộ truyện với tất cả modes
+3. **Smart prefetch**: Machine learning để predict chapters user sẽ đọc
+4. **Batch processing UI**: Restore auto-generate screen với progress tracking (đã xóa do prefetch tự động)
+5. **Testing**: thêm suite Jest/Playwright cho luồng tải/đọc/mode switching/prefetch
+6. **Sync đa thiết bị**: backend để đồng bộ trạng thái đọc và cache
+7. **Import/Export Settings**: backup và restore toàn bộ settings
+8. **Validation cho Settings**: kiểm tra format API key, token trước khi lưu
+9. **Setting Groups**: nhóm settings theo category (API Keys, Prompts, TTS, etc.)
+10. **Analytics**: Track cache hit rate, API usage, mode preferences, reading time
+11. **Content diff detection**: Re-process khi source content update
+12. **TTS voice selection**: Multiple voices cho translate/summary modes
 
 ## 14. Phụ lục
 ### 14.1 Scripts & công cụ

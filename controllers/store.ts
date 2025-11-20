@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { MMKVStorage } from './mmkv'
 
+export type ReadingMode = 'normal' | 'translate' | 'summary'
+
 interface AppState {
   // Font settings
   font: string
@@ -11,8 +13,18 @@ interface AppState {
   setFontSize: (size: number) => void
   setLineHeight: (height: number) => void
 
-  isSummaryMode: boolean
-  toggleSummaryMode: () => void
+  // Reading mode
+  readingMode: ReadingMode
+  setReadingMode: (mode: ReadingMode) => void
+  cycleReadingMode: () => void
+
+  // TTS state per chapter
+  id2ChapterTTSGenerating: Record<string, boolean> // key: `${bookId}_${chapter}`
+  setTTSGenerating: (bookId: string, chapter: number, generating: boolean) => void
+
+  // Prefetch status
+  isPrefetching: boolean
+  setPrefetching: (status: boolean) => void
 
   // home
   isEditingBook: boolean
@@ -39,8 +51,30 @@ const useAppStore = create<AppState>()(
         setFontSize: (fontSize: number) => set({ fontSize }),
         setLineHeight: (lineHeight: number) => set({ lineHeight }),
 
-        isSummaryMode: false,
-        toggleSummaryMode: () => set((state) => ({ isSummaryMode: !state.isSummaryMode })),
+        // Reading mode
+        readingMode: 'normal',
+        setReadingMode: (mode: ReadingMode) => set({ readingMode: mode }),
+        cycleReadingMode: () =>
+          set((state) => {
+            const modes: ReadingMode[] = ['normal', 'translate', 'summary']
+            const currentIndex = modes.indexOf(state.readingMode)
+            const nextIndex = (currentIndex + 1) % modes.length
+            return { readingMode: modes[nextIndex] }
+          }),
+
+        // TTS state
+        id2ChapterTTSGenerating: {},
+        setTTSGenerating: (bookId: string, chapter: number, generating: boolean) =>
+          set((state) => ({
+            id2ChapterTTSGenerating: {
+              ...state.id2ChapterTTSGenerating,
+              [`${bookId}_${chapter}`]: generating,
+            },
+          })),
+
+        // Prefetch
+        isPrefetching: false,
+        setPrefetching: (status: boolean) => set({ isPrefetching: status }),
 
         bookIds: [],
         id2Book: {},
@@ -97,7 +131,10 @@ const {
   setFont,
   setFontSize,
   setLineHeight,
-  toggleSummaryMode,
+  setReadingMode,
+  cycleReadingMode,
+  setTTSGenerating,
+  setPrefetching,
   nextReadingChapter,
   previousReadingChapter,
   setIsEditingBook,
@@ -109,7 +146,10 @@ export const storeActions = {
   setFont,
   setFontSize,
   setLineHeight,
-  toggleSummaryMode,
+  setReadingMode,
+  cycleReadingMode,
+  setTTSGenerating,
+  setPrefetching,
   nextReadingChapter,
   previousReadingChapter,
   setIsEditingBook,

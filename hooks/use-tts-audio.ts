@@ -4,10 +4,11 @@ import { breakSummaryIntoLines } from '@/utils/string-helpers'
 import React, { useCallback, useEffect } from 'react'
 import { Alert, DeviceEventEmitter } from 'react-native'
 import { RepeatMode } from 'react-native-track-player'
+import type { ReadingMode } from '@/controllers/store'
 
 export default function useTtsAudio(autoPlay = true) {
   const startGenerateAudio = useCallback(
-    async (content: string, bookId: string, chapter: number) => {
+    async (content: string, bookId: string, chapter: number, mode: ReadingMode = 'normal') => {
       try {
         const sentences = breakSummaryIntoLines(
           content
@@ -20,10 +21,21 @@ export default function useTtsAudio(autoPlay = true) {
         await trackPlayerService.reset()
         console.log(sentences.slice(0, 3))
 
-        await convertTTSCapcut(sentences, `${bookId}_${chapter}`)
+        await convertTTSCapcut(sentences, `${bookId}_${chapter}_${mode}`)
         return true
       } catch (error) {
-        Alert.alert('Lỗi TTS', 'Không thể tạo audio từ nội dung tóm tắt')
+        let errorMessage = 'Không thể tạo audio từ nội dung'
+        if (error instanceof Error) {
+          if (error.message.includes('token chưa được cấu hình')) {
+            errorMessage = 'Chưa cấu hình Capcut Token. Vui lòng vào Settings để thiết lập.'
+          } else if (error.message.includes('Lỗi kết nối WebSocket')) {
+            errorMessage = 'Lỗi kết nối TTS. Vui lòng kiểm tra Capcut Token và WebSocket URL.'
+          } else if (error.message) {
+            errorMessage = error.message
+          }
+        }
+        Alert.alert('Lỗi TTS', errorMessage)
+        console.error('TTS Error:', error)
       }
       return false
     },

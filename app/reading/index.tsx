@@ -14,7 +14,9 @@ import useReadingController from '@/hooks/use-reading-controller'
 import useReupdateReading from '@/hooks/use-reupdate-reading'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import { getCurrentBookId } from '@/utils'
-import React, { useCallback, useEffect, useRef } from 'react'
+import { ttsService } from '@/services/tts-service'
+import useAppStore from '@/controllers/store'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { DeviceEventEmitter, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 const Reading = () => {
@@ -24,6 +26,7 @@ const Reading = () => {
 
   const { nextChapter, previousChapter, saveOffset } = useReadingController(bookId)
   const chapter = useReadingChapter(bookId)
+  const readingMode = useAppStore((s) => s.readingMode)
 
   const refScroll = useRef<ScrollView | null>(null)
   const refBookInfoSheet = useRef<SheetBookInfoRef>(null)
@@ -92,16 +95,23 @@ const Reading = () => {
           ) : null}
         </ScrollView>
 
-        {chapter.summary && chapter.content.length > 0 ? (
+        {chapter.content.length > 0 && readingMode !== 'normal' ? (
           <ReadingAudioControl
             bookId={chapter.bookId}
             chapter={chapter.index}
             content={chapter.content}
+            mode={readingMode}
           />
         ) : null}
 
         <ReadingButtonBack />
-        <ReadingButtonTopNavigation nextChapter={nextChapter} previousChapter={previousChapter} />
+        <ReadingButtonTopNavigation
+          nextChapter={nextChapter}
+          previousChapter={previousChapter}
+          bookId={bookId}
+          chapter={chapter.index}
+          content={chapter.content}
+        />
         <ReadingButtonLeftControl openBook={openBook} />
         <ReadingButtonScrollBottom onScrollToBottom={handleScrollToBottom} />
       </Screen.Container>

@@ -1,25 +1,23 @@
-import { initTTSCache, getTTSCacheStats } from '../services/convert-tts'
+import { Directory, Paths } from 'expo-file-system'
+
+const CACHE_DIRECTORY = new Directory(Paths.document, 'tts_audio')
 
 /**
  * Initialize TTS cache when app starts
  * This should be called in your App.tsx or _layout.tsx
  */
 export const initializeTTSCache = async () => {
-  await initTTSCache()
-  console.log('✅ TTS cache initialized')
+  try {
+    CACHE_DIRECTORY.create({ idempotent: true, intermediates: true })
+    console.log('✅ TTS cache directory initialized')
+  } catch (error) {
+    console.error('Error initializing TTS cache:', error)
+  }
 }
 
 /**
  * Get TTS cache information for debugging
  */
 export const logTTSCacheInfo = async () => {
-  const stats = await getTTSCacheStats()
-  console.log('📊 TTS Cache Stats:', {
-    totalFiles: stats.totalFiles,
-    totalSizeMB: (stats.totalSize / (1024 * 1024)).toFixed(2),
-    cacheKeys: stats.cacheKeys,
-  })
+  console.log('📊 TTS Cache directory:', CACHE_DIRECTORY.uri)
 }
-
-// Export cache functions for external use
-export { initTTSCache, getTTSCacheStats } from '../services/convert-tts'
