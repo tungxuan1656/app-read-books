@@ -101,7 +101,7 @@ export const AppPalette = {
   coral800: '#691105',
   coral900: '#510901',
 
-  black: '#1b1f24',
+  black: '#1a1e22ff',
   white: '#ffffff',
 }
 

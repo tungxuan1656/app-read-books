@@ -59,7 +59,10 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 - `components/auto-generate-controller.tsx` cho phép chạy batch summary + TTS cho toàn bộ chương, theo dõi tiến trình và dừng/tiếp tục.
 
 ### 4.6 Cài đặt và cache
-- Màn hình `app/settings/index.tsx` lưu Gemini API key và prompt vào MMKV (`MMKVKeys.GEMINI_*`).
+- Màn hình `app/settings/index.tsx` hiển thị danh sách các cài đặt key-value động, cho phép người dùng xem và chỉnh sửa các thiết lập.
+- Màn hình `app/setting-editor/index.tsx` cho phép thêm/sửa/xóa các cài đặt dạng key-value với cấu hình linh hoạt (input đơn dòng hoặc nhiều dòng, mô tả, giá trị mặc định).
+- Hệ thống không hardcode từng input field cụ thể mà sử dụng cấu trúc dữ liệu động dựa trên `SettingConfig[]` định nghĩa trong `constants/SettingConfigs.ts`.
+- Mỗi cài đặt bao gồm: key (MMKV key), label (nhãn hiển thị), inputType (single/multi line), placeholder, và description.
 - Người dùng có thể xóa cache summary/TTS per book (`utils/cache-manager.ts`, gọi từ `sheet-book-info`).
 
 ## 5. Yêu cầu phi chức năng
@@ -80,7 +83,9 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 ## 7. Mô-đun chính
 ### 7.1 Ứng dụng & điều hướng (`app/`)
 - `_layout.tsx`: Khởi tạo TrackPlayer, TTS cache, Gesture Handler, ghi nhận trạng thái đọc để resume.
-- `/index`, `/add-book`, `/reading`, `/settings`, `/references`, `/generate-summary-tts` tương ứng với các màn hình chính.
+- `/index`, `/add-book`, `/reading`, `/settings`, `/setting-editor`, `/references`, `/generate-summary-tts` tương ứng với các màn hình chính.
+- `/settings`: Màn hình danh sách cài đặt hiển thị tất cả key-value configs, cho phép điều hướng đến editor.
+- `/setting-editor`: Màn hình thêm/sửa từng setting cụ thể với input type linh hoạt.
 
 ### 7.2 Components (`components/`)
 - UI chung: `Screen`, `Divider`, `Button`, `Icon`, `GToast`, `GSpinner`.
@@ -114,7 +119,14 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 - **Cấu trúc Book Package**
   - `book.json`: `{ id, name, author, count, references[] }`.
   - `chapters/chapter-<index>.html`: nội dung HTML thuần.
-- **MMKV Keys** (`constants/AppConst.ts`): lưu trạng thái đọc, Gemini key, prompt, offset.
+- **MMKV Keys** (`constants/AppConst.ts`): lưu trạng thái đọc, Gemini key, prompt, offset, Capcut token.
+- **Setting Configs** (`constants/SettingConfigs.ts`): danh sách các cấu hình setting động, mỗi setting có:
+  - `key`: unique identifier lưu trong MMKV
+  - `label`: nhãn hiển thị UI
+  - `inputType`: 'single' | 'multiline' xác định loại input
+  - `placeholder`: gợi ý cho người dùng
+  - `description`: mô tả chi tiết về setting
+  - `defaultValue`: giá trị mặc định (optional)
 - **Cache**: `summary-cache` (MMKV riêng) + `DocumentDirectory/tts_audio`.
 
 ## 9. Tích hợp & cấu hình
@@ -156,6 +168,9 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 4. **Theo dõi tiến trình**: log và hiển thị % chi tiết khi auto-generate, hỗ trợ resume từ chương bị lỗi.
 5. **Testing**: thêm suite Jest/Playwright tối thiểu cho luồng tải/đọc.
 6. **Sync đa thiết bị**: cân nhắc backend để đồng bộ trạng thái đọc.
+7. **Import/Export Settings**: cho phép người dùng backup và restore toàn bộ settings.
+8. **Validation cho Settings**: kiểm tra format API key, token trước khi lưu.
+9. **Setting Groups**: nhóm các settings theo category (API Keys, Prompts, TTS, etc.).
 
 ## 14. Phụ lục
 ### 14.1 Scripts & công cụ

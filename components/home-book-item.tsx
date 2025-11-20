@@ -62,7 +62,12 @@ const HomeBookItem = ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: ()
             onPress={() => Linking.openURL(`https://metruyencv.com/truyen/${book.id}`)}
             buttonStyle={{ padding: 8 }}
           />
-          <VectorIcon name="chevron-right" font="FontAwesome5" size={12} />
+          <VectorIcon
+            name="chevron-right"
+            font="FontAwesome5"
+            size={12}
+            color={AppPalette.gray400}
+          />
         </>
       )}
     </TouchableOpacity>

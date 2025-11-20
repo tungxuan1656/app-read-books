@@ -184,7 +184,7 @@ export const Screen = {
   Footer,
 }
 
-const headerHeight = 48
+const headerHeight = 44
 
 const styles = StyleSheet.create({
   container: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   left: { height: headerHeight, flexDirection: 'row', alignItems: 'center', minWidth: 16 },
   right: { height: headerHeight, flexDirection: 'row', alignItems: 'center' },
   title: {
-    ...AppTypo.h4.semiBold,
+    ...AppTypo.headline.semiBold,
     // marginHorizontal: 70,
     color: AppColors.textMain,
     flex: 1,
