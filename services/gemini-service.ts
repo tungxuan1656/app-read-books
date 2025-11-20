@@ -14,13 +14,20 @@ export interface GeminiSummaryResponse {
 }
 
 // Common configuration for Gemini API
-const GEMINI_API_KEY = MMKVStorage.get(MMKVKeys.GEMINI_API_KEY) || ''
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`
+const getGeminiApiKey = () => MMKVStorage.get(MMKVKeys.GEMINI_API_KEY) || ''
+const getGeminiModel = () => {
+  const customModel = MMKVStorage.get(MMKVKeys.GEMINI_MODEL) as string
+  return customModel && customModel.trim() ? customModel.trim() : 'gemini-2.5-flash-lite'
+}
+const getGeminiApiUrl = () => {
+  const model = getGeminiModel()
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
+}
 
 const getCommonHeaders = () => {
   const COMMON_HEADERS = new Headers()
   COMMON_HEADERS.append('Content-Type', 'application/json')
-  COMMON_HEADERS.append('x-goog-api-key', GEMINI_API_KEY)
+  COMMON_HEADERS.append('x-goog-api-key', getGeminiApiKey())
   return COMMON_HEADERS
 }
 
@@ -163,7 +170,7 @@ export const summarizeChapter = async (content: string): Promise<string> => {
       safetySettings: COMMON_SAFETY_SETTINGS,
     })
 
-    const response = await fetch(GEMINI_API_URL, {
+    const response = await fetch(getGeminiApiUrl(), {
       method: 'POST',
       headers: getCommonHeaders(),
       body: raw,
@@ -190,10 +197,11 @@ export const summarizeChapter = async (content: string): Promise<string> => {
 
 // Helper function để kiểm tra API key
 export const validateGeminiApiKey = (): boolean => {
+  const apiKey = getGeminiApiKey()
   return (
-    typeof GEMINI_API_KEY === 'string' &&
-    GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY' &&
-    GEMINI_API_KEY.length > 30
+    typeof apiKey === 'string' &&
+    apiKey !== 'YOUR_GEMINI_API_KEY' &&
+    apiKey.length > 30
   )
 }
 

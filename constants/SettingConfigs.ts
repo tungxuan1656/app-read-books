@@ -21,6 +21,14 @@ export const DEFAULT_SETTING_CONFIGS: SettingConfig[] = [
     lines: 2,
   },
   {
+    key: 'GEMINI_MODEL',
+    label: 'Gemini Model',
+    inputType: 'single',
+    placeholder: 'gemini-2.0-flash-exp',
+    description: 'Tên model Gemini sử dụng (ví dụ: gemini-2.0-flash-exp, gemini-1.5-flash, gemini-1.5-pro). Để trống sẽ dùng gemini-2.0-flash-exp',
+    lines: 1,
+  },
+  {
     key: 'GEMINI_SUMMARY_PROMPT',
     label: 'Prompt tóm tắt truyện',
     inputType: 'multiline',
@@ -42,9 +50,19 @@ export const DEFAULT_SETTING_CONFIGS: SettingConfig[] = [
   {
     key: 'CAPCUT_TOKEN',
     label: 'Capcut TTS Token',
-    inputType: 'single',
+    inputType: 'multiline',
     placeholder: 'Nhập Capcut TTS Token',
-    description: 'Token để sử dụng dịch vụ Text-to-Speech của Capcut',
-    lines: 2,
+    description:
+      'Token để sử dụng dịch vụ Text-to-Speech của Capcut. Token này cần được làm mới định kỳ. Lấy từ DevTools khi sử dụng Capcut web.',
+    lines: 3,
+  },
+  {
+    key: 'CAPCUT_WS_URL',
+    label: 'Capcut WebSocket URL',
+    inputType: 'multiline',
+    placeholder: 'wss://sami-normal-sg.capcutapi.com/internal/api/v1/ws?device_id=...&iid=...',
+    description:
+      'WebSocket URL đầy đủ cho Capcut TTS. Lấy từ DevTools khi sử dụng Capcut web. Để trống sẽ dùng URL mặc định.',
+    lines: 4,
   },
 ]

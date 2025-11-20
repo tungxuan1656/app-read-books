@@ -69,8 +69,12 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 - **Hiệu năng**: Đọc file cục bộ, load chương và summary trong vòng < 1s sau khi cache xong.
 - **Độ tin cậy**: Phải phục hồi trạng thái đọc sau khi app khởi động lại (dựa trên `MMKVKeys.IS_READING`, `CURRENT_BOOK_ID`).
 - **Khả năng mở rộng**: Module hóa rõ ràng giữa UI, dịch vụ và hooks để dễ bổ sung nguồn truyện hoặc dịch vụ TTS khác.
-- **Bảo mật**: Không hardcode API key nhạy cảm; yêu cầu nhập qua `.env` (`AppConfigs.API`) hoặc màn `Settings`. Token Capcut trong `services/convert-tts.ts` cần cơ chế làm mới.
+- **Bảo mật**: 
+  - ✅ Không hardcode API key nhạy cảm; yêu cầu nhập qua Settings
+  - ✅ Token Capcut được lưu trong MMKV (encrypted) thay vì hardcode trong code
+  - Token cần làm mới định kỳ khi hết hạn (người dùng tự cập nhật qua Settings)
 - **Khả dụng offline**: Nội dung truyện phải đọc được khi không có mạng; summary/TTS fallback sang nội dung gốc nếu API thất bại.
+- **Validation**: Tất cả book.json phải được validate khi import để đảm bảo cấu trúc đúng và tránh lỗi runtime.
 
 ## 6. Luồng dữ liệu chính
 1. **Import truyện**: Supabase API → tải ZIP → giải nén → `books/<bookId>` chứa `book.json`, `chapters/chapter-N.html`.
@@ -111,15 +115,21 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 
 ### 7.6 Utils (`utils/`)
 - `index.ts`: thao tác file hệ thống, load sách, định dạng kích thước, quản lý current book.
+- `book-validator.ts`: validate cấu trúc book.json, đảm bảo data integrity, xử lý backward compatibility.
 - `cache-manager.ts`: xóa cache summary/TTS theo book hoặc chapter.
 - `summary-cache.ts`, `tts-cache.ts`: lớp lưu đệm MMKV.
 - `string-helpers.ts`: tiền xử lý chuỗi, chia câu phục vụ TTS/Gemini.
 
 ## 8. Lưu trữ & cấu trúc dữ liệu
 - **Cấu trúc Book Package**
-  - `book.json`: `{ id, name, author, count, references[] }`.
+  - `book.json`: Metadata của truyện với các trường:
+    - Bắt buộc: `id`, `name`, `author`, `count` (number), `references[]`
+    - Tùy chọn: `description`, `coverImage`, `category`, `tags`, `genre`, `status`, `rating`, `language`, `version`, timestamps, `totalWords`, `sourceUrl`, etc.
+    - Được validate bởi `utils/book-validator.ts` khi import
   - `chapters/chapter-<index>.html`: nội dung HTML thuần.
-- **MMKV Keys** (`constants/AppConst.ts`): lưu trạng thái đọc, Gemini key, prompt, offset, Capcut token.
+  - `cover.jpg` (optional): Ảnh bìa truyện
+  - `thumbnail.jpg` (optional): Thumbnail nhỏ
+- **MMKV Keys** (`constants/AppConst.ts`): lưu trạng thái đọc, Gemini key, prompt, offset, Capcut token, device ID, IID.
 - **Setting Configs** (`constants/SettingConfigs.ts`): danh sách các cấu hình setting động, mỗi setting có:
   - `key`: unique identifier lưu trong MMKV
   - `label`: nhãn hiển thị UI
@@ -144,11 +154,21 @@ React Native 0.81, Expo SDK 54, Expo Router, Zustand, MMKV, React Native Track P
 - **Regression**: Track resume khi đóng/mở app, xóa cache không ảnh hưởng dữ liệu sách.
 
 ## 11. Các ràng buộc & rủi ro
-1. Token Capcut có thể hết hạn → cần server trung gian hoặc cơ chế request mới.
-2. Gemini API giới hạn tốc độ → nên batch hoặc queue request khi auto-generate.
-3. Tập tin ZIP phải tuân thủ cấu trúc chuẩn; chưa có validator rõ ràng.
-4. Auto-generate chạy đồng bộ trên UI thread → có nguy cơ khóa giao diện khi xử lý truyện lớn.
-5. TrackPlayer cần quyền audio background; chưa có hướng dẫn cấp quyền Android/iOS trong tài liệu.
+1. **Token Capcut**: 
+   - ✅ Đã chuyển sang lưu trong Settings (MMKV encrypted)
+   - ⚠️ Vẫn cần người dùng tự làm mới token khi hết hạn
+   - Cân nhắc: Xây dựng server trung gian để quản lý token tập trung
+2. **Gemini API**: Giới hạn tốc độ → nên batch hoặc queue request khi auto-generate.
+3. **Validation**: 
+   - ✅ Đã có `book-validator.ts` để validate cấu trúc
+   - Cần thêm UI hiển thị lỗi chi tiết khi import book lỗi
+4. **Auto-generate**: Chạy đồng bộ trên UI thread → có nguy cơ khóa giao diện khi xử lý truyện lớn.
+   - Cân nhắc: Chuyển sang background task hoặc queue system
+5. **TrackPlayer**: Cần quyền audio background; chưa có hướng dẫn cấp quyền Android/iOS trong tài liệu.
+6. **Book metadata**: 
+   - Interface đã mở rộng nhưng chưa có UI để nhập/chỉnh sửa metadata mở rộng
+   - Chưa có UI upload/hiển thị cover image
+   - Chưa tính toán `totalWords` và `estimatedReadTime` tự động
 
 ## 12. Hướng dẫn thiết lập & build
 1. Cài phụ thuộc: `pnpm install` (hoặc `npm install`).

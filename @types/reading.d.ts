@@ -5,11 +5,11 @@ declare global {
   }
 
   interface Book {
-    name: string
-    count: string
-    author: string
-    references: string[]
     id: string
+    name: string
+    author: string
+    count: string
+    references: string[]
   }
 
   interface Books {

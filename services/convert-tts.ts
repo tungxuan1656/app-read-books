@@ -2,6 +2,8 @@ import { File } from 'expo-file-system'
 import { DeviceEventEmitter } from 'react-native'
 import { preprocessSentence } from '../utils/string-helpers'
 import { CACHE_DIRECTORY } from '../utils/tts-cache'
+import { MMKVStorage } from '@/controllers/mmkv'
+import { MMKVKeys } from '@/constants'
 
 // Global variable to track cancellation
 let isCancelled = false
@@ -20,7 +22,14 @@ export const resetTTSCancellation = () => {
 // --- WebSocket Audio Generation ---
 
 function createCapcutMessage(sentence: string, voice: string) {
-  // The token and other parameters might need to be updated periodically.
+  const token = MMKVStorage.get(MMKVKeys.CAPCUT_TOKEN) as string
+
+  if (!token) {
+    throw new Error(
+      'Capcut token chưa được cấu hình. Vui lòng vào Settings để thiết lập token TTS.',
+    )
+  }
+
   return {
     appkey: 'ddjeqjLGMn',
     event: 'StartTask',
@@ -28,10 +37,21 @@ function createCapcutMessage(sentence: string, voice: string) {
     payload: `{"audio_config":{"bit_rate":128000,"format":"mp3","sample_rate":24000},"speaker":"${voice}","text":"${preprocessSentence(
       sentence,
     )}"}`,
-    token:
-      'WTV6R2t6V3ZwNUIwQkFETutGxuveRZ9iTmOBC/a3wzMS7zzza86Ky9nIfYhyeoSiWYP1ZO04X7X1+RThg/zczU6u8ga3dTIJpduvWpCqrmr0Kv7BJf6tcGFgevJ/Jaa1slHj/l4NUJ/eCesl1dYBYQ51oKbuFnZjF7qXVWzsoz326XwRdNEmOufSHnuW+kuy+sS7K/sn3gVWsCC4XFi+FYntDxrVTYS/Pv2LtBgpgULmib5+5kMq2ZuJfCDYvq4NthciciB6KUCf1sOsu7VD/27Tquz8Q58NYALFvX85bjvxQJOz0iV3oUiip0RyqR1ltZPNI/LgN2OGCphyCgOJdlUUdgIbSJpaKL+5PMTM4yBuwCU4QPbYYzTs9x2ZA+7zt41ng+i5+EPtePyDjR4VFTz+7zglLw/E+KqN/nscyqLCyrumn4YgfQ3JYnSnz1WLE6q3aD175yweKBj9f9jyqxnLVmEYy9VjmoxuYNRgVmfT6M17bT9iL0PJTlJ6UqKHuNRT6ubv37ZSr961Gw+RJhyLUDBt8AD1B8YDdF4OImS+LgGjfujaY1agc4tfrnk4V4YcAXyTRlYwLMC9ATDp9CbiBrlMBmYm88gwGaTR9pbI2KcQ4Kg86jZYc6CxNM34sbMG/1LlmqvqLe+E3IG6ebOmyVbL+kYK70c1fT5TcmzVwX5O3JGkHHtFoeCmd4Eyyov6QsO1Jewx0gpjp05dqw==',
+    token: token,
     version: 'sdk_v1',
   }
+}
+
+function getCapcutWebSocketUrl(): string {
+  const customWsUrl = MMKVStorage.get(MMKVKeys.CAPCUT_WS_URL) as string
+  
+  // Sử dụng URL custom nếu có, không thì dùng default
+  if (customWsUrl && customWsUrl.trim()) {
+    return customWsUrl.trim()
+  }
+  
+  // Default WebSocket URL
+  return 'wss://sami-normal-sg.capcutapi.com/internal/api/v1/ws?device_id=7486429558272460289&iid=7486431924195657473&app_id=359289&region=VN&update_version_code=5.7.1.2101&version_code=5.7.1&appKey=ddjeqjLGMn&device_type=macos&device_platform=macos'
 }
 
 /**
@@ -43,8 +63,7 @@ const generateAudioFromWebSocket = (
   voice: string,
 ): Promise<Uint8Array | null> => {
   return new Promise((resolve) => {
-    const wsUrl =
-      'wss://sami-normal-sg.capcutapi.com/internal/api/v1/ws?device_id=7486429558272460289&iid=7486431924195657473&app_id=359289&region=VN&update_version_code=5.7.1.2101&version_code=5.7.1&appKey=ddjeqjLGMn&device_type=macos&device_platform=macos'
+    const wsUrl = getCapcutWebSocketUrl()
     const ws = new WebSocket(wsUrl)
     const audioChunks: Uint8Array[] = []
 
