@@ -11,7 +11,7 @@ function ReadingButtonBack() {
       font="FontAwesome6"
       size={22}
       buttonStyle={{ ...styles.buttonBack }}
-      color={AppPalette.gray400}
+      color={AppPalette.gray300}
       onPress={router.back}
     />
   )

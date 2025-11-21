@@ -81,7 +81,7 @@ const Reading = () => {
     <View style={{ flex: 1 }}>
       <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
         <Text style={[AppTypo.mini.regular, { marginHorizontal: 16 }]} numberOfLines={1}>
-          {chapter.name || 'Chương không có tên'}
+          【{chapter.index}】{chapter.name || 'Chương không có tên'}
         </Text>
 
         <ScrollView
