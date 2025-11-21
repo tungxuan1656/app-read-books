@@ -1,8 +1,8 @@
 import { GToast } from '@/components/g-toast'
 import useAppStore from '@/controllers/store'
 import { getChapterHtml, getBookChapterContent } from '@/utils'
-import { translateChapter, summarizeChapter } from '@/services/gemini-service'
-import { dbService } from '@/services/database-service'
+import { translateChapter, summarizeChapter } from '@/services/gemini.service'
+import { dbService } from '@/services/database.service'
 import { useEffect, useState } from 'react'
 
 /**

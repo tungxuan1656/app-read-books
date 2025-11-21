@@ -131,7 +131,7 @@ const setRate = async (rate: number): Promise<void> => {
   }
 }
 
-const trackPlayerService = {
+const audioPlayerService = {
   setupPlayer,
   reset,
   addTracks,
@@ -145,4 +145,5 @@ const trackPlayerService = {
   setRate,
 }
 
-export default trackPlayerService
+export { audioPlayerService }
+export default audioPlayerService

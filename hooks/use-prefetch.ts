@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react'
-import { dbService } from '@/services/database-service'
+import { dbService } from '@/services/database.service'
 import useContentProcessor from './use-content-processor'
 import useAppStore from '@/controllers/store'
 

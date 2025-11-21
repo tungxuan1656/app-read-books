@@ -1,4 +1,4 @@
-import { dbService } from '@/services/database-service'
+import { dbService } from '@/services/database.service'
 
 /**
  * Cache Manager - chỉ quản lý cache cho Gemini (processed chapters)

@@ -1,6 +1,6 @@
 import { MMKV } from 'react-native-mmkv'
 import { Directory, Paths } from 'expo-file-system'
-import { dbService } from '@/services/database-service'
+import { dbService } from '@/services/database.service'
 
 export async function migrateToNewSystem() {
   console.log('🔄 Starting migration to new cache system...')

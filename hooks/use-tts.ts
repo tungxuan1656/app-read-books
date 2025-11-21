@@ -3,8 +3,8 @@ import { DeviceEventEmitter } from 'react-native'
 import { Directory, Paths } from 'expo-file-system'
 import { RepeatMode } from 'react-native-track-player'
 import { breakSummaryIntoLines } from '@/utils/string-helpers'
-import { convertTTSCapcut, stopConvertTTSCapcut } from '@/services/convert-tts'
-import trackPlayerService from '@/services/track-player-service'
+import { convertTTSCapcut, stopConvertTTSCapcut } from '@/services/tts.service'
+import { audioPlayerService } from '@/services/audio-player.service'
 
 // Temp directory for TTS audio files
 const TTS_TEMP_DIR = new Directory(Paths.document, 'tts_temp')
@@ -40,7 +40,7 @@ export function useTTS(content: string, autoPlay: boolean = true) {
     console.log('🛑 [TTS] Stopping TTS process...')
     isProcessingRef.current = false
     stopConvertTTSCapcut()
-    await trackPlayerService.reset()
+    await audioPlayerService.reset()
     cleanupTempFolder()
   }, [cleanupTempFolder])
 
@@ -82,7 +82,7 @@ export function useTTS(content: string, autoPlay: boolean = true) {
       console.log(`📝 [TTS] Processing ${sentences.length} sentences`)
 
       // Reset track player
-      await trackPlayerService.reset()
+      await audioPlayerService.reset()
 
       // Convert sentences to audio
       await convertTTSCapcut(sentences, taskId, TTS_TEMP_DIR.uri)
@@ -113,17 +113,17 @@ export function useTTS(content: string, autoPlay: boolean = true) {
             artist: 'TTS Audio',
           }
 
-          await trackPlayerService.addTracks([track])
+          await audioPlayerService.addTracks([track])
 
           // Auto-play first track only
           if (autoPlay && data.index === 3) {
-            await trackPlayerService.setRepeatMode(RepeatMode.Off)
-            await trackPlayerService.skipToTrack(0)
-            await trackPlayerService.setRate(1.2)
+            await audioPlayerService.setRepeatMode(RepeatMode.Off)
+            await audioPlayerService.skipToTrack(0)
+            await audioPlayerService.setRate(1.2)
 
             setTimeout(async () => {
               try {
-                await trackPlayerService.play()
+                await audioPlayerService.play()
                 console.log('▶️ [TTS] Auto-play started')
               } catch (error) {
                 console.error('❌ [TTS] Auto-play error:', error)

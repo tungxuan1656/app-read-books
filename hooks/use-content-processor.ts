@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
-import { dbService } from '@/services/database-service'
-import { translateChapter, summarizeChapter } from '@/services/gemini-service'
+import { dbService } from '@/services/database.service'
+import { translateChapter, summarizeChapter } from '@/services/gemini.service'
 import { getBookChapterContent } from '@/utils'
 import type { ReadingMode } from '@/controllers/store'
 

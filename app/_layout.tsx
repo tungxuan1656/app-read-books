@@ -5,9 +5,8 @@ import { router, Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import TrackPlayer from 'react-native-track-player'
 import { MMKVStorage } from '../controllers/mmkv'
-import trackPlayerService from '../services/track-player-service'
+import { audioPlayerService } from '../services/audio-player.service'
 import { stringifyParams } from '@/hooks/use-typed-local-search-params'
 import { getCurrentBookId } from '@/utils'
 import { GSpinnerComponent } from '@/components/g-spinner'
@@ -19,7 +18,7 @@ SplashScreen.preventAutoHideAsync()
 try {
   // Cleanup TTS temp folder on app start
   cleanupTTSOnAppStart()
-  trackPlayerService.setupPlayer()
+  audioPlayerService.setupPlayer()
 } catch (error) {
   console.error('Error during splash screen initialization:', error)
 }

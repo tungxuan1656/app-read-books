@@ -17,7 +17,7 @@ import {
 import { unzip } from 'react-native-zip-archive'
 import { AppColors, AppPalette } from '../../assets'
 import { AppConfigs, AppStyles, AppTypo } from '../../constants'
-import { deleteDownloadFile, downloadFile, getFilenameOfUrl } from '../../services/download-file'
+import { deleteDownloadFile, downloadFile, getFilenameOfUrl } from '../../services/download.service'
 import { createFolderBooks, getFolderBooks, getPathSaveZipBook, showToastError } from '../../utils'
 
 const GET_EXPORTED_BOOKS_URL =
