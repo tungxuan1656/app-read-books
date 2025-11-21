@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from 'react'
 import { DeviceEventEmitter } from 'react-native'
 import { Directory, Paths } from 'expo-file-system'
 import { RepeatMode } from 'react-native-track-player'
-import { breakSummaryIntoLines } from '@/utils/string-helpers'
+import { breakSummaryIntoLines } from '@/utils/string.helpers'
 import { convertTTSCapcut, stopConvertTTSCapcut } from '@/services/tts.service'
 import { audioPlayerService } from '@/services/audio-player.service'
 

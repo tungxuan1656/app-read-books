@@ -1,6 +1,6 @@
 import { Directory, File, Paths } from 'expo-file-system'
 import { DeviceEventEmitter } from 'react-native'
-import { preprocessSentence } from '../utils/string-helpers'
+import { preprocessSentence } from '../utils/string.helpers'
 import { MMKVStorage } from '@/controllers/mmkv'
 import { MMKVKeys } from '@/constants'
 
@@ -308,4 +308,4 @@ export const convertTTSCapcut = async (
   return finalAudioPaths
 }
 
-export { splitContentToParagraph } from '../utils/string-helpers'
+export { splitContentToParagraph } from '../utils/string.helpers'

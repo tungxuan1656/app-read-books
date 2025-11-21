@@ -34,7 +34,7 @@ export {
   splitContentToParagraph,
   breakSummaryIntoLines,
   formatContentForTTS,
-} from './string-helpers'
+} from './string.helpers'
 
 // Content Cache Helpers
 export {

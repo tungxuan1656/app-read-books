@@ -1,6 +1,6 @@
 import { MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
-import { formatContentForTTS } from '@/utils/string-helpers'
+import { formatContentForTTS } from '@/utils/string.helpers'
 
 export interface GeminiSummaryRequest {
   chapterHtml: string
