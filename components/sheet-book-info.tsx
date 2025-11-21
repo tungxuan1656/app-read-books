@@ -3,7 +3,7 @@ import { VectorIcon } from '@/components/Icon'
 import { AppStyles, AppTypo } from '@/constants'
 import useAppStore, { storeActions } from '@/controllers/store'
 import { getCurrentBookId, getListFonts } from '@/utils'
-import { clearBookCache } from '@/utils/cache-manager'
+import { clearBookCache } from '@/utils/content-cache.helpers'
 import BottomSheet, {
   BottomSheetView,
   BottomSheetScrollView,

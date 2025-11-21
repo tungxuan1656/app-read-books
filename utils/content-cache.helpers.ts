@@ -1,42 +1,42 @@
 import { dbService } from '@/services/database.service'
 
 /**
- * Cache Manager - chỉ quản lý cache cho Gemini (processed chapters)
- * Không liên quan đến TTS
+ * Content Cache Helpers
+ * Helpers để thao tác với SQLite database cache cho nội dung đã xử lý (Gemini)
  */
 
 /**
- * Clears all processed chapters cache for a specific book
+ * Xóa tất cả cache của một cuốn sách
  */
 export const clearBookCache = async (bookId: string): Promise<void> => {
-  console.log(`🗑️ [Cache Manager] Clearing cache for book: ${bookId}`)
+  console.log(`🗑️ [Content Cache] Clearing cache for book: ${bookId}`)
 
   try {
     await dbService.clearBookCache(bookId)
-    console.log(`✅ [Cache Manager] Cache cleared for book: ${bookId}`)
+    console.log(`✅ [Content Cache] Cache cleared for book: ${bookId}`)
   } catch (error) {
-    console.error(`❌ [Cache Manager] Error clearing cache for book ${bookId}:`, error)
+    console.error(`❌ [Content Cache] Error clearing cache for book ${bookId}:`, error)
     throw error
   }
 }
 
 /**
- * Clears cache for a specific chapter
+ * Xóa cache của một chapter cụ thể
  */
 export const clearChapterCache = async (bookId: string, chapterNumber: number): Promise<void> => {
-  console.log(`🗑️ [Cache Manager] Clearing cache for book ${bookId}, chapter ${chapterNumber}`)
+  console.log(`🗑️ [Content Cache] Clearing cache for book ${bookId}, chapter ${chapterNumber}`)
 
   try {
     await dbService.deleteProcessedChapter(bookId, chapterNumber)
-    console.log(`✅ [Cache Manager] Cache cleared for chapter`)
+    console.log(`✅ [Content Cache] Cache cleared for chapter`)
   } catch (error) {
-    console.error(`❌ [Cache Manager] Error clearing chapter cache:`, error)
+    console.error(`❌ [Content Cache] Error clearing chapter cache:`, error)
     throw error
   }
 }
 
 /**
- * Gets cache statistics for a book (Gemini processed chapters only)
+ * Lấy thống kê cache của một cuốn sách
  */
 export const getBookCacheStats = async (
   bookId: string,
@@ -55,7 +55,7 @@ export const getBookCacheStats = async (
       summaryCount,
     }
   } catch (error) {
-    console.error(`❌ [Cache Manager] Error getting cache stats for book ${bookId}:`, error)
+    console.error(`❌ [Content Cache] Error getting cache stats for book ${bookId}:`, error)
     return {
       translateCount: 0,
       summaryCount: 0,
@@ -64,16 +64,16 @@ export const getBookCacheStats = async (
 }
 
 /**
- * Clears all Gemini cache (processed chapters) - use with caution
+ * Xóa toàn bộ cache - sử dụng cẩn thận
  */
 export const clearAllCache = async (): Promise<void> => {
-  console.log('🗑️ [Cache Manager] Clearing ALL Gemini cache')
+  console.log('🗑️ [Content Cache] Clearing ALL cache')
 
   try {
     await dbService.clearAllCache()
-    console.log('✅ [Cache Manager] All Gemini cache cleared')
+    console.log('✅ [Content Cache] All cache cleared')
   } catch (error) {
-    console.error('❌ [Cache Manager] Error clearing all cache:', error)
+    console.error('❌ [Content Cache] Error clearing all cache:', error)
     throw error
   }
 }

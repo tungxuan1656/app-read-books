@@ -18,18 +18,18 @@ function PlayAudioControl() {
 
   const handlePlayPause = useCallback(async () => {
     if (isPlaying) {
-      await trackPlayerService.pause()
+      await audioPlayerService.pause()
     } else {
-      await trackPlayerService.play()
+      await audioPlayerService.play()
     }
   }, [isPlaying])
 
   const handlePrevious = useCallback(() => {
-    trackPlayerService.skipToPrevious()
+    audioPlayerService.skipToPrevious()
   }, [])
 
   const handleNext = useCallback(() => {
-    trackPlayerService.skipToNext()
+    audioPlayerService.skipToNext()
   }, [])
 
   useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], (event) => {

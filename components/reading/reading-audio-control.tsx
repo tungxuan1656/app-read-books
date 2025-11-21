@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { StyleSheet, View } from 'react-native'
 import PlayAudioControl from '../play-audio-control'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import useTtsAudio from '@/hooks/use-tts-audio'
+import { useTTS } from '@/hooks/use-tts'
 import useAppStore from '@/controllers/store'
 import type { ReadingMode } from '@/controllers/store'
 
@@ -21,14 +21,8 @@ export default function ReadingAudioControl({
   const readingMode = useAppStore((s) => s.readingMode)
   const currentMode = mode || readingMode
 
-  const { startGenerateAudio, stopGenerateAudio } = useTtsAudio()
-
-  useEffect(() => {
-    startGenerateAudio(content, bookId, chapter, currentMode)
-    return () => {
-      stopGenerateAudio()
-    }
-  }, [chapter, bookId, content, currentMode, startGenerateAudio, stopGenerateAudio])
+  // TTS hook tự động xử lý khi content thay đổi
+  useTTS(content, true)
 
   return (
     <View style={[styles.viewContainer, { bottom: 12 + insets.bottom }]}>

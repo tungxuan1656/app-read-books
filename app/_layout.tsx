@@ -10,7 +10,6 @@ import { audioPlayerService } from '../services/audio-player.service'
 import { stringifyParams } from '@/hooks/use-typed-local-search-params'
 import { getCurrentBookId } from '@/utils'
 import { GSpinnerComponent } from '@/components/g-spinner'
-import { migrateToNewSystem } from '@/utils/migration-helper'
 import { cleanupTTSOnAppStart } from '@/hooks/use-tts'
 
 SplashScreen.preventAutoHideAsync()
@@ -25,17 +24,6 @@ try {
 
 export default function RootLayout() {
   useEffect(() => {
-    // Run migration once
-    const runMigration = async () => {
-      const migrated = MMKVStorage.get('MIGRATION_V2_DONE')
-      if (!migrated) {
-        console.log('🔄 Running one-time migration...')
-        await migrateToNewSystem()
-        MMKVStorage.set('MIGRATION_V2_DONE', true)
-      }
-    }
-    runMigration()
-
     const IS_READING = MMKVStorage.get(MMKVKeys.IS_READING)
     if (IS_READING) {
       setTimeout(() => {
