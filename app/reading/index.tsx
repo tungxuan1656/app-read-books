@@ -6,63 +6,51 @@ import ReadingButtonScrollBottom from '@/components/reading/reading-button-scrol
 import ReadingButtonTopNavigation from '@/components/reading/reading-button-top-navigation'
 import { Screen } from '@/components/Screen'
 import SheetBookInfo, { SheetBookInfoRef } from '@/components/sheet-book-info'
-import { AppConst, AppTypo, EventKeys, MMKVKeys } from '@/constants'
+import { AppTypo, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
-import useReadingChapter from '@/hooks/use-reading-chapter'
-import useReadingController from '@/hooks/use-reading-controller'
+import useReadingContent from '@/hooks/use-reading-content'
+import useReadingNavigation from '@/hooks/use-reading-navigation'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import { getCurrentBookId } from '@/utils'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { DeviceEventEmitter, ScrollView, StyleSheet, Text, View } from 'react-native'
-import useReUpdateReading from '@/hooks/use-re-update-reading'
+import { ScrollView, Text, View } from 'react-native'
 
 const Reading = () => {
-  console.log('RENDER Reading')
   const { bookId } = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
-  useReUpdateReading(bookId)
-
-  const { nextChapter, previousChapter, saveOffset } = useReadingController(bookId)
-  const chapter = useReadingChapter(bookId)
+  
+  // Manage chapter content (loading, display)
+  const chapter = useReadingContent(bookId)
+  
+  // Manage navigation (next/prev/scroll/state)
+  const { nextChapter, previousChapter, handleScroll } = useReadingNavigation(bookId)
 
   const refScroll = useRef<ScrollView | null>(null)
   const refBookInfoSheet = useRef<SheetBookInfoRef>(null)
 
+  // Restore scroll position on mount
   useEffect(() => {
     const timer = setTimeout(() => {
       const offset = MMKVStorage.get(MMKVKeys.CURRENT_READING_OFFSET)
-      if (offset) refScroll.current?.scrollTo({ y: offset, animated: false })
+      if (offset) {
+        refScroll.current?.scrollTo({ y: offset, animated: false })
+      }
     }, 200)
     return () => clearTimeout(timer)
   }, [])
 
+  // Reset scroll to top when chapter changes
   useEffect(() => {
-    const u1 = DeviceEventEmitter.addListener(EventKeys.READING_NEXT_CHAPTER_DONE, () => {
-      refScroll.current?.scrollTo({ y: 0, animated: false })
-    })
-    const u2 = DeviceEventEmitter.addListener(EventKeys.EVENT_START_LOADING_CHAPTER, () => {
-      GSpinner.show()
-    })
-    const u3 = DeviceEventEmitter.addListener(EventKeys.EVENT_START_GENERATE_SUMMARY, () => {
-      GSpinner.show({ label: 'Đang tóm tắt...' })
-    })
-    return () => {
-      u1.remove()
-      u2.remove()
-      u3.remove()
-    }
-  }, [])
+    refScroll.current?.scrollTo({ y: 0, animated: false })
+  }, [chapter.index])
 
-  const handleScroll = useCallback(
-    (event: any) => {
-      const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent
-      const offset = Math.round(contentOffset.y + layoutMeasurement.height)
-      const contentHeight = Math.round(contentSize.height)
-      saveOffset(contentOffset.y)
-      if (offset > contentHeight + 70) nextChapter(500)
-      if (contentOffset.y < -80) previousChapter(500)
-    },
-    [saveOffset, nextChapter, previousChapter],
-  )
+  // Show/hide loading spinner
+  useEffect(() => {
+    if (chapter.isLoading) {
+      GSpinner.show({ label: 'Đang tải...' })
+    } else {
+      GSpinner.hide()
+    }
+  }, [chapter.isLoading])
 
   const openBook = useCallback(() => {
     const bookId = getCurrentBookId()
@@ -105,12 +93,3 @@ const Reading = () => {
 }
 
 export default Reading
-
-const styles = StyleSheet.create({
-  viewLoading: {
-    height: AppConst.windowHeight(),
-    backgroundColor: '#F5F1E5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-})
