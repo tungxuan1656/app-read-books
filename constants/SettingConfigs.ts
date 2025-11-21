@@ -45,7 +45,7 @@ export const DEFAULT_SETTING_CONFIGS: SettingConfig[] = [
     placeholder: 'Prompt dịch truyện convert sang văn phong tiếng Việt',
     description: 'Mẫu prompt để yêu cầu Gemini dịch và chuyển đổi văn phong sang tiếng Việt',
     defaultValue: '',
-    lines: 8,
+    lines: 16,
   },
   {
     key: 'CAPCUT_TOKEN',
