@@ -1,5 +1,5 @@
 import { AppColors, AppPalette } from '@/assets'
-import useAppStore from '@/controllers/store'
+import useAppStore, { storeActions } from '@/controllers/store'
 import React, { useCallback, useMemo } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { VectorIcon } from '../Icon'
@@ -15,7 +15,6 @@ export default function ReadingButtonTopNavigation({
 }) {
   const currentBookId = useMemo(() => getCurrentBookId(), [])
   const readingMode = useAppStore((s) => s.readingMode)
-  const cycleReadingMode = useAppStore((s) => s.cycleReadingMode)
 
   const handleViewReferences = useCallback(() => {
     if (!currentBookId) return
@@ -42,7 +41,13 @@ export default function ReadingButtonTopNavigation({
         size={12}
         buttonStyle={getModeButtonStyle('translate')}
         color={getModeButtonColor('translate')}
-        onPress={() => cycleReadingMode()}
+        onPress={() => {
+          if (readingMode === 'translate') {
+            storeActions.setReadingMode('normal')
+          } else {
+            storeActions.setReadingMode('translate')
+          }
+        }}
       />
 
       {/* Summary Button */}
@@ -52,7 +57,13 @@ export default function ReadingButtonTopNavigation({
         size={12}
         buttonStyle={getModeButtonStyle('summary')}
         color={getModeButtonColor('summary')}
-        onPress={() => cycleReadingMode()}
+        onPress={() => {
+          if (readingMode === 'summary') {
+            storeActions.setReadingMode('normal')
+          } else {
+            storeActions.setReadingMode('summary')
+          }
+        }}
       />
 
       {/* Navigation */}
