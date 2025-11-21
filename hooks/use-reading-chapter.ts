@@ -26,7 +26,7 @@ export default function useReadingChapter(bookId: string) {
   const { processContent } = useContentProcessor()
   const { prefetchChapters } = usePrefetch()
 
-  const debounceTimerRef = useRef<NodeJS.Timeout>()
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const lastModeRef = useRef(readingMode)
 
   // Load chapter content
