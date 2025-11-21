@@ -1,6 +1,5 @@
 import { ContentDisplay } from '@/components/content-display'
 import { GSpinner } from '@/components/g-spinner'
-import ReadingAudioControl from '@/components/reading/reading-audio-control'
 import ReadingButtonBack from '@/components/reading/reading-button-back'
 import ReadingButtonLeftControl from '@/components/reading/reading-button-left-control'
 import ReadingButtonScrollBottom from '@/components/reading/reading-button-scroll-bottom'
@@ -14,7 +13,6 @@ import useReadingController from '@/hooks/use-reading-controller'
 import useReupdateReading from '@/hooks/use-reupdate-reading'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import { getCurrentBookId } from '@/utils'
-import { ttsService } from '@/services/tts-service'
 import useAppStore from '@/controllers/store'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { DeviceEventEmitter, ScrollView, StyleSheet, Text, View } from 'react-native'
@@ -95,22 +93,10 @@ const Reading = () => {
           ) : null}
         </ScrollView>
 
-        {chapter.content.length > 0 && readingMode !== 'normal' ? (
-          <ReadingAudioControl
-            bookId={chapter.bookId}
-            chapter={chapter.index}
-            content={chapter.content}
-            mode={readingMode}
-          />
-        ) : null}
-
         <ReadingButtonBack />
         <ReadingButtonTopNavigation
           nextChapter={nextChapter}
           previousChapter={previousChapter}
-          bookId={bookId}
-          chapter={chapter.index}
-          content={chapter.content}
         />
         <ReadingButtonLeftControl openBook={openBook} />
         <ReadingButtonScrollBottom onScrollToBottom={handleScrollToBottom} />

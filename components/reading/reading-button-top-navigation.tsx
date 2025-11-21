@@ -1,45 +1,21 @@
 import { AppColors, AppPalette } from '@/assets'
 import useAppStore from '@/controllers/store'
-import React, { useCallback, useMemo, useState } from 'react'
-import { StyleSheet, View, Alert } from 'react-native'
+import React, { useCallback, useMemo } from 'react'
+import { StyleSheet, View } from 'react-native'
 import { VectorIcon } from '../Icon'
 import { getCurrentBookId } from '@/utils'
 import { router } from 'expo-router'
-import { ttsService } from '@/services/tts-service'
 
 export default function ReadingButtonTopNavigation({
   previousChapter,
   nextChapter,
-  bookId,
-  chapter,
-  content,
 }: {
   previousChapter: () => void
   nextChapter: () => void
-  bookId: string
-  chapter: number
-  content: string
 }) {
   const currentBookId = useMemo(() => getCurrentBookId(), [])
   const readingMode = useAppStore((s) => s.readingMode)
   const cycleReadingMode = useAppStore((s) => s.cycleReadingMode)
-  const [isTTSGenerating, setIsTTSGenerating] = useState(false)
-
-  const handleGenerateTTS = useCallback(async () => {
-    if (!content || !bookId || readingMode === 'normal') return
-
-    try {
-      setIsTTSGenerating(true)
-      await ttsService.generateTTS(bookId, chapter, readingMode, content)
-      Alert.alert('Thành công', 'Đã tạo audio TTS')
-    } catch (error) {
-      console.error('Error generating TTS:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Không thể tạo audio TTS'
-      Alert.alert('Lỗi TTS', errorMessage)
-    } finally {
-      setIsTTSGenerating(false)
-    }
-  }, [bookId, chapter, content, readingMode])
 
   const handleViewReferences = useCallback(() => {
     if (!currentBookId) return
@@ -59,38 +35,6 @@ export default function ReadingButtonTopNavigation({
 
   return (
     <View style={styles.viewContainer}>
-      {/* TTS Button */}
-      {readingMode !== 'normal' && !isTTSGenerating && (
-        <VectorIcon
-          name="volume-high"
-          font="FontAwesome6"
-          size={12}
-          buttonStyle={{
-            width: 28,
-            height: 28,
-            borderRadius: 40,
-            backgroundColor: 'white',
-          }}
-          color={AppPalette.gray600}
-          onPress={handleGenerateTTS}
-        />
-      )}
-      {readingMode !== 'normal' && isTTSGenerating && (
-        <VectorIcon
-          name="spinner"
-          font="FontAwesome6"
-          size={12}
-          buttonStyle={{
-            width: 28,
-            height: 28,
-            borderRadius: 40,
-            backgroundColor: 'white',
-            opacity: 0.6,
-          }}
-          color={AppPalette.gray600}
-        />
-      )}
-
       {/* Translate Button */}
       <VectorIcon
         name="language"
