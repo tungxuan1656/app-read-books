@@ -4,7 +4,7 @@ import useAppStore, { storeActions } from '@/controllers/store'
 import { saveCurrentBookId } from '@/utils'
 import { useEffect } from 'react'
 
-export default function useReupdateReading(bookId: string) {
+export default function useReUpdateReading(bookId: string) {
   useEffect(() => {
     saveCurrentBookId(bookId)
     const currentIndex = useAppStore.getState().id2BookReadingChapter[bookId]

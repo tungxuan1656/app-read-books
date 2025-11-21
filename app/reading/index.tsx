@@ -10,21 +10,19 @@ import { AppConst, AppTypo, EventKeys, MMKVKeys } from '@/constants'
 import { MMKVStorage } from '@/controllers/mmkv'
 import useReadingChapter from '@/hooks/use-reading-chapter'
 import useReadingController from '@/hooks/use-reading-controller'
-import useReupdateReading from '@/hooks/use-reupdate-reading'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import { getCurrentBookId } from '@/utils'
-import useAppStore from '@/controllers/store'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import { DeviceEventEmitter, ScrollView, StyleSheet, Text, View } from 'react-native'
+import useReUpdateReading from '@/hooks/use-re-update-reading'
 
 const Reading = () => {
   console.log('RENDER Reading')
   const { bookId } = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
-  useReupdateReading(bookId)
+  useReUpdateReading(bookId)
 
   const { nextChapter, previousChapter, saveOffset } = useReadingController(bookId)
   const chapter = useReadingChapter(bookId)
-  const readingMode = useAppStore((s) => s.readingMode)
 
   const refScroll = useRef<ScrollView | null>(null)
   const refBookInfoSheet = useRef<SheetBookInfoRef>(null)
