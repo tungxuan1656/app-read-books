@@ -5,9 +5,7 @@ import RenderHTML from 'react-native-render-html'
 
 export const ContentDisplay = React.memo(
   ({ chapterHtml, onLoaded }: { chapterHtml: string; onLoaded?: () => void }) => {
-    const font = useAppStore((state) => state.font)
-    const fontSize = useAppStore((state) => state.fontSize)
-    const lineHeight = useAppStore((state) => state.lineHeight)
+    const { font, fontSize, lineHeight } = useAppStore((state) => state.typography)
 
     return (
       <RenderHTML

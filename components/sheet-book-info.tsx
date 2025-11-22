@@ -26,9 +26,7 @@ type SheetBookInfoProps = {
 const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClose }, ref) => {
   const currentBookId = useMemo(() => getCurrentBookId(), [])
   const bottomSheetRef = React.useRef<BottomSheet>(null)
-  const font = useAppStore((state) => state.font)
-  const fontSize = useAppStore((state) => state.fontSize)
-  const lineHeight = useAppStore((state) => state.lineHeight)
+  const { font, fontSize, lineHeight } = useAppStore((state) => state.typography)
 
   // Expose methods through ref
   React.useImperativeHandle(ref, () => ({
@@ -65,7 +63,13 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray200}
             size={20}
-            onPress={() => storeActions.setFontSize(fontSize - 1)}
+            onPress={() =>
+              storeActions.setTypography({
+                fontSize: fontSize - 1,
+                font,
+                lineHeight,
+              })
+            }
           />
           <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
             {fontSize}
@@ -75,7 +79,13 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray200}
             size={20}
-            onPress={() => storeActions.setFontSize(fontSize + 1)}
+            onPress={() =>
+              storeActions.setTypography({
+                fontSize: fontSize + 1,
+                font,
+                lineHeight,
+              })
+            }
           />
         </View>
       </View>
@@ -93,7 +103,13 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray200}
             size={20}
-            onPress={() => storeActions.setLineHeight((lineHeight * 10 - 1) / 10)}
+            onPress={() =>
+              storeActions.setTypography({
+                font,
+                fontSize,
+                lineHeight: (lineHeight * 10 - 1) / 10,
+              })
+            }
           />
           <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
             {Math.round(lineHeight * 10) / 10}
@@ -103,7 +119,13 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray200}
             size={20}
-            onPress={() => storeActions.setLineHeight((lineHeight * 10 + 1) / 10)}
+            onPress={() =>
+              storeActions.setTypography({
+                font,
+                fontSize,
+                lineHeight: (lineHeight * 10 + 1) / 10,
+              })
+            }
           />
         </View>
       </View>
@@ -115,7 +137,13 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
     (fontName: string) => (
       <TouchableOpacity
         key={fontName}
-        onPress={() => storeActions.setFont(fontName)}
+        onPress={() =>
+          storeActions.setTypography({
+            font: fontName,
+            fontSize,
+            lineHeight,
+          })
+        }
         style={[styles.viewItemFont, font === fontName && styles.viewItemSelected]}>
         <Text style={styles.textItemFont}>{fontName}</Text>
       </TouchableOpacity>
@@ -135,7 +163,8 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
       backgroundStyle={styles.bottomSheetBackground}
       handleIndicatorStyle={styles.handleIndicator}>
       <BottomSheetView style={styles.titleContainer}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text style={styles.title}>{'Cài đặt'}</Text>
           <TouchableOpacity
             style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
@@ -186,7 +215,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   title: {
-  ...AppTypo.headline.medium,
+    ...AppTypo.headline.medium,
     color: AppPalette.gray900,
   },
   titleSection: {
