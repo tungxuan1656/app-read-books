@@ -1,7 +1,8 @@
-import { callGeminiAPI } from './gemini.service'
 import { dbService } from './database.service'
 import { getBookChapterContent } from '@/utils'
 import useAppStore from '@/controllers/store'
+import { geminiProcessFile, prepareContentForGemini } from './gemini.service'
+import { simpleMdToHtml } from '@/utils/string.helpers'
 
 /**
  * Service xử lý tóm tắt chương truyện
@@ -11,8 +12,7 @@ import useAppStore from '@/controllers/store'
  * - Return fallback message nếu lỗi
  */
 
-const DEFAULT_SUMMARY_PROMPT = `
-Bạn là một biên tập viên chuyên nghiệp, thực hiện nhiệm vụ cô đọng lại chương truyện, chuyển đổi câu chữ từ thể loại truyện convert trung quốc sang truyện dịch việt nam.
+const DEFAULT_SUMMARY_PROMPT = `Bạn là một biên tập viên chuyên nghiệp, thực hiện nhiệm vụ cô đọng lại chương truyện, chuyển đổi câu chữ từ thể loại truyện convert trung quốc sang truyện dịch việt nam.
 
 **NHIỆM VỤ CỐT LÕI:**
 Rút ngắn độ dài của chương truyện dưới đây xuống còn **50-60% độ dài bản gốc** bằng cách lược bỏ triệt để các chi tiết, mô tả, hoặc đoạn văn dư thừa, không ảnh hưởng đến mạch truyện chính, trong khi vẫn giữ nguyên hoàn toàn kết cấu và các yếu tố quan trọng của truyện, viết lại câu chữ sao cho nếu là truyện convert thì phải phù hợp với văn phong của truyện dịch việt nam.
@@ -37,19 +37,11 @@ Rút ngắn độ dài của chương truyện dưới đây xuống còn **50-6
 
 **ĐỘ DÀI MỤC TIÊU:**
 - Phiên bản sau khi cô đọng phải đạt độ dài **50-60% so với bản gốc**, không được vượt quá hoặc thấp hơn mức này quá nhiều (ví dụ: không được chỉ rút gọn xuống 85% hoặc ít hơn 50%).
-**Nội dung chương gốc cần cô đọng:**
-{{content}}
 
-Hãy bắt đầu thực hiện việc cô đọng, đảm bảo loại bỏ triệt để các chi tiết dư thừa và đạt đúng mục tiêu độ dài.
-
-**QUAN TRỌNG**: Trả về kết quả dưới dạng JSON với format sau:
-{
-  "content": "Nội dung chương truyện đã được cô đọng ở đây..."
-}
-`
+Hãy bắt đầu thực hiện việc cô đọng nội dung trong file original_content.txt, đảm bảo loại bỏ triệt để các chi tiết dư thừa và đạt đúng mục tiêu độ dài.`
 
 const getSummaryPrompt = () => {
-  const savedPrompt = useAppStore.getState().settings.geminiSummaryPrompt
+  const savedPrompt = useAppStore.getState().settings.SUMMARY_PROMPT
   return savedPrompt || DEFAULT_SUMMARY_PROMPT
 }
 
@@ -73,6 +65,7 @@ export const getSummarizedContent = async (
 
     // 2. Load nội dung gốc
     const rawContent = await getBookChapterContent(bookId, chapterNumber)
+    const processedRawContent = prepareContentForGemini(rawContent)
     if (!rawContent) {
       throw new Error('Không thể tải nội dung chương gốc')
     }
@@ -80,15 +73,18 @@ export const getSummarizedContent = async (
     // 3. Gọi Gemini API để tóm tắt
     console.log(`✨ [Summary] Summarizing: ${bookId}_ch${chapterNumber}`)
     const prompt = getSummaryPrompt()
-    const summarized = await callGeminiAPI(prompt)
+    const summarized = await geminiProcessFile(prompt, processedRawContent)
+    const htmlSummarized = simpleMdToHtml(summarized)
 
     // 4. Lưu vào database
-    await dbService.saveProcessedChapter(bookId, chapterNumber, 'summary', summarized)
+    await dbService.saveProcessedChapter(bookId, chapterNumber, 'summary', htmlSummarized)
     console.log(`💾 [Summary] Saved to cache: ${bookId}_ch${chapterNumber}`)
 
-    return summarized
+    return htmlSummarized
   } catch (error) {
     console.error(`❌ [Summary] Error: ${bookId}_ch${chapterNumber}`, error)
+
+    // Return fallback message - KHÔNG lưu vào database
     return 'Không thể tóm tắt chương truyện này'
   }
 }
