@@ -1,4 +1,4 @@
-import { AppPalette } from '@/assets'
+import { AppColors, AppPalette } from '@/assets'
 import { GToast } from '@/components/g-toast'
 import HomeBookItem, { useBookActions } from '@/components/home-book-item'
 import { VectorIcon } from '@/components/Icon'
@@ -110,8 +110,8 @@ export default function Home() {
           contentContainerStyle={{ paddingBottom: 80, flexGrow: 1 }}
           keyExtractor={(item) => item}
           ListEmptyComponent={
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={[AppTypo.body.regular, { marginHorizontal: 20 }]}>
+            <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 100 }}>
+              <Text style={[AppTypo.body.regular, { marginHorizontal: 20, color: AppColors.textExtra }]}>
                 {'Nhấn vào dấu + để thêm truyện nhé!'}
               </Text>
             </View>
