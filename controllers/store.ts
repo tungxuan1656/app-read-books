@@ -17,6 +17,7 @@ interface Settings {
   CAPCUT_TOKEN: string
   CAPCUT_WS_URL: string
   SUPABASE_ANON_KEY: string
+  PREFETCH_COUNT: number
 }
 
 interface Reading {
@@ -34,8 +35,15 @@ interface AppState {
   setReadingAIMode: (mode: ReadingAIMode) => void
 
   // Prefetch status
-  isPrefetching: boolean
-  setPrefetching: (status: boolean) => void
+  prefetchState: {
+    isRunning: boolean
+    currentBookId: string | null
+    totalChapters: number
+    processedChapters: number
+    message: string
+    errors: string[]
+  }
+  updatePrefetchState: (state: Partial<AppState['prefetchState']>) => void
 
   // reading
   reading: Reading
@@ -77,8 +85,21 @@ const useAppStore = create<AppState>()(
         setReadingAIMode: (mode: ReadingAIMode) => set({ readingAIMode: mode }),
 
         // Prefetch
-        isPrefetching: false,
-        setPrefetching: (status: boolean) => set({ isPrefetching: status }),
+        prefetchState: {
+          isRunning: false,
+          currentBookId: null,
+          totalChapters: 0,
+          processedChapters: 0,
+          message: '',
+          errors: [],
+        },
+        updatePrefetchState: (newState: Partial<AppState['prefetchState']>) =>
+          set((state) => ({
+            prefetchState: {
+              ...state.prefetchState,
+              ...newState,
+            },
+          })),
 
         // reading
         reading: {
@@ -138,6 +159,7 @@ const useAppStore = create<AppState>()(
           CAPCUT_TOKEN: '',
           CAPCUT_WS_URL: '',
           SUPABASE_ANON_KEY: '',
+          PREFETCH_COUNT: 3,
         },
         updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) =>
           set((state) => ({
@@ -170,7 +192,7 @@ const {
   updateReadingChapter,
   updateBooks,
   setReadingAIMode,
-  setPrefetching,
+  updatePrefetchState,
   nextReadingChapter,
   previousReadingChapter,
   updateReading,
@@ -183,7 +205,7 @@ export const storeActions = {
   updateReadingChapter,
   updateBooks,
   setReadingAIMode,
-  setPrefetching,
+  updatePrefetchState,
   nextReadingChapter,
   previousReadingChapter,
   updateReading,

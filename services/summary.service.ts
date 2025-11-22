@@ -43,6 +43,8 @@ const getSummaryPrompt = () => {
   return savedPrompt || DEFAULT_SUMMARY_PROMPT
 }
 
+const pendingRequests = new Map<string, Promise<string>>()
+
 /**
  * Lấy nội dung đã tóm tắt của chương
  * @param bookId - ID của sách
@@ -53,38 +55,53 @@ export const getSummarizedContent = async (
   bookId: string,
   chapterNumber: number,
 ): Promise<string> => {
-  try {
-    // 1. Kiểm tra cache trong database
-    const cached = await dbService.getProcessedChapter(bookId, chapterNumber, 'summary')
-    if (cached) {
-      console.log(`✅ [Summary] Cache hit: ${bookId}_ch${chapterNumber}`)
-      return cached.content
-    }
+  const requestKey = `${bookId}_ch${chapterNumber}_summary`
 
-    // 2. Load nội dung gốc
-    const rawContent = await getBookChapterContent(bookId, chapterNumber)
-    const processedRawContent = prepareContentForGemini(rawContent)
-    if (!rawContent) {
-      throw new Error('Không thể tải nội dung chương gốc')
-    }
-
-    // 3. Gọi Gemini API để tóm tắt
-    console.log(`✨ [Summary] Summarizing: ${bookId}_ch${chapterNumber}`)
-    const prompt = getSummaryPrompt()
-    const summarized = await geminiProcessFile(prompt, processedRawContent)
-    const htmlSummarized = simpleMdToHtml(summarized)
-
-    // 4. Lưu vào database
-    await dbService.saveProcessedChapter(bookId, chapterNumber, 'summary', htmlSummarized)
-    console.log(`💾 [Summary] Saved to cache: ${bookId}_ch${chapterNumber}`)
-
-    return htmlSummarized
-  } catch (error) {
-    console.error(`❌ [Summary] Error: ${bookId}_ch${chapterNumber}`, error)
-
-    // Return fallback message - KHÔNG lưu vào database
-    return 'Không thể tóm tắt chương truyện này'
+  // 0. Check pending requests
+  if (pendingRequests.has(requestKey)) {
+    console.log(`⏳ [Summary] Awaiting pending request: ${requestKey}`)
+    return pendingRequests.get(requestKey)!
   }
+
+  const promise = (async () => {
+    try {
+      // 1. Kiểm tra cache trong database
+      const cached = await dbService.getProcessedChapter(bookId, chapterNumber, 'summary')
+      if (cached) {
+        console.log(`✅ [Summary] Cache hit: ${bookId}_ch${chapterNumber}`)
+        return cached.content
+      }
+
+      // 2. Load nội dung gốc
+      const rawContent = await getBookChapterContent(bookId, chapterNumber)
+      if (!rawContent) {
+        throw new Error('Không thể tải nội dung chương gốc')
+      }
+      const processedRawContent = prepareContentForGemini(rawContent)
+
+      // 3. Gọi Gemini API để tóm tắt
+      console.log(`✨ [Summary] Summarizing: ${bookId}_ch${chapterNumber}`)
+      const prompt = getSummaryPrompt()
+      const summarized = await geminiProcessFile(prompt, processedRawContent)
+      const htmlSummarized = simpleMdToHtml(summarized)
+
+      // 4. Lưu vào database
+      await dbService.saveProcessedChapter(bookId, chapterNumber, 'summary', htmlSummarized)
+      console.log(`💾 [Summary] Saved to cache: ${bookId}_ch${chapterNumber}`)
+
+      return htmlSummarized
+    } catch (error) {
+      console.error(`❌ [Summary] Error: ${bookId}_ch${chapterNumber}`, error)
+
+      // Return fallback message - KHÔNG lưu vào database
+      return 'Không thể tóm tắt chương truyện này'
+    } finally {
+      pendingRequests.delete(requestKey)
+    }
+  })()
+
+  pendingRequests.set(requestKey, promise)
+  return promise
 }
 
 /**

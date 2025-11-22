@@ -55,4 +55,10 @@ export const DEFAULT_SETTING_CONFIGS: SettingConfig[] = [
     placeholder: 'Nhập Supabase Anon Key',
     description: 'Khóa ẩn danh để kết nối với Supabase',
   },
+  {
+    key: 'PREFETCH_COUNT',
+    label: 'Số chương tải trước',
+    placeholder: '3',
+    description: 'Số chương sẽ được tự động tải trước khi đọc (mặc định 3)',
+  },
 ]

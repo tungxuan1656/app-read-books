@@ -11,12 +11,17 @@ import useReadingNavigation from '@/hooks/use-reading-navigation'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useChapterPrefetch } from '@/hooks/use-chapter-prefetch'
+import { PrefetchStatus } from '@/components/prefetch-status'
 
 const Reading = () => {
   const { bookId } = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
 
   const chapter = useReadingContent(bookId)
   const { nextChapter, previousChapter, handleScroll } = useReadingNavigation(bookId)
+
+  // Activate prefetch
+  useChapterPrefetch(bookId, chapter.index)
 
   const refScroll = useRef<ScrollView | null>(null)
 
@@ -40,9 +45,12 @@ const Reading = () => {
   return (
     <View style={{ flex: 1 }}>
       <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
-        <Text style={[AppTypo.mini.regular, { marginHorizontal: 16 }]} numberOfLines={1}>
-          【{chapter.index}】{chapter.name || 'Chương không có tên'}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, gap: 8 }}>
+          <Text style={[AppTypo.mini.regular, { flex: 1 }]} numberOfLines={1}>
+            【{chapter.index}】{chapter.name || 'Chương không có tên'}
+          </Text>
+          <PrefetchStatus />
+        </View>
 
         <View style={{ flex: 1 }}>
           <ScrollView
@@ -51,9 +59,7 @@ const Reading = () => {
             scrollEventThrottle={300}
             contentContainerStyle={{ paddingVertical: 44 }}
             onScroll={handleScroll}>
-            {chapter.content !== '' ? (
-              <ContentDisplay chapterHtml={chapter.content} />
-            ) : null}
+            {chapter.content !== '' ? <ContentDisplay chapterHtml={chapter.content} /> : null}
           </ScrollView>
           {chapter.isLoading ? (
             <View style={styles.loadingOverlay}>

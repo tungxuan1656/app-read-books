@@ -37,6 +37,8 @@ const getTranslatePrompt = () => {
   return savedPrompt || DEFAULT_TRANSLATE_PROMPT
 }
 
+const pendingRequests = new Map<string, Promise<string>>()
+
 /**
  * Lấy nội dung đã dịch của chương
  * @param bookId - ID của sách
@@ -47,38 +49,53 @@ export const getTranslatedContent = async (
   bookId: string,
   chapterNumber: number,
 ): Promise<string> => {
-  try {
-    // 1. Kiểm tra cache trong database
-    const cached = await dbService.getProcessedChapter(bookId, chapterNumber, 'translate')
-    if (cached) {
-      console.log(`✅ [Translate] Cache hit: ${bookId}_ch${chapterNumber}`)
-      return cached.content
-    }
+  const requestKey = `${bookId}_ch${chapterNumber}_translate`
 
-    // 2. Load nội dung gốc
-    const rawContent = await getBookChapterContent(bookId, chapterNumber)
-    const processedRawContent = prepareContentForGemini(rawContent)
-    if (!rawContent) {
-      throw new Error('Không thể tải nội dung chương gốc')
-    }
-
-    // 3. Gọi Gemini API để dịch
-    console.log(`🌐 [Translate] Translating: ${bookId}_ch${chapterNumber}`)
-    const prompt = getTranslatePrompt()
-    const translated = await geminiProcessFile(prompt, processedRawContent)
-    const htmlTranslated = simpleMdToHtml(translated)
-
-    // 4. Lưu vào database
-    await dbService.saveProcessedChapter(bookId, chapterNumber, 'translate', htmlTranslated)
-    console.log(`💾 [Translate] Saved to cache: ${bookId}_ch${chapterNumber}`)
-
-    return htmlTranslated
-  } catch (error) {
-    console.error(`❌ [Translate] Error: ${bookId}_ch${chapterNumber}`, error)
-
-    // Return fallback message - KHÔNG lưu vào database
-    return 'Không thể dịch chương truyện này'
+  // 0. Check pending requests
+  if (pendingRequests.has(requestKey)) {
+    console.log(`⏳ [Translate] Awaiting pending request: ${requestKey}`)
+    return pendingRequests.get(requestKey)!
   }
+
+  const promise = (async () => {
+    try {
+      // 1. Kiểm tra cache trong database
+      const cached = await dbService.getProcessedChapter(bookId, chapterNumber, 'translate')
+      if (cached) {
+        console.log(`✅ [Translate] Cache hit: ${bookId}_ch${chapterNumber}`)
+        return cached.content
+      }
+
+      // 2. Load nội dung gốc
+      const rawContent = await getBookChapterContent(bookId, chapterNumber)
+      if (!rawContent) {
+        throw new Error('Không thể tải nội dung chương gốc')
+      }
+      const processedRawContent = prepareContentForGemini(rawContent)
+
+      // 3. Gọi Gemini API để dịch
+      console.log(`🌐 [Translate] Translating: ${bookId}_ch${chapterNumber}`)
+      const prompt = getTranslatePrompt()
+      const translated = await geminiProcessFile(prompt, processedRawContent)
+      const htmlTranslated = simpleMdToHtml(translated)
+
+      // 4. Lưu vào database
+      await dbService.saveProcessedChapter(bookId, chapterNumber, 'translate', htmlTranslated)
+      console.log(`💾 [Translate] Saved to cache: ${bookId}_ch${chapterNumber}`)
+
+      return htmlTranslated
+    } catch (error) {
+      console.error(`❌ [Translate] Error: ${bookId}_ch${chapterNumber}`, error)
+
+      // Return fallback message - KHÔNG lưu vào database
+      return 'Không thể dịch chương truyện này'
+    } finally {
+      pendingRequests.delete(requestKey)
+    }
+  })()
+
+  pendingRequests.set(requestKey, promise)
+  return promise
 }
 
 /**
