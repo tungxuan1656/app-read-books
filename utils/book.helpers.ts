@@ -30,9 +30,18 @@ export const readFolderBooks = async (): Promise<Book[]> => {
   const books: Book[] = []
 
   for (const path of listPathBooks) {
-    const book = await getBook(path)
-    if (book !== null) {
-      books.push(book)
+    try {
+      const book = await getBook(path)
+      if (book !== null) {
+        books.push(book)
+      }
+      else {
+        const errorDir = new Directory(path)
+        errorDir.delete()
+        console.log('🗑️ Deleted invalid book directory at path:', path)
+      }
+    } catch (error) {
+      console.error('❌ Error reading book at path:', path, error)
     }
   }
 
@@ -94,10 +103,7 @@ export const deleteBook = async (bookPath: string): Promise<void> => {
 /**
  * Lấy nội dung HTML của một chapter
  */
-export const getBookChapterContent = async (
-  bookId: string,
-  chapter: number,
-): Promise<string> => {
+export const getBookChapterContent = async (bookId: string, chapter: number): Promise<string> => {
   try {
     const chapterFile = new File(
       new Directory(Paths.document, 'books'),

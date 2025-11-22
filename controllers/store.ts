@@ -17,7 +17,7 @@ interface Settings {
   CAPCUT_TOKEN: string
   CAPCUT_WS_URL: string
   SUPABASE_ANON_KEY: string
-  PREFETCH_COUNT: number
+  PREFETCH_COUNT: string
 }
 
 interface Reading {
@@ -159,7 +159,7 @@ const useAppStore = create<AppState>()(
           CAPCUT_TOKEN: '',
           CAPCUT_WS_URL: '',
           SUPABASE_ANON_KEY: '',
-          PREFETCH_COUNT: 3,
+          PREFETCH_COUNT: '3',
         },
         updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) =>
           set((state) => ({

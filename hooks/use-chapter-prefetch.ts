@@ -4,7 +4,7 @@ import { getTranslatedContent } from '@/services/translate.service'
 import { useEffect, useRef } from 'react'
 
 export const useChapterPrefetch = (bookId: string, currentChapter: number) => {
-  const PREFETCH_COUNT = useAppStore((s) => s.settings.PREFETCH_COUNT || 3)
+  const PREFETCH_COUNT = useAppStore((s) => s.settings.PREFETCH_COUNT || '3')
   const readingAIMode = useAppStore((s) => s.readingAIMode)
   const book = useAppStore((s) => s.id2Book[bookId])
 
@@ -26,7 +26,7 @@ export const useChapterPrefetch = (bookId: string, currentChapter: number) => {
     const runPrefetch = async () => {
       const totalChapters = book.references?.length || 0
       const startChapter = currentChapter + 1
-      const endChapter = Math.min(startChapter + PREFETCH_COUNT - 1, totalChapters)
+      const endChapter = Math.min(startChapter + +PREFETCH_COUNT - 1, totalChapters)
 
       if (startChapter > endChapter) return
 
