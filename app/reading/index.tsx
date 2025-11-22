@@ -1,5 +1,4 @@
 import { ContentDisplay } from '@/components/content-display'
-import { GSpinner } from '@/components/g-spinner'
 import ReadingButtonBack from '@/components/reading/reading-button-back'
 import ReadingButtonLeftControl from '@/components/reading/reading-button-left-control'
 import ReadingButtonScrollBottom from '@/components/reading/reading-button-scroll-bottom'
@@ -11,7 +10,7 @@ import useReadingContent from '@/hooks/use-reading-content'
 import useReadingNavigation from '@/hooks/use-reading-navigation'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 const Reading = () => {
   const { bookId } = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
@@ -34,15 +33,6 @@ const Reading = () => {
     refScroll.current?.scrollTo({ y: 0, animated: false })
   }, [chapter.index])
 
-  // Show/hide loading spinner
-  useEffect(() => {
-    if (chapter.isLoading) {
-      GSpinner.show({ label: 'Đang tải...' })
-    } else {
-      GSpinner.hide()
-    }
-  }, [chapter.isLoading])
-
   const handleScrollToBottom = useCallback(() => {
     refScroll.current?.scrollToEnd({ animated: true })
   }, [])
@@ -54,16 +44,26 @@ const Reading = () => {
           【{chapter.index}】{chapter.name || 'Chương không có tên'}
         </Text>
 
-        <ScrollView
-          style={{ flex: 1 }}
-          ref={refScroll}
-          scrollEventThrottle={300}
-          contentContainerStyle={{ paddingVertical: 44 }}
-          onScroll={handleScroll}>
-          {chapter.content !== '' ? (
-            <ContentDisplay chapterHtml={chapter.content} onLoaded={GSpinner.hide} />
+        <View style={{ flex: 1 }}>
+          <ScrollView
+            style={{ flex: 1 }}
+            ref={refScroll}
+            scrollEventThrottle={300}
+            contentContainerStyle={{ paddingVertical: 44 }}
+            onScroll={handleScroll}>
+            {chapter.content !== '' ? (
+              <ContentDisplay chapterHtml={chapter.content} />
+            ) : null}
+          </ScrollView>
+          {chapter.isLoading ? (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size={'small'} />
+              <Text style={[AppTypo.footnote.regular, { marginTop: 8, marginHorizontal: 20 }]}>
+                {chapter.message}
+              </Text>
+            </View>
           ) : null}
-        </ScrollView>
+        </View>
 
         <ReadingButtonBack />
         <ReadingButtonTopNavigation nextChapter={nextChapter} previousChapter={previousChapter} />
@@ -75,3 +75,17 @@ const Reading = () => {
 }
 
 export default Reading
+
+const styles = StyleSheet.create({
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F1E5',
+    paddingBottom: 40,
+  },
+})
