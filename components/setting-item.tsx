@@ -2,7 +2,7 @@ import { AppColors, AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppTypo } from '@/constants'
 import { SettingConfig } from '@/constants/SettingConfigs'
-import { MMKVStorage } from '@/controllers/mmkv'
+import useAppStore from '@/controllers/store'
 import { router } from 'expo-router'
 import React from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -12,7 +12,8 @@ interface SettingItemProps {
 }
 
 export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
-  const currentValue = (MMKVStorage.get(config.key) as string) || ''
+  const settings = useAppStore().settings
+  const currentValue = (settings[config.key as keyof typeof settings] as string) || ''
   const hasValue = currentValue && currentValue.trim().length > 0
 
   const handlePress = () => {
@@ -21,10 +22,8 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
       params: {
         settingKey: config.key,
         label: config.label,
-        inputType: config.inputType,
         placeholder: config.placeholder,
         description: config.description,
-        lines: config.lines?.toString(),
       },
     })
   }

@@ -2,9 +2,10 @@ import { AppColors } from '@/assets'
 import { Button } from '@/components/Button'
 import { GToast } from '@/components/g-toast'
 import { Divider, Screen } from '@/components/Screen'
-import { AppTypo, MMKVKeys } from '@/constants'
+import { AppTypo } from '@/constants'
 import { SettingConfig } from '@/constants/SettingConfigs'
-import { MMKVStorage } from '@/controllers/mmkv'
+import { storeActions } from '@/controllers/store'
+import useAppStore from '@/controllers/store'
 import { router, useLocalSearchParams } from 'expo-router'
 import React from 'react'
 import { StyleSheet, Text, TextInput, View } from 'react-native'
@@ -13,33 +14,30 @@ export default function SettingEditor() {
   const params = useLocalSearchParams<{
     settingKey: string
     label: string
-    inputType: string
     placeholder: string
     description?: string
-    lines?: string
   }>()
 
   const settingKey = params.settingKey
   const label = params.label
-  const inputType = params.inputType as 'single' | 'multiline'
   const placeholder = params.placeholder
   const description = params.description
-  const lines = params.lines ? parseInt(params.lines) : inputType === 'multiline' ? 8 : 2
 
-  // Lấy giá trị hiện tại từ MMKV
-  const currentValue = (MMKVStorage.get(settingKey) as string) || ''
+  // Lấy giá trị hiện tại từ store
+  const settings = useAppStore.getState().settings
+  const currentValue = (settings[settingKey as keyof typeof settings] as string) || ''
   const refTextValue = React.useRef<string>(currentValue)
 
   const handleSave = () => {
     const value = refTextValue.current
-    MMKVStorage.set(settingKey, value)
+    storeActions.updateSetting(settingKey as any, value)
     GToast.success({ message: `Đã lưu ${label}` })
     router.canGoBack() && router.back()
   }
 
   const handleClear = () => {
     refTextValue.current = ''
-    MMKVStorage.set(settingKey, '')
+    storeActions.updateSetting(settingKey as any, '')
     GToast.success({ message: `Đã xóa ${label}` })
   }
 
@@ -48,10 +46,8 @@ export default function SettingEditor() {
       <Screen.Header title={label} />
       <Divider />
       <Screen.Content
-        useScroll
         useKeyboard
-        contentContainerStyle={{ padding: 16, gap: 12, paddingVertical: 20 }}
-        style={{ backgroundColor: AppColors.bgExtra }}>
+        style={{ backgroundColor: AppColors.bgExtra, padding: 16, gap: 12, paddingVertical: 20 }}>
         {description ? (
           <Text style={[AppTypo.caption.regular, { color: AppColors.textBlur }]}>
             {description}
@@ -61,15 +57,11 @@ export default function SettingEditor() {
         <TextInput
           placeholder={placeholder}
           onChangeText={(text) => (refTextValue.current = text)}
-          style={[
-            styles.input,
-            { height: lines * 20 + 40 },
-            inputType === 'multiline' ? AppTypo.body.regular : AppTypo.body.medium,
-          ]}
-          multiline={inputType === 'multiline'}
-          numberOfLines={lines}
+          style={[styles.input, AppTypo.body.regular]}
+          multiline={true}
           defaultValue={currentValue}
           textAlignVertical="top"
+          autoCapitalize="none"
         />
       </Screen.Content>
       <Screen.Footer>
@@ -94,7 +86,8 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.white,
     borderWidth: 1,
     borderRadius: 20,
-    padding: 12,
+    padding: 16,
     lineHeight: 20,
+    flex: 1,
   },
 })

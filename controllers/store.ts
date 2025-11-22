@@ -4,6 +4,18 @@ import { MMKVStorage } from './mmkv'
 
 export type ReadingMode = 'normal' | 'translate' | 'summary'
 
+interface Settings {
+  isReading: boolean
+  currentReadingOffset: number
+  currentBookId: string
+  geminiApiKey: string
+  geminiModel: string
+  geminiSummaryPrompt: string
+  geminiTranslatePrompt: string
+  capcutToken: string
+  capcutWsUrl: string
+}
+
 interface AppState {
   // Font settings
   font: string
@@ -37,6 +49,11 @@ interface AppState {
   updateReadingChapter: (bookId: string, chapter: number) => void
   nextReadingChapter: (bookId: string) => void
   previousReadingChapter: (bookId: string) => void
+
+  // Settings (persisted via MMKV)
+  settings: Settings
+  updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void
+  updateSettings: (partialSettings: Partial<Settings>) => void
 }
 
 const useAppStore = create<AppState>()(
@@ -112,6 +129,33 @@ const useAppStore = create<AppState>()(
 
         isEditingBook: false,
         setIsEditingBook: (isEditing: boolean) => set({ isEditingBook: isEditing }),
+
+        // Settings (persisted via MMKV)
+        settings: {
+          isReading: false,
+          currentReadingOffset: 0,
+          currentBookId: '',
+          geminiApiKey: '',
+          geminiModel: '',
+          geminiSummaryPrompt: '',
+          geminiTranslatePrompt: '',
+          capcutToken: '',
+          capcutWsUrl: '',
+        },
+        updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) =>
+          set((state) => ({
+            settings: {
+              ...state.settings,
+              [key]: value,
+            },
+          })),
+        updateSettings: (partialSettings: Partial<Settings>) =>
+          set((state) => ({
+            settings: {
+              ...state.settings,
+              ...partialSettings,
+            },
+          })),
       }),
       {
         name: 'appstore',
@@ -138,6 +182,8 @@ const {
   nextReadingChapter,
   previousReadingChapter,
   setIsEditingBook,
+  updateSetting,
+  updateSettings,
 } = useAppStore.getState()
 
 export const storeActions = {
@@ -153,6 +199,8 @@ export const storeActions = {
   nextReadingChapter,
   previousReadingChapter,
   setIsEditingBook,
+  updateSetting,
+  updateSettings,
 }
 
 export default useAppStore

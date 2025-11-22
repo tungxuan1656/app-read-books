@@ -1,8 +1,7 @@
 import { Directory, File, Paths } from 'expo-file-system'
 import { DeviceEventEmitter } from 'react-native'
 import { preprocessSentence } from '../utils/string.helpers'
-import { MMKVStorage } from '@/controllers/mmkv'
-import { MMKVKeys } from '@/constants'
+import useAppStore from '@/controllers/store'
 
 const CACHE_DIRECTORY = new Directory(Paths.document, 'tts_audio')
 
@@ -23,7 +22,7 @@ export const resetTTSCancellation = () => {
 // --- WebSocket Audio Generation ---
 
 function createCapcutMessage(sentence: string, voice: string) {
-  const token = MMKVStorage.get(MMKVKeys.CAPCUT_TOKEN) as string
+  const token = useAppStore.getState().settings.capcutToken
 
   if (!token) {
     throw new Error(
@@ -44,7 +43,7 @@ function createCapcutMessage(sentence: string, voice: string) {
 }
 
 function getCapcutWebSocketUrl(): string {
-  const customWsUrl = MMKVStorage.get(MMKVKeys.CAPCUT_WS_URL) as string
+  const customWsUrl = useAppStore.getState().settings.capcutWsUrl
   
   // Sử dụng URL custom nếu có, không thì dùng default
   if (customWsUrl && customWsUrl.trim()) {

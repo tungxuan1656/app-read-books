@@ -1,11 +1,10 @@
 import { GToastComponent } from '@/components/g-toast'
-import { MMKVKeys } from '@/constants'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { router, Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { MMKVStorage } from '../controllers/mmkv'
+import useAppStore from '@/controllers/store'
 import { audioPlayerService } from '../services/audio-player.service'
 import { stringifyParams } from '@/hooks/use-typed-local-search-params'
 import { getCurrentBookId } from '@/utils'
@@ -24,7 +23,7 @@ try {
 
 export default function RootLayout() {
   useEffect(() => {
-    const IS_READING = MMKVStorage.get(MMKVKeys.IS_READING)
+    const IS_READING = useAppStore.getState().settings.isReading
     if (IS_READING) {
       setTimeout(() => {
         router.push({

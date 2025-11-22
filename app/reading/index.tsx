@@ -6,8 +6,8 @@ import ReadingButtonScrollBottom from '@/components/reading/reading-button-scrol
 import ReadingButtonTopNavigation from '@/components/reading/reading-button-top-navigation'
 import { Screen } from '@/components/Screen'
 import SheetBookInfo, { SheetBookInfoRef } from '@/components/sheet-book-info'
-import { AppTypo, MMKVKeys } from '@/constants'
-import { MMKVStorage } from '@/controllers/mmkv'
+import { AppTypo } from '@/constants'
+import useAppStore from '@/controllers/store'
 import useReadingContent from '@/hooks/use-reading-content'
 import useReadingNavigation from '@/hooks/use-reading-navigation'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
@@ -30,7 +30,7 @@ const Reading = () => {
   // Restore scroll position on mount
   useEffect(() => {
     const timer = setTimeout(() => {
-      const offset = MMKVStorage.get(MMKVKeys.CURRENT_READING_OFFSET)
+      const offset = useAppStore.getState().settings.currentReadingOffset
       if (offset) {
         refScroll.current?.scrollTo({ y: offset, animated: false })
       }

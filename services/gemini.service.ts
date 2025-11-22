@@ -1,5 +1,5 @@
 import { MMKVKeys } from '@/constants'
-import { MMKVStorage } from '@/controllers/mmkv'
+import useAppStore from '@/controllers/store'
 import { formatContentForTTS } from '@/utils/string.helpers'
 
 export interface GeminiSummaryRequest {
@@ -14,9 +14,9 @@ export interface GeminiSummaryResponse {
 }
 
 // Common configuration for Gemini API
-const getGeminiApiKey = () => MMKVStorage.get(MMKVKeys.GEMINI_API_KEY) || ''
+const getGeminiApiKey = () => useAppStore.getState().settings.geminiApiKey || ''
 const getGeminiModel = () => {
-  const customModel = MMKVStorage.get(MMKVKeys.GEMINI_MODEL) as string
+  const customModel = useAppStore.getState().settings.geminiModel
   return customModel && customModel.trim() ? customModel.trim() : 'gemini-2.5-flash-lite'
 }
 const getGeminiApiUrl = () => {
@@ -56,12 +56,12 @@ Output: "Hắn chằm chằm nhìn vào hàng dương liễu không xa phía tr�
 Hãy chuyển đổi văn bản sau sang văn phong tiếng Việt tự nhiên:`
 
 const getTranslatePrompt = () => {
-  const savedPrompt = MMKVStorage.get(MMKVKeys.GEMINI_TRANSLATE_PROMPT)
+  const savedPrompt = useAppStore.getState().settings.geminiTranslatePrompt
   return savedPrompt || DEFAULT_TRANSLATE_PROMPT
 }
 
 const getPrompt = () => {
-  const savedPrompt = MMKVStorage.get(MMKVKeys.GEMINI_SUMMARY_PROMPT)
+  const savedPrompt = useAppStore.getState().settings.geminiSummaryPrompt
   if (!!savedPrompt) {
     return savedPrompt
   }

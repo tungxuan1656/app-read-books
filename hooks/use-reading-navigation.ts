@@ -1,5 +1,4 @@
 import { MMKVKeys } from '@/constants'
-import { MMKVStorage } from '@/controllers/mmkv'
 import useAppStore, { storeActions } from '@/controllers/store'
 import { saveCurrentBookId } from '@/utils'
 import React, { useCallback, useEffect, useRef } from 'react'
@@ -22,10 +21,10 @@ export default function useReadingNavigation(bookId: string) {
     if (!currentIndex) {
       storeActions.updateReadingChapter(bookId, 1)
     }
-    MMKVStorage.set(MMKVKeys.IS_READING, true)
+    storeActions.updateSetting('isReading', true)
     
     return () => {
-      MMKVStorage.set(MMKVKeys.IS_READING, false)
+      storeActions.updateSetting('isReading', false)
       clearTimeout(refTimeout.current)
       clearTimeout(refTimeoutSave.current)
     }
@@ -54,7 +53,7 @@ export default function useReadingNavigation(bookId: string) {
   const saveOffset = useCallback((offset: number) => {
     clearTimeout(refTimeoutSave.current)
     refTimeoutSave.current = setTimeout(() => {
-      MMKVStorage.set(MMKVKeys.CURRENT_READING_OFFSET, offset)
+      storeActions.updateSetting('currentReadingOffset', offset)
     }, 500)
   }, [])
 
