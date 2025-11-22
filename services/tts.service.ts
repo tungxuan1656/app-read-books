@@ -22,7 +22,7 @@ export const resetTTSCancellation = () => {
 // --- WebSocket Audio Generation ---
 
 function createCapcutMessage(sentence: string, voice: string) {
-  const token = useAppStore.getState().settings.capcutToken
+  const token = useAppStore.getState().settings.CAPCUT_TOKEN
 
   if (!token) {
     throw new Error(
@@ -43,7 +43,7 @@ function createCapcutMessage(sentence: string, voice: string) {
 }
 
 function getCapcutWebSocketUrl(): string {
-  const customWsUrl = useAppStore.getState().settings.capcutWsUrl
+  const customWsUrl = useAppStore.getState().settings.CAPCUT_WS_URL
   
   // Sử dụng URL custom nếu có, không thì dùng default
   if (customWsUrl && customWsUrl.trim()) {
