@@ -81,7 +81,7 @@ export default function Home() {
           gap: 8,
           justifyContent: 'space-between',
         }}>
-        <Text style={[AppTypo.h3.semiBold, { marginLeft: 16 }]}>{'Danh sách truyện'}</Text>
+        <Text style={[AppTypo.h4.semiBold, { marginLeft: 16 }]}>{'Danh sách truyện'}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <VectorIcon
             name="settings"
@@ -107,8 +107,15 @@ export default function Home() {
           data={bookIds}
           ItemSeparatorComponent={Divider}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingBottom: 80 }}
+          contentContainerStyle={{ paddingBottom: 80, flexGrow: 1 }}
           keyExtractor={(item) => item}
+          ListEmptyComponent={
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={[AppTypo.body.regular, { marginHorizontal: 20 }]}>
+                {'Nhấn vào dấu + để thêm truyện nhé!'}
+              </Text>
+            </View>
+          }
         />
       </Screen.Content>
     </Screen.Container>
