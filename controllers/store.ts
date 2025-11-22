@@ -10,9 +10,6 @@ interface Typography {
 }
 
 interface Settings {
-  isReading: boolean
-  currentReadingOffset: number
-  currentBookId: string
   geminiApiKey: string
   geminiModel: string
   geminiSummaryPrompt: string
@@ -21,10 +18,16 @@ interface Settings {
   capcutWsUrl: string
 }
 
+interface Reading {
+  bookId: string
+  onScreen: boolean
+  offset: number
+}
+
 interface AppState {
   //typography
   typography: Typography
-  setTypography: (typography: Typography) => void
+  setTypography: (typography: Partial<Typography>) => void
   // Reading mode
   readingAIMode: ReadingAIMode
   setReadingAIMode: (mode: ReadingAIMode) => void
@@ -33,10 +36,10 @@ interface AppState {
   isPrefetching: boolean
   setPrefetching: (status: boolean) => void
 
-  // home
-  isEditingBook: boolean
-  setIsEditingBook: (isEditing: boolean) => void
-
+  // reading
+  reading: Reading
+  updateReading: (newReading: Partial<Reading>) => void
+  // books
   bookIds: string[]
   id2Book: Record<string, Book>
   id2BookReadingChapter: Record<string, number>
@@ -61,7 +64,13 @@ const useAppStore = create<AppState>()(
           fontSize: 24,
           lineHeight: 1.5,
         },
-        setTypography: (typography: Typography) => set({ typography }),
+        setTypography: (typography: Partial<Typography>) =>
+          set((state) => ({
+            typography: {
+              ...state.typography,
+              ...typography,
+            },
+          })),
         // Reading mode
         readingAIMode: 'none',
         setReadingAIMode: (mode: ReadingAIMode) => set({ readingAIMode: mode }),
@@ -70,6 +79,21 @@ const useAppStore = create<AppState>()(
         isPrefetching: false,
         setPrefetching: (status: boolean) => set({ isPrefetching: status }),
 
+        // reading
+        reading: {
+          bookId: '',
+          onScreen: false,
+          offset: 0,
+        },
+        updateReading: (newReading: Partial<Reading>) =>
+          set((state) => ({
+            reading: {
+              ...state.reading,
+              ...newReading,
+            },
+          })),
+
+        // books
         bookIds: [],
         id2Book: {},
         id2BookReadingChapter: {},
@@ -104,14 +128,8 @@ const useAppStore = create<AppState>()(
             },
           })),
 
-        isEditingBook: false,
-        setIsEditingBook: (isEditing: boolean) => set({ isEditingBook: isEditing }),
-
         // Settings (persisted via MMKV)
         settings: {
-          isReading: false,
-          currentReadingOffset: 0,
-          currentBookId: '',
           geminiApiKey: '',
           geminiModel: '',
           geminiSummaryPrompt: '',
@@ -153,7 +171,7 @@ const {
   setPrefetching,
   nextReadingChapter,
   previousReadingChapter,
-  setIsEditingBook,
+  updateReading,
   updateSetting,
   updateSettings,
   setTypography,
@@ -166,7 +184,7 @@ export const storeActions = {
   setPrefetching,
   nextReadingChapter,
   previousReadingChapter,
-  setIsEditingBook,
+  updateReading,
   updateSetting,
   updateSettings,
   setTypography,

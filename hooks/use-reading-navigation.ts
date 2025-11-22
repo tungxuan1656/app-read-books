@@ -1,6 +1,4 @@
-import { MMKVKeys } from '@/constants'
 import useAppStore, { storeActions } from '@/controllers/store'
-import { saveCurrentBookId } from '@/utils'
 import React, { useCallback, useEffect, useRef } from 'react'
 
 /**
@@ -16,15 +14,14 @@ export default function useReadingNavigation(bookId: string) {
 
   // Initialize reading state on mount
   useEffect(() => {
-    saveCurrentBookId(bookId)
     const currentIndex = useAppStore.getState().id2BookReadingChapter[bookId]
     if (!currentIndex) {
       storeActions.updateReadingChapter(bookId, 1)
     }
-    storeActions.updateSetting('isReading', true)
-    
+    storeActions.updateReading({ onScreen: true, bookId })
+
     return () => {
-      storeActions.updateSetting('isReading', false)
+      storeActions.updateReading({ onScreen: false, bookId: '' })
       clearTimeout(refTimeout.current)
       clearTimeout(refTimeoutSave.current)
     }
@@ -53,7 +50,7 @@ export default function useReadingNavigation(bookId: string) {
   const saveOffset = useCallback((offset: number) => {
     clearTimeout(refTimeoutSave.current)
     refTimeoutSave.current = setTimeout(() => {
-      storeActions.updateSetting('currentReadingOffset', offset)
+      storeActions.updateReading({ offset })
     }, 500)
   }, [])
 
@@ -62,14 +59,14 @@ export default function useReadingNavigation(bookId: string) {
       const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent
       const offset = Math.round(contentOffset.y + layoutMeasurement.height)
       const contentHeight = Math.round(contentSize.height)
-      
+
       saveOffset(contentOffset.y)
-      
+
       // Auto next chapter when scrolling to bottom
       if (offset > contentHeight + 70) {
         nextChapter(500)
       }
-      
+
       // Auto previous chapter when pull to top
       if (contentOffset.y < -80) {
         previousChapter(500)

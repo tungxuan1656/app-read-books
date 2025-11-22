@@ -2,13 +2,13 @@ import { useCallback, useRef } from 'react'
 import { dbService } from '@/services/database.service'
 import { translateChapter, summarizeChapter } from '@/services/gemini.service'
 import { getBookChapterContent } from '@/utils'
-import type { ReadingMode } from '@/controllers/store'
+import { ReadingAIMode } from '@/@types/common'
 
 export default function useContentProcessor() {
   const processingRef = useRef<Set<string>>(new Set())
 
   const processContent = useCallback(
-    async (bookId: string, chapter: number, mode: ReadingMode): Promise<string | null> => {
+    async (bookId: string, chapter: number, mode: ReadingAIMode): Promise<string | null> => {
       const key = `${bookId}_${chapter}_${mode}`
 
       // Prevent duplicate processing
@@ -21,7 +21,7 @@ export default function useContentProcessor() {
         processingRef.current.add(key)
 
         // 1. Check database cache for translate/summary modes
-        if (mode !== 'normal') {
+        if (mode !== 'none') {
           const cached = await dbService.getProcessedChapter(bookId, chapter, mode)
           if (cached) {
             console.log(`✅ Cache hit: ${key}`)
@@ -39,7 +39,7 @@ export default function useContentProcessor() {
         let processed: string
 
         switch (mode) {
-          case 'normal':
+          case 'none':
             processed = rawContent
             break
 
@@ -58,7 +58,7 @@ export default function useContentProcessor() {
         }
 
         // 4. Save to cache (except normal mode)
-        if (mode !== 'normal') {
+        if (mode !== 'none') {
           await dbService.saveProcessedChapter(bookId, chapter, mode, processed)
           console.log(`💾 Saved to cache: ${key}`)
         }
@@ -66,7 +66,7 @@ export default function useContentProcessor() {
         return processed
       } catch (error) {
         console.error(`❌ Error processing ${key}:`, error)
-        
+
         // Throw error với message rõ ràng cho user
         if (error instanceof Error) {
           throw error // Re-throw để caller xử lý
@@ -77,7 +77,7 @@ export default function useContentProcessor() {
         processingRef.current.delete(key)
       }
     },
-    []
+    [],
   )
 
   return { processContent }

@@ -54,13 +54,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray200}
             size={20}
-            onPress={() =>
-              storeActions.setTypography({
-                fontSize: fontSize - 1,
-                font,
-                lineHeight,
-              })
-            }
+            onPress={() => storeActions.setTypography({ fontSize: fontSize - 1 })}
           />
           <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
             {fontSize}
@@ -70,13 +64,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray200}
             size={20}
-            onPress={() =>
-              storeActions.setTypography({
-                fontSize: fontSize + 1,
-                font,
-                lineHeight,
-              })
-            }
+            onPress={() => storeActions.setTypography({ fontSize: fontSize + 1 })}
           />
         </View>
       </View>
@@ -94,13 +82,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray200}
             size={20}
-            onPress={() =>
-              storeActions.setTypography({
-                font,
-                fontSize,
-                lineHeight: (lineHeight * 10 - 1) / 10,
-              })
-            }
+            onPress={() => storeActions.setTypography({ lineHeight: (lineHeight * 10 - 1) / 10 })}
           />
           <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
             {Math.round(lineHeight * 10) / 10}
@@ -110,13 +92,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             font="FontAwesome6"
             color={AppPalette.gray200}
             size={20}
-            onPress={() =>
-              storeActions.setTypography({
-                font,
-                fontSize,
-                lineHeight: (lineHeight * 10 + 1) / 10,
-              })
-            }
+            onPress={() => storeActions.setTypography({ lineHeight: (lineHeight * 10 + 1) / 10 })}
           />
         </View>
       </View>
@@ -128,13 +104,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
     (fontName: string) => (
       <TouchableOpacity
         key={fontName}
-        onPress={() =>
-          storeActions.setTypography({
-            font: fontName,
-            fontSize,
-            lineHeight,
-          })
-        }
+        onPress={() => storeActions.setTypography({ font: fontName })}
         style={[styles.viewItemFont, font === fontName && styles.viewItemSelected]}>
         <Text style={styles.textItemFont}>{fontName}</Text>
       </TouchableOpacity>

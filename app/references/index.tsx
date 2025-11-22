@@ -1,5 +1,4 @@
 import { Divider, Screen } from '@/components/Screen'
-import { getCurrentBookId } from '@/utils'
 import { router } from 'expo-router'
 import React, { useLayoutEffect, useRef } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -10,8 +9,9 @@ import { AppPalette } from '@/assets'
 
 const References = () => {
   const refList = useRef<FlatList | null>(null)
-  const book = useAppStore((s) => s.id2Book[getCurrentBookId()])
-  const currentIndex = useAppStore((s) => s.id2BookReadingChapter[getCurrentBookId()] ?? 0)
+  const bookId = useAppStore((s) => s.reading.bookId)
+  const book = useAppStore((s) => s.id2Book[bookId])
+  const currentIndex = useAppStore((s) => s.id2BookReadingChapter[bookId] ?? 0)
 
   useLayoutEffect(() => {
     const references = book?.references ?? []
@@ -25,7 +25,7 @@ const References = () => {
   }, [book, currentIndex])
 
   const setChapter = (chapter: number) => {
-    storeActions.updateReadingChapter(getCurrentBookId(), chapter)
+    storeActions.updateReadingChapter(bookId, chapter)
     router.back()
   }
 

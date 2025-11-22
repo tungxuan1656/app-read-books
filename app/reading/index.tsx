@@ -11,7 +11,6 @@ import useAppStore from '@/controllers/store'
 import useReadingContent from '@/hooks/use-reading-content'
 import useReadingNavigation from '@/hooks/use-reading-navigation'
 import { useTypedLocalSearchParams } from '@/hooks/use-typed-local-search-params'
-import { getCurrentBookId } from '@/utils'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 
@@ -30,7 +29,7 @@ const Reading = () => {
   // Restore scroll position on mount
   useEffect(() => {
     const timer = setTimeout(() => {
-      const offset = useAppStore.getState().settings.currentReadingOffset
+      const offset = useAppStore.getState().reading.offset
       if (offset) {
         refScroll.current?.scrollTo({ y: offset, animated: false })
       }
@@ -53,7 +52,7 @@ const Reading = () => {
   }, [chapter.isLoading])
 
   const openBook = useCallback(() => {
-    const bookId = getCurrentBookId()
+    const bookId = useAppStore.getState().reading.bookId
     refBookInfoSheet.current?.present(bookId)
   }, [])
 

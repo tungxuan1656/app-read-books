@@ -23,8 +23,6 @@ export {
   deleteBook,
   getBookChapterContent,
   getChapterHtml,
-  getCurrentBookId,
-  saveCurrentBookId,
   getListFonts,
 } from './book.helpers'
 
@@ -43,4 +41,3 @@ export {
   getBookCacheStats,
   clearAllCache,
 } from './content-cache.helpers'
-

@@ -1,9 +1,7 @@
-import { AppColors, AppPalette } from '@/assets'
-import useAppStore, { storeActions } from '@/controllers/store'
-import React, { useCallback, useMemo } from 'react'
+import { AppPalette } from '@/assets'
+import React, { useCallback } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { VectorIcon } from '../Icon'
-import { getCurrentBookId } from '@/utils'
 import { router } from 'expo-router'
 
 export default function ReadingButtonTopNavigation({
@@ -13,59 +11,12 @@ export default function ReadingButtonTopNavigation({
   previousChapter: () => void
   nextChapter: () => void
 }) {
-  const currentBookId = useMemo(() => getCurrentBookId(), [])
-  const readingMode = useAppStore((s) => s.readingMode)
-
   const handleViewReferences = useCallback(() => {
-    if (!currentBookId) return
-
-    router.navigate({ pathname: '/references', params: { bookId: currentBookId } })
-  }, [currentBookId])
-
-  const getModeButtonStyle = (mode: string) => ({
-    width: 28,
-    height: 28,
-    borderRadius: 40,
-    backgroundColor: readingMode === mode ? AppPalette.blue50 : 'white',
-  })
-
-  const getModeButtonColor = (mode: string) =>
-    readingMode === mode ? AppColors.textActivate : AppPalette.gray500
+    router.navigate({ pathname: '/references' })
+  }, [])
 
   return (
     <View style={styles.viewContainer}>
-      {/* Translate Button */}
-      <VectorIcon
-        name="language"
-        font="FontAwesome6"
-        size={12}
-        buttonStyle={getModeButtonStyle('translate')}
-        color={getModeButtonColor('translate')}
-        onPress={() => {
-          if (readingMode === 'translate') {
-            storeActions.setReadingMode('normal')
-          } else {
-            storeActions.setReadingMode('translate')
-          }
-        }}
-      />
-
-      {/* Summary Button */}
-      <VectorIcon
-        name="wand-magic-sparkles"
-        font="FontAwesome6"
-        size={12}
-        buttonStyle={getModeButtonStyle('summary')}
-        color={getModeButtonColor('summary')}
-        onPress={() => {
-          if (readingMode === 'summary') {
-            storeActions.setReadingMode('normal')
-          } else {
-            storeActions.setReadingMode('summary')
-          }
-        }}
-      />
-
       {/* Navigation */}
       <View style={styles.viewNavigate}>
         <VectorIcon

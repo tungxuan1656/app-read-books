@@ -1,6 +1,4 @@
 import { GToast } from '@/components/g-toast'
-import { MMKVKeys } from '@/constants'
-import useAppStore, { storeActions } from '@/controllers/store'
 import { Directory, File, Paths } from 'expo-file-system'
 
 /**
@@ -125,20 +123,6 @@ export const getChapterHtml = (html: string): string => {
       </body>
     </html>
   `
-}
-
-/**
- * Lấy book ID hiện tại đang đọc
- */
-export const getCurrentBookId = (): string => {
-  return useAppStore.getState().settings.currentBookId || ''
-}
-
-/**
- * Lưu book ID hiện tại
- */
-export const saveCurrentBookId = (bookId: string): void => {
-  storeActions.updateSetting('currentBookId', bookId)
 }
 
 /**

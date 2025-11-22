@@ -7,7 +7,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import useAppStore from '@/controllers/store'
 import { audioPlayerService } from '../services/audio-player.service'
 import { stringifyParams } from '@/hooks/use-typed-local-search-params'
-import { getCurrentBookId } from '@/utils'
 import { GSpinnerComponent } from '@/components/g-spinner'
 import { cleanupTTSOnAppStart } from '@/hooks/use-tts'
 
@@ -23,12 +22,12 @@ try {
 
 export default function RootLayout() {
   useEffect(() => {
-    const IS_READING = useAppStore.getState().settings.isReading
-    if (IS_READING) {
+    const onScreenReading = useAppStore.getState().reading.onScreen
+    if (onScreenReading) {
       setTimeout(() => {
         router.push({
           pathname: '/reading',
-          params: stringifyParams({ bookId: getCurrentBookId() }),
+          params: stringifyParams({ bookId: useAppStore.getState().reading.bookId }),
         })
         SplashScreen.hideAsync()
       }, 100)

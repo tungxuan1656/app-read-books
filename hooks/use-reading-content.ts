@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react'
 export default function useReadingContent(bookId: string) {
   const book = useAppStore((s) => s.id2Book[bookId])
   const chapterNumber = useAppStore((s) => s.id2BookReadingChapter[bookId] || 1)
-  const readingMode = useAppStore((s) => s.readingMode) // Listen to reading mode
+  const readingAIMode = useAppStore((s) => s.readingAIMode)
 
   const [chapter, setChapter] = useState({
     content: '',
@@ -36,10 +36,10 @@ export default function useReadingContent(bookId: string) {
         let finalContent = ''
 
         // 1. Check cache if mode is translate/summary
-        if (readingMode !== 'normal') {
-          const cached = await dbService.getProcessedChapter(bookId, chapterNumber, readingMode)
+        if (readingAIMode !== 'none') {
+          const cached = await dbService.getProcessedChapter(bookId, chapterNumber, readingAIMode)
           if (cached) {
-            console.log(`✅ [Reading] Cache hit: ${bookId}_ch${chapterNumber}_${readingMode}`)
+            console.log(`✅ [Reading] Cache hit: ${bookId}_ch${chapterNumber}_${readingAIMode}`)
             finalContent = cached.content
           }
         }
@@ -52,16 +52,16 @@ export default function useReadingContent(bookId: string) {
           }
 
           // 3. Process with Gemini if needed
-          if (readingMode === 'translate') {
+          if (readingAIMode === 'translate') {
             console.log(`🌐 [Reading] Translating chapter ${chapterNumber}...`)
             finalContent = await translateChapter(rawContent)
             // Save to cache
-            await dbService.saveProcessedChapter(bookId, chapterNumber, readingMode, finalContent)
-          } else if (readingMode === 'summary') {
+            await dbService.saveProcessedChapter(bookId, chapterNumber, readingAIMode, finalContent)
+          } else if (readingAIMode === 'summary') {
             console.log(`✨ [Reading] Summarizing chapter ${chapterNumber}...`)
             finalContent = await summarizeChapter(rawContent)
             // Save to cache
-            await dbService.saveProcessedChapter(bookId, chapterNumber, readingMode, finalContent)
+            await dbService.saveProcessedChapter(bookId, chapterNumber, readingAIMode, finalContent)
           } else {
             // Normal mode - use raw content
             finalContent = rawContent
@@ -76,7 +76,7 @@ export default function useReadingContent(bookId: string) {
         })
       } catch (error) {
         console.error('❌ [Reading] Error loading chapter:', error)
-        
+
         let errorMessage = 'Không thể tải nội dung chương'
         if (error instanceof Error) {
           if (error.message.includes('API Key chưa được cấu hình')) {
@@ -87,9 +87,9 @@ export default function useReadingContent(bookId: string) {
             errorMessage = error.message
           }
         }
-        
+
         GToast.error({ message: errorMessage })
-        
+
         setChapter({
           content: '',
           index: chapterNumber,
@@ -102,7 +102,7 @@ export default function useReadingContent(bookId: string) {
     }
 
     loadChapter()
-  }, [book, bookId, chapterNumber, readingMode]) // Re-run when readingMode changes
+  }, [book, bookId, chapterNumber, readingAIMode]) // Re-run when readingAIMode changes
 
   return { ...chapter, isLoading }
 }
