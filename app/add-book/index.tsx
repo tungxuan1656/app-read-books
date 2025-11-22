@@ -3,22 +3,14 @@ import { GToast } from '@/components/g-toast'
 import { Divider, Screen } from '@/components/Screen'
 import { VectorIcon } from '@/components/Icon'
 import { router } from 'expo-router'
-import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect, useState } from 'react'
-import {
-  ActivityIndicator,
-  FlatList,
-  ListRenderItem,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { ActivityIndicator, FlatList, ListRenderItem, StyleSheet, Text, View } from 'react-native'
 import { unzip } from 'react-native-zip-archive'
-import { AppColors, AppPalette } from '../../assets'
-import { AppConfigs, AppStyles, AppTypo } from '../../constants'
+import { AppPalette } from '../../assets'
+import { AppStyles, AppTypo } from '../../constants'
 import { deleteDownloadFile, downloadFile, getFilenameOfUrl } from '../../services/download.service'
 import { createFolderBooks, getFolderBooks, getPathSaveZipBook, showToastError } from '../../utils'
+import useAppStore from '@/controllers/store'
 
 const GET_EXPORTED_BOOKS_URL =
   'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books'
@@ -33,7 +25,7 @@ const AddBook = (props: any) => {
   const [processing, setProcessing] = useState('')
   const [exportedBooks, setExportedBooks] = useState<ExportedBook[]>([])
   const [fetchingBooks, setFetchingBooks] = useState(false)
-  const supabaseAnonKey = AppConfigs.API.SUPABASE_ANON_KEY
+  const supabaseAnonKey = useAppStore((s) => s.settings.SUPABASE_ANON_KEY)
 
   const fetchExportedBooks = useCallback(async () => {
     if (!supabaseAnonKey) {

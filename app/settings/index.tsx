@@ -5,7 +5,7 @@ import { SettingItem } from '@/components/setting-item'
 import { DEFAULT_SETTING_CONFIGS } from '@/constants'
 import React from 'react'
 import { FlatList, ListRenderItem } from 'react-native'
-import { SettingConfig } from '@/constants/SettingConfigs'
+import { SettingConfig } from '@/constants/setting-configs'
 
 export default function Settings() {
   const renderItem: ListRenderItem<SettingConfig> = React.useCallback(({ item }) => {

@@ -1,7 +1,7 @@
 import { AppColors, AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppTypo } from '@/constants'
-import { SettingConfig } from '@/constants/SettingConfigs'
+import { SettingConfig } from '@/constants/setting-configs'
 import useAppStore from '@/controllers/store'
 import { router } from 'expo-router'
 import React from 'react'
