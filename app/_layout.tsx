@@ -9,6 +9,7 @@ import { audioPlayerService } from '../services/audio-player.service'
 import { stringifyParams } from '@/hooks/use-typed-local-search-params'
 import { GSpinnerComponent } from '@/components/g-spinner'
 import { cleanupTTSOnAppStart } from '@/hooks/use-tts'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -37,14 +38,16 @@ export default function RootLayout() {
   }, [])
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="reading/index" options={{ gestureEnabled: false }} />
-        </Stack>
-        <GToastComponent />
-        <GSpinnerComponent />
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+    <ErrorBoundary catchErrors="always">
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetModalProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="reading/index" options={{ gestureEnabled: false }} />
+          </Stack>
+          <GToastComponent />
+          <GSpinnerComponent />
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   )
 }
