@@ -9,11 +9,3 @@ export const AppFontSize = {
   xxx_large: 24,
   xxxx_large: 32,
 }
-
-export const AppFont = {
-  regular: 'Inter-Regular',
-  semiBold: 'Inter-SemiBold',
-  medium: 'Inter-Medium',
-  bold: 'Inter-Bold',
-  italic: 'Inter-LightItalic',
-}

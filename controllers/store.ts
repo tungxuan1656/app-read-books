@@ -69,7 +69,7 @@ const useAppStore = create<AppState>()(
       (set, get) => ({
         // typo
         typography: {
-          font: 'Inter-Regular',
+          font: 'Inter',
           fontSize: 24,
           lineHeight: 1.5,
         },
