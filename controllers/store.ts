@@ -10,12 +10,13 @@ interface Typography {
 }
 
 interface Settings {
-  geminiApiKey: string
-  geminiModel: string
-  geminiSummaryPrompt: string
-  geminiTranslatePrompt: string
-  capcutToken: string
-  capcutWsUrl: string
+  GEMINI_API_KEY: string
+  GEMINI_MODEL: string
+  SUMMARY_PROMPT: string
+  TRANSLATE_PROMPT: string
+  CAPCUT_TOKEN: string
+  CAPCUT_WS_URL: string
+  SUPABASE_ANON_KEY: string
 }
 
 interface Reading {
@@ -130,12 +131,13 @@ const useAppStore = create<AppState>()(
 
         // Settings (persisted via MMKV)
         settings: {
-          geminiApiKey: '',
-          geminiModel: '',
-          geminiSummaryPrompt: '',
-          geminiTranslatePrompt: '',
-          capcutToken: '',
-          capcutWsUrl: '',
+          GEMINI_API_KEY: '',
+          GEMINI_MODEL: '',
+          SUMMARY_PROMPT: '',
+          TRANSLATE_PROMPT: '',
+          CAPCUT_TOKEN: '',
+          CAPCUT_WS_URL: '',
+          SUPABASE_ANON_KEY: '',
         },
         updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) =>
           set((state) => ({

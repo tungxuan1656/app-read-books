@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
-import { dbService } from '@/services/database.service'
-import { translateChapter, summarizeChapter } from '@/services/gemini.service'
+import { getTranslatedContent } from '@/services/translate.service'
+import { getSummarizedContent } from '@/services/summary.service'
 import { getBookChapterContent } from '@/utils'
 import { ReadingAIMode } from '@/@types/common'
 
@@ -20,56 +20,40 @@ export default function useContentProcessor() {
       try {
         processingRef.current.add(key)
 
-        // 1. Check database cache for translate/summary modes
-        if (mode !== 'none') {
-          const cached = await dbService.getProcessedChapter(bookId, chapter, mode)
-          if (cached) {
-            console.log(`✅ Cache hit: ${key}`)
-            return cached.content
-          }
-        }
-
-        // 2. Load raw content
-        const rawContent = await getBookChapterContent(bookId, chapter)
-        if (!rawContent) {
-          throw new Error('Không thể load nội dung chapter')
-        }
-
-        // 3. Process based on mode
         let processed: string
 
         switch (mode) {
           case 'none':
-            processed = rawContent
+            processed = await getBookChapterContent(bookId, chapter)
+            if (!processed) {
+              throw new Error('Không thể load nội dung chapter')
+            }
             break
 
           case 'translate':
-            console.log(`🌐 Translating: ${bookId} ch.${chapter}`)
-            processed = await translateChapter(rawContent)
+            console.log(`🌐 Processing translate: ${bookId} ch.${chapter}`)
+            processed = await getTranslatedContent(bookId, chapter)
             break
 
           case 'summary':
-            console.log(`✨ Summarizing: ${bookId} ch.${chapter}`)
-            processed = await summarizeChapter(rawContent)
+            console.log(`✨ Processing summary: ${bookId} ch.${chapter}`)
+            processed = await getSummarizedContent(bookId, chapter)
             break
 
           default:
-            processed = rawContent
-        }
-
-        // 4. Save to cache (except normal mode)
-        if (mode !== 'none') {
-          await dbService.saveProcessedChapter(bookId, chapter, mode, processed)
-          console.log(`💾 Saved to cache: ${key}`)
+            processed = await getBookChapterContent(bookId, chapter)
+            if (!processed) {
+              throw new Error('Không thể load nội dung chapter')
+            }
         }
 
         return processed
       } catch (error) {
         console.error(`❌ Error processing ${key}:`, error)
 
-        // Throw error với message rõ ràng cho user
+        // Throw error với message rõ ràng cho caller
         if (error instanceof Error) {
-          throw error // Re-throw để caller xử lý
+          throw error
         } else {
           throw new Error('Có lỗi không xác định khi xử lý nội dung')
         }

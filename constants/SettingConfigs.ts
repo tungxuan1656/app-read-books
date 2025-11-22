@@ -23,14 +23,14 @@ export const DEFAULT_SETTING_CONFIGS: SettingConfig[] = [
       'Tên model Gemini sử dụng (ví dụ: gemini-2.0-flash-exp, gemini-1.5-flash, gemini-1.5-pro). Để trống sẽ dùng gemini-2.0-flash-exp',
   },
   {
-    key: 'GEMINI_SUMMARY_PROMPT',
+    key: 'SUMMARY_PROMPT',
     label: 'Prompt tóm tắt truyện',
     placeholder: 'Prompt tóm tắt truyện, nội dung chapter là {{content}}',
     description:
       'Mẫu prompt để yêu cầu Gemini tóm tắt nội dung. Sử dụng {{content}} để đại diện cho nội dung chương',
   },
   {
-    key: 'GEMINI_TRANSLATE_PROMPT',
+    key: 'TRANSLATE_PROMPT',
     label: 'Prompt dịch truyện',
     placeholder: 'Prompt dịch truyện convert sang văn phong tiếng Việt',
     description: 'Mẫu prompt để yêu cầu Gemini dịch và chuyển đổi văn phong sang tiếng Việt',
@@ -48,5 +48,11 @@ export const DEFAULT_SETTING_CONFIGS: SettingConfig[] = [
     placeholder: 'wss://sami-normal-sg.capcutapi.com/internal/api/v1/ws?device_id=...&iid=...',
     description:
       'WebSocket URL đầy đủ cho Capcut TTS. Lấy từ DevTools khi sử dụng Capcut web. Để trống sẽ dùng URL mặc định.',
+  },
+  {
+    key: 'SUPABASE_ANON_KEY',
+    label: 'Supabase Anon Key',
+    placeholder: 'Nhập Supabase Anon Key',
+    description: 'Khóa ẩn danh để kết nối với Supabase',
   },
 ]

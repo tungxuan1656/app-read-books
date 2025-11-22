@@ -114,3 +114,21 @@ export const formatContentForTTS = (content: string): string => {
 
   return cleanedText
 }
+
+export function simpleMdToHtml(md: string) {
+  let html = md
+
+  // 1. Chuyển đổi In Đậm (**bold**)
+  // Tìm **nội dung** và thay thế bằng <strong>nội dung</strong>
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+
+  // 2. Chuyển đổi In Nghiêng (*italic* hoặc _italic_)
+  // Tìm *nội dung* hoặc _nội dung_ và thay thế bằng <em>nội dung</em>
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
+
+  // 3. Chuyển đổi Xuống dòng thành Thẻ <br> hoặc <p></p>
+  // Thay thế hai lần xuống dòng liên tiếp bằng </p><p> để tạo đoạn văn mới
+  html = `<p>${html.replace(/\n\n/g, '<br><br>')}</p>`
+
+  return html
+}

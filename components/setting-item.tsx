@@ -31,9 +31,6 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
   // Hiển thị giá trị rút gọn
   const displayValue = React.useMemo(() => {
     if (!hasValue) return 'Chưa thiết lập'
-    if (currentValue.length > 40) {
-      return currentValue.substring(0, 40) + '...'
-    }
     return currentValue
   }, [currentValue, hasValue])
 
