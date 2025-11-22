@@ -47,8 +47,7 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     right: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     gap: 8,
   },
   buttonInfo: {
