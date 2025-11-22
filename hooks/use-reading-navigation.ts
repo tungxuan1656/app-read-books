@@ -21,7 +21,9 @@ export default function useReadingNavigation(bookId: string) {
     storeActions.updateReading({ onScreen: true, bookId })
 
     return () => {
-      storeActions.updateReading({ onScreen: false, bookId: '' })
+      setTimeout(() => {
+        storeActions.updateReading({ onScreen: false })
+      }, 100)
       clearTimeout(refTimeout.current)
       clearTimeout(refTimeoutSave.current)
     }
