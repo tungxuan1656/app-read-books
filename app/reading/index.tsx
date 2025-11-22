@@ -68,8 +68,8 @@ const Reading = () => {
         <ReadingButtonBack />
         <ReadingButtonTopNavigation nextChapter={nextChapter} previousChapter={previousChapter} />
         <ReadingButtonScrollBottom onScrollToBottom={handleScrollToBottom} />
-        <ReadingButtonLeftControl />
       </Screen.Container>
+      <ReadingButtonLeftControl />
     </View>
   )
 }
