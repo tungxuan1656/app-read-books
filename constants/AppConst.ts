@@ -77,3 +77,8 @@ export const EventKeys = {
 }
 
 // Note: EventKeys removed as we now use Zustand directly instead of events
+export const ReadingAIModes = [
+  { value: 'none', label: 'Không' },
+  { value: 'summary', label: 'Tóm tắt' },
+  { value: 'translate', label: 'Dịch convert' },
+]

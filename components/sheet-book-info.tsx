@@ -1,18 +1,16 @@
-import { AppColors, AppPalette } from '@/assets'
+import { ReadingAIMode } from '@/@types/common'
+import { AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
-import { AppStyles, AppTypo } from '@/constants'
+import { AppStyles, AppTypo, ReadingAIModes } from '@/constants'
 import useAppStore, { storeActions } from '@/controllers/store'
-import { getCurrentBookId, getListFonts } from '@/utils'
-import { clearBookCache } from '@/utils/content-cache.helpers'
+import { getListFonts } from '@/utils'
 import BottomSheet, {
   BottomSheetView,
-  BottomSheetScrollView,
   BottomSheetBackdropProps,
   BottomSheetBackdrop,
 } from '@gorhom/bottom-sheet'
-import { router } from 'expo-router'
 import React, { forwardRef, useCallback, useMemo } from 'react'
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export interface SheetBookInfoRef {
   present: (bookId: string) => void
@@ -24,9 +22,9 @@ type SheetBookInfoProps = {
 }
 
 const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClose }, ref) => {
-  const currentBookId = useMemo(() => getCurrentBookId(), [])
   const bottomSheetRef = React.useRef<BottomSheet>(null)
   const { font, fontSize, lineHeight } = useAppStore((state) => state.typography)
+  const readingAIMode = useAppStore((state) => state.readingAIMode)
 
   // Expose methods through ref
   React.useImperativeHandle(ref, () => ({
@@ -41,13 +39,6 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
   const handleClose = useCallback(() => {
     onClose?.()
   }, [onClose])
-
-  const handleViewReferences = useCallback(() => {
-    if (!currentBookId) return
-
-    router.navigate({ pathname: '/references', params: { bookId: currentBookId } })
-    bottomSheetRef.current?.close()
-  }, [currentBookId])
 
   // Memoize font list for better performance
   const fontList = useMemo(() => getListFonts(), [])
@@ -151,6 +142,18 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
     [font],
   )
 
+  const renderReadingMode = useCallback(
+    (mode: (typeof ReadingAIModes)[number]) => (
+      <TouchableOpacity
+        key={mode.value}
+        onPress={() => storeActions.setReadingAIMode(mode.value as ReadingAIMode)}
+        style={[styles.viewItemFont, readingAIMode === mode.value && styles.viewItemSelected]}>
+        <Text style={styles.textItemFont}>{mode.label}</Text>
+      </TouchableOpacity>
+    ),
+    [readingAIMode],
+  )
+
   return (
     <BottomSheet
       ref={bottomSheetRef}
@@ -166,18 +169,14 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
         <View
           style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text style={styles.title}>{'Cài đặt'}</Text>
-          <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
-            onPress={handleViewReferences}>
-            <Text style={[AppTypo.body.semiBold, { color: AppColors.textFocus }]}>
-              {'Xem mục lục'}
-            </Text>
-            <VectorIcon name="chevron-right" font="FontAwesome5" color={AppColors.textFocus} />
-          </TouchableOpacity>
         </View>
         <Text style={styles.titleSection}>{'Font chữ'}</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
           {fontList.map(renderFontItem)}
+        </View>
+        <Text style={styles.titleSection}>{'Chế độ đọc AI'}</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          {ReadingAIModes.map(renderReadingMode)}
         </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -215,7 +214,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   title: {
-    ...AppTypo.headline.medium,
+    ...AppTypo.h4.medium,
     color: AppPalette.gray900,
   },
   titleSection: {

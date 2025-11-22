@@ -1,8 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { MMKVStorage } from './mmkv'
-
-export type ReadingMode = 'normal' | 'translate' | 'summary'
+import { ReadingAIMode } from '@/@types/common'
 
 interface Typography {
   font: string
@@ -23,12 +22,12 @@ interface Settings {
 }
 
 interface AppState {
-  //typo
+  //typography
   typography: Typography
   setTypography: (typography: Typography) => void
   // Reading mode
-  readingMode: ReadingMode
-  setReadingMode: (mode: ReadingMode) => void
+  readingAIMode: ReadingAIMode
+  setReadingAIMode: (mode: ReadingAIMode) => void
 
   // Prefetch status
   isPrefetching: boolean
@@ -64,8 +63,8 @@ const useAppStore = create<AppState>()(
         },
         setTypography: (typography: Typography) => set({ typography }),
         // Reading mode
-        readingMode: 'normal',
-        setReadingMode: (mode: ReadingMode) => set({ readingMode: mode }),
+        readingAIMode: 'none',
+        setReadingAIMode: (mode: ReadingAIMode) => set({ readingAIMode: mode }),
 
         // Prefetch
         isPrefetching: false,
@@ -150,7 +149,7 @@ const useAppStore = create<AppState>()(
 const {
   updateReadingChapter,
   updateBooks,
-  setReadingMode,
+  setReadingAIMode,
   setPrefetching,
   nextReadingChapter,
   previousReadingChapter,
@@ -163,7 +162,7 @@ const {
 export const storeActions = {
   updateReadingChapter,
   updateBooks,
-  setReadingMode,
+  setReadingAIMode,
   setPrefetching,
   nextReadingChapter,
   previousReadingChapter,
