@@ -14,9 +14,9 @@ interface SettingItemProps {
 export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
   const settings = useAppStore().settings
   const currentValue = (settings[config.key as keyof typeof settings] as string) || ''
-  console.log(!!currentValue);
-  
-  const hasValue = !!currentValue && typeof currentValue === 'string' && currentValue.trim().length > 0
+
+  const hasValue =
+    !!currentValue && typeof currentValue === 'string' && currentValue.trim().length > 0
 
   const handlePress = () => {
     router.push({

@@ -62,7 +62,6 @@
           }
         }
       ],
-      "expo-audio",
       "expo-web-browser",
       "expo-sqlite"
     ],
