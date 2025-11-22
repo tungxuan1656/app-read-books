@@ -2,6 +2,7 @@ import { Directory, File, Paths } from 'expo-file-system'
 import { DeviceEventEmitter } from 'react-native'
 import { preprocessSentence } from '../utils/string.helpers'
 import useAppStore from '@/controllers/store'
+import { GToast } from '@/components/g-toast'
 
 const CACHE_DIRECTORY = new Directory(Paths.document, 'tts_audio')
 
@@ -44,12 +45,12 @@ function createCapcutMessage(sentence: string, voice: string) {
 
 function getCapcutWebSocketUrl(): string {
   const customWsUrl = useAppStore.getState().settings.CAPCUT_WS_URL
-  
+
   // Sử dụng URL custom nếu có, không thì dùng default
   if (customWsUrl && customWsUrl.trim()) {
     return customWsUrl.trim()
   }
-  
+
   // Default WebSocket URL
   return 'wss://sami-normal-sg.capcutapi.com/internal/api/v1/ws?device_id=7486429558272460289&iid=7486431924195657473&app_id=359289&region=VN&update_version_code=5.7.1.2101&version_code=5.7.1&appKey=ddjeqjLGMn&device_type=macos&device_platform=macos'
 }
@@ -104,6 +105,7 @@ const generateAudioFromWebSocket = (
           ws!.send(JSON.stringify(createCapcutMessage(sentence, voice)))
         } catch (error) {
           console.error('Error sending message to WebSocket:', error)
+          GToast.error({ message: error instanceof Error ? error.message : 'Lỗi gửi yêu cầu TTS' })
           rejectConnection(new Error('Không thể gửi yêu cầu TTS'))
         }
       }
@@ -208,7 +210,7 @@ const _getOrGenerateAudioFile = async (
 
   // 3. Generate new audio if not in cache
   console.log(`🎵 [TTS] Generating audio for: ${fileName}`)
-  
+
   try {
     const audioData = await generateAudioFromWebSocket(sentence, voice)
 
@@ -275,10 +277,15 @@ export const convertTTSCapcut = async (
     const sentence = sentences[i]
     let success = false
     let isCriticalError = false
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const cachedAudioPath = await _getOrGenerateAudioFile(sentence, `${taskId}_${i}`, voice, targetDir)
+        const cachedAudioPath = await _getOrGenerateAudioFile(
+          sentence,
+          `${taskId}_${i}`,
+          voice,
+          targetDir,
+        )
         if (cachedAudioPath) {
           DeviceEventEmitter.emit('tts_audio_ready', {
             filePath: cachedAudioPath,
@@ -297,11 +304,13 @@ export const convertTTSCapcut = async (
         }
       } catch (error) {
         console.error(`Error processing sentence ${i} (attempt ${attempt}):`, error)
-        
+
         // Kiểm tra lỗi critical (token invalid, WS URL invalid)
         if (error instanceof Error) {
-          if (error.message.includes('token chưa được cấu hình') || 
-              error.message.includes('Lỗi kết nối WebSocket')) {
+          if (
+            error.message.includes('token chưa được cấu hình') ||
+            error.message.includes('Lỗi kết nối WebSocket')
+          ) {
             isCriticalError = true
             console.error('🎵 [TTS] Critical error detected, stopping all tasks:', error.message)
             break
@@ -314,7 +323,7 @@ export const convertTTSCapcut = async (
         await new Promise((resolve) => setTimeout(resolve, 1000))
       }
     }
-    
+
     // Dừng ngay khi gặp lỗi critical
     if (isCriticalError) {
       console.log('🎵 [TTS] Stopping conversion due to critical error')
