@@ -5,7 +5,6 @@ import ReadingButtonLeftControl from '@/components/reading/reading-button-left-c
 import ReadingButtonScrollBottom from '@/components/reading/reading-button-scroll-bottom'
 import ReadingButtonTopNavigation from '@/components/reading/reading-button-top-navigation'
 import { Screen } from '@/components/Screen'
-import SheetBookInfo, { SheetBookInfoRef } from '@/components/sheet-book-info'
 import { AppTypo } from '@/constants'
 import useAppStore from '@/controllers/store'
 import useReadingContent from '@/hooks/use-reading-content'
@@ -16,23 +15,16 @@ import { ScrollView, Text, View } from 'react-native'
 
 const Reading = () => {
   const { bookId } = useTypedLocalSearchParams<{ bookId: string }>({ bookId: 'string' })
-  
-  // Manage chapter content (loading, display)
+
   const chapter = useReadingContent(bookId)
-  
-  // Manage navigation (next/prev/scroll/state)
   const { nextChapter, previousChapter, handleScroll } = useReadingNavigation(bookId)
 
   const refScroll = useRef<ScrollView | null>(null)
-  const refBookInfoSheet = useRef<SheetBookInfoRef>(null)
 
-  // Restore scroll position on mount
   useEffect(() => {
     const timer = setTimeout(() => {
       const offset = useAppStore.getState().reading.offset
-      if (offset) {
-        refScroll.current?.scrollTo({ y: offset, animated: false })
-      }
+      if (offset) refScroll.current?.scrollTo({ y: offset, animated: false })
     }, 200)
     return () => clearTimeout(timer)
   }, [])
@@ -50,11 +42,6 @@ const Reading = () => {
       GSpinner.hide()
     }
   }, [chapter.isLoading])
-
-  const openBook = useCallback(() => {
-    const bookId = useAppStore.getState().reading.bookId
-    refBookInfoSheet.current?.present(bookId)
-  }, [])
 
   const handleScrollToBottom = useCallback(() => {
     refScroll.current?.scrollToEnd({ animated: true })
@@ -79,14 +66,10 @@ const Reading = () => {
         </ScrollView>
 
         <ReadingButtonBack />
-        <ReadingButtonTopNavigation
-          nextChapter={nextChapter}
-          previousChapter={previousChapter}
-        />
-        <ReadingButtonLeftControl openBook={openBook} />
+        <ReadingButtonTopNavigation nextChapter={nextChapter} previousChapter={previousChapter} />
         <ReadingButtonScrollBottom onScrollToBottom={handleScrollToBottom} />
+        <ReadingButtonLeftControl />
       </Screen.Container>
-      <SheetBookInfo ref={refBookInfoSheet} />
     </View>
   )
 }

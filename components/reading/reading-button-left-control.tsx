@@ -1,20 +1,19 @@
 import { AppPalette } from '@/assets'
-import React from 'react'
+import React, { useCallback, useRef } from 'react'
 import { StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { VectorIcon } from '../Icon'
+import SheetBookInfo, { SheetBookInfoRef } from '../sheet-book-info'
+import useAppStore from '@/controllers/store'
 
-function ReadingButtonLeftControl({ openBook }: { openBook: () => void }) {
+function ReadingButtonLeftControl() {
   const insets = useSafeAreaInsets()
+  const refBookInfoSheet = useRef<SheetBookInfoRef>(null)
 
-  //   const openReviewBottomSheet = useCallback(() => {
-  //   const reading = useAppStore.getState().readingOptions
-  //   reviewBottomSheetRef.current?.present({
-  //     content: currentChapterContent,
-  //     bookId: reading.currentBook,
-  //     chapterNumber: reading.books[reading.currentBook],
-  //   })
-  // }, [currentChapterContent])
+  const openBook = useCallback(() => {
+    const bookId = useAppStore.getState().reading.bookId
+    refBookInfoSheet.current?.present(bookId)
+  }, [])
 
   return (
     <>
@@ -26,6 +25,7 @@ function ReadingButtonLeftControl({ openBook }: { openBook: () => void }) {
         color={AppPalette.white}
         onPress={openBook}
       />
+      <SheetBookInfo ref={refBookInfoSheet} />
     </>
   )
 }

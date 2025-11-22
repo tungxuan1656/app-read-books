@@ -23,8 +23,6 @@ export const readFolderBooks = async (): Promise<Book[]> => {
     return []
   }
 
-  console.log('📚 Found book folders:', entries.map((entry) => entry.name))
-
   const listPathBooks = entries
     .filter((entry): entry is Directory => entry instanceof Directory)
     .map((entry) => entry.uri)
