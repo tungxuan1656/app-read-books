@@ -1,30 +1,41 @@
 import { AppPalette } from '@/assets'
 import React, { useCallback, useRef } from 'react'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { VectorIcon } from '../Icon'
 import SheetBookInfo, { SheetBookInfoRef } from '../sheet-book-info'
 import useAppStore from '@/controllers/store'
+import TTSControl from '../tts-control'
+import useReadingContent from '@/hooks/use-reading-content'
 
 function ReadingButtonLeftControl() {
   const insets = useSafeAreaInsets()
   const refBookInfoSheet = useRef<SheetBookInfoRef>(null)
+  const bookId = useAppStore((s) => s.reading.bookId)
+  const chapter = useReadingContent(bookId)
 
   const openBook = useCallback(() => {
-    const bookId = useAppStore.getState().reading.bookId
     refBookInfoSheet.current?.present(bookId)
-  }, [])
+  }, [bookId])
 
   return (
     <>
-      <VectorIcon
-        name="book-open-reader"
-        font="FontAwesome6"
-        size={18}
-        buttonStyle={{ ...styles.buttonInfo, bottom: 12 + insets.bottom }}
-        color={AppPalette.white}
-        onPress={openBook}
-      />
+      <View style={[styles.container, { bottom: 12 + insets.bottom }]}>
+        <TTSControl 
+          content={chapter.content} 
+          bookId={bookId} 
+          chapterIndex={chapter.index} 
+        />
+        
+        <VectorIcon
+          name="book-open-reader"
+          font="FontAwesome6"
+          size={14}
+          buttonStyle={styles.buttonInfo}
+          color={AppPalette.white}
+          onPress={openBook}
+        />
+      </View>
       <SheetBookInfo ref={refBookInfoSheet} />
     </>
   )
@@ -33,13 +44,17 @@ function ReadingButtonLeftControl() {
 export default React.memo(ReadingButtonLeftControl)
 
 const styles = StyleSheet.create({
-  buttonInfo: {
-    width: 40,
-    height: 40,
-    borderRadius: 40,
-    backgroundColor: AppPalette.gray300,
+  container: {
     position: 'absolute',
     right: 12,
-    bottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  buttonInfo: {
+    width: 32,
+    height: 32,
+    borderRadius: 40,
+    backgroundColor: AppPalette.gray300,
   },
 })

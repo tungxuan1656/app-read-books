@@ -10,12 +10,14 @@ import { stringifyParams } from '@/hooks/use-typed-local-search-params'
 import { GSpinnerComponent } from '@/components/g-spinner'
 import { cleanupTTSOnAppStart } from '@/hooks/use-tts'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { clearTTSFolder } from '@/services/tts.service'
 
 SplashScreen.preventAutoHideAsync()
 
 try {
   // Cleanup TTS temp folder on app start
   cleanupTTSOnAppStart()
+  clearTTSFolder()
   audioPlayerService.setupPlayer()
 } catch (error) {
   console.error('Error during splash screen initialization:', error)

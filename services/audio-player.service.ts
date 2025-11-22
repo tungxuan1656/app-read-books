@@ -60,6 +60,21 @@ const addTracks = async (
   }
 }
 
+const addTrackToQueue = async (track: {
+  id: string
+  url: string
+  title: string
+  artist?: string
+}): Promise<void> => {
+  try {
+    await TrackPlayer.add([track])
+    DeviceEventEmitter.emit('trackPlayerTracksAdded')
+  } catch (error) {
+    console.error('🎵 [TrackPlayer] Error adding track to queue:', error)
+    throw error
+  }
+}
+
 const skipToTrack = async (trackIndex: number): Promise<void> => {
   try {
     await TrackPlayer.skip(trackIndex)
@@ -143,6 +158,7 @@ const audioPlayerService = {
   setRepeatMode,
   getCurrentTrack,
   setRate,
+  addTrackToQueue,
 }
 
 export { audioPlayerService }

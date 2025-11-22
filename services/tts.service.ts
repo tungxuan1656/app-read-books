@@ -233,6 +233,21 @@ const _getOrGenerateAudioFile = async (
   }
 }
 
+// Function to clear TTS cache folder
+export const clearTTSFolder = async () => {
+  try {
+    if (CACHE_DIRECTORY.exists) {
+      await CACHE_DIRECTORY.delete()
+      await CACHE_DIRECTORY.create()
+      console.log('🧹 [TTS] Cache folder cleared')
+    } else {
+      await CACHE_DIRECTORY.create()
+    }
+  } catch (error) {
+    console.error('❌ [TTS] Error clearing cache folder:', error)
+  }
+}
+
 /**
  * Converts an array of sentences to speech, returning an array of audio file paths.
  * It uses a cache to avoid re-generating audio for the same sentence.
@@ -243,6 +258,7 @@ export const convertTTSCapcut = async (
   taskId: string = 'tts_default',
   cacheDir?: string,
   voice: string = 'BV421_vivn_streaming',
+  onAudioReady?: (filePath: string, index: number) => void,
 ): Promise<string[]> => {
   console.log(`🎤 Starting TTS conversion for ${sentences.length} sentences.`)
   resetTTSCancellation()
@@ -270,6 +286,10 @@ export const convertTTSCapcut = async (
             index: i,
             isFromCache: false,
           })
+
+          if (onAudioReady) {
+            onAudioReady(cachedAudioPath, i)
+          }
 
           finalAudioPaths.push(cachedAudioPath)
           success = true
