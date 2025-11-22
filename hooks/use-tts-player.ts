@@ -4,8 +4,10 @@ import { formatContentForTTS } from '@/utils/string.helpers'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { DeviceEventEmitter } from 'react-native'
 import TrackPlayer, { Event, State, useTrackPlayerEvents } from 'react-native-track-player'
+import useAppStore from '@/controllers/store'
 
 export const useTTSPlayer = (content: string, bookId: string, chapterIndex: number) => {
+  const readingAIMode = useAppStore((s) => s.readingAIMode)
   const [isConverting, setIsConverting] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0)
@@ -23,7 +25,7 @@ export const useTTSPlayer = (content: string, bookId: string, chapterIndex: numb
     setCurrentSentenceIndex(0)
     setTotalSentences(0)
     setIsReady(false)
-  }, [content, bookId, chapterIndex])
+  }, [content, bookId, chapterIndex, readingAIMode])
 
   useEffect(() => {
     isMounted.current = true
@@ -70,14 +72,14 @@ export const useTTSPlayer = (content: string, bookId: string, chapterIndex: numb
       // 3. Start conversion stream
       await convertTTSCapcut(
         sentences,
-        `${bookId}_${chapterIndex}`,
+        `${bookId}_${chapterIndex}_${readingAIMode}`,
         undefined,
         undefined,
         async (filePath, index) => {
           if (!isMounted.current) return
 
           const track = {
-            id: `${bookId}_${chapterIndex}_${index}`,
+            id: `${bookId}_${chapterIndex}_${readingAIMode}_${index}`,
             url: filePath,
             title: `Câu ${index + 1}`,
             artist: 'AI Reading',
@@ -99,7 +101,7 @@ export const useTTSPlayer = (content: string, bookId: string, chapterIndex: numb
         setIsConverting(false)
       }
     }
-  }, [content, bookId, chapterIndex])
+  }, [content, bookId, chapterIndex, readingAIMode])
 
   const stopTTS = useCallback(async () => {
     stopConvertTTSCapcut()
