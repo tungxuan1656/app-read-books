@@ -102,6 +102,20 @@ export async function readCacheDirectory(): Promise<string[]> {
 }
 
 /**
+ * Tính dung lượng của một thư mục
+ */
+export async function getDirectorySize(directoryPath: string): Promise<number> {
+  try {
+    const directory = new Directory(directoryPath)
+    if (!directory.exists) return 0
+    return directory.size ?? 0
+  } catch (error) {
+    console.error('❌ Error calculating directory size:', error)
+    return 0
+  }
+}
+
+/**
  * Format bytes thành string dễ đọc
  */
 export const formatBytes = (bytes: number, decimals = 2): string => {
