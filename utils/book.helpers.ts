@@ -34,8 +34,7 @@ export const readFolderBooks = async (): Promise<Book[]> => {
       const book = await getBook(path)
       if (book !== null) {
         books.push(book)
-      }
-      else {
+      } else {
         const errorDir = new Directory(path)
         errorDir.delete()
         console.log('🗑️ Deleted invalid book directory at path:', path)
@@ -142,5 +141,8 @@ export const getListFonts = (): string[] => {
     'Roboto-Regular',
     'SpaceMono-Regular',
     'WorkSans-Regular',
+    'Montserrat-Medium',
+    'MontserratAlternates-Medium',
+    'MontserratAlternates-Regular',
   ]
 }

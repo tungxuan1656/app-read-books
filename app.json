@@ -2,7 +2,7 @@
   "expo": {
     "name": "Truyện",
     "slug": "tx-truyen",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "tx-truyen",
@@ -18,9 +18,7 @@
       "bundleIdentifier": "com.tungxuan.rnreadbooks",
       "buildNumber": "0",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "audio"
-        ],
+        "UIBackgroundModes": ["audio"],
         "NSMicrophoneUsageDescription": "This app needs access to microphone for audio playback",
         "NSCameraUsageDescription": "This app does not use camera"
       }
@@ -49,7 +47,10 @@
             "./assets/fonts/Raleway-Regular.ttf",
             "./assets/fonts/Roboto-Regular.ttf",
             "./assets/fonts/SpaceMono-Regular.ttf",
-            "./assets/fonts/WorkSans-Regular.ttf"
+            "./assets/fonts/WorkSans-Regular.ttf",
+            "./assets/fonts/Montserrat-Medium.ttf",
+            "./assets/fonts/MontserratAlternates-Medium.ttf",
+            "./assets/fonts/MontserratAlternates-Regular.ttf"
           ]
         }
       ],

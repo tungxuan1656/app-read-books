@@ -21,6 +21,9 @@ export const ContentDisplay = React.memo(
           'Roboto-Regular',
           'SpaceMono-Regular',
           'WorkSans-Regular',
+          'Montserrat-Medium',
+          'MontserratAlternates-Medium',
+          'MontserratAlternates-Regular',
         ]}
         tagsStyles={{
           body: { fontFamily: font, lineHeight: fontSize * lineHeight, fontSize: fontSize },
