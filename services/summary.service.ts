@@ -12,33 +12,31 @@ import { simpleMdToHtml } from '@/utils/string.helpers'
  * - Return fallback message nếu lỗi
  */
 
-const DEFAULT_SUMMARY_PROMPT = `Bạn là một biên tập viên chuyên nghiệp, thực hiện nhiệm vụ cô đọng lại chương truyện, chuyển đổi câu chữ từ thể loại truyện convert trung quốc sang truyện dịch việt nam.
+const DEFAULT_SUMMARY_PROMPT = `Bạn là dịch thuật truyện chữ Trung Quốc sang tiếng Việt.
 
-**NHIỆM VỤ CỐT LÕI:**
-Rút ngắn độ dài của chương truyện dưới đây xuống còn **50-60% độ dài bản gốc** bằng cách lược bỏ triệt để các chi tiết, mô tả, hoặc đoạn văn dư thừa, không ảnh hưởng đến mạch truyện chính, trong khi vẫn giữ nguyên hoàn toàn kết cấu và các yếu tố quan trọng của truyện, viết lại câu chữ sao cho nếu là truyện convert thì phải phù hợp với văn phong của truyện dịch việt nam.
+Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_content.txt theo các yêu cầu sau:
 
-**YÊU CẦU BẮT BUỘC:**
-1. 🏗️ **GIỮ NGUYÊN KẾT CẤU:**
-   - Bảo toàn tuyệt đối trình tự các tình tiết, sự kiện.
-   - Giữ nguyên dòng chảy của bối cảnh.
-   - Duy trì đầy đủ các tương tác quan trọng giữa các nhân vật, bao gồm cả hội thoại cốt lõi.
+1. Mức độ rút gọn:
+   - Rút ngắn nội dung xuống khoảng 50–60% độ dài bản gốc.
+   - Chỉ lược bỏ chi tiết thừa, không làm mất mạch truyện và ý chính.
 
-2. ✂️ **CHỈ LƯỢC BỎ, GIỮ TỐI ĐA VĂN PHONG:**
-   - **Chỉ cắt bỏ:** Loại bỏ các câu văn, đoạn mô tả, hoặc chi tiết không cần thiết (như mô tả cảnh vật, cảm xúc dư thừa, hoặc thông tin nền không liên quan trực tiếp đến mạch truyện).
-   - **Giữ tối đa văn phong:** Không chỉnh sửa cách diễn đạt, nhưng có thể thay đổi cấu trúc câu để cô đọng hơn, miễn là vẫn giữ nguyên ý nghĩa và cảm xúc của đoạn văn, có thể dịch câu chữ từ thể loại convert sang văn phong truyện dịch việt nam. Ưu tiên giữ nguyên xưng hô: Hắn, Nó, Ta, Ngươi, v.v. để phù hợp với văn phong truyện dịch việt nam.
+2. Giữ nguyên cốt truyện:
+   - Bảo toàn trình tự sự kiện, bối cảnh và diễn biến chính.
+   - Giữ lại các tình tiết quan trọng, cao trào, nút thắt, mở nút.
+   - Giữ các đoạn hội thoại quan trọng giữa nhân vật (có thể rút ngắn nhưng không làm thay đổi ý).
 
-3. 🎯 **MỤC TIÊU RÚT GỌN:**
-   - Ưu tiên loại bỏ các đoạn văn mô tả dài dòng, thông tin nền không quan trọng, hoặc các chi tiết không ảnh hưởng đến cốt truyện chính (ví dụ: mô tả ngoại cảnh, cảm xúc lặp lại, hoặc thông tin phụ về nhân vật không liên quan trực tiếp).
-   - Đảm bảo nội dung sau khi rút gọn vẫn truyền tải đầy đủ các sự kiện chính, tương tác nhân vật, và ý nghĩa cốt lõi của chương.
+3. Văn phong & xưng hô:
+   - Giữ văn phong truyện dịch Việt Nam, tự nhiên, dễ đọc.
+   - Có thể chỉnh câu cho mượt hơn, nhưng không thay đổi nghĩa.
+   - Giữ nguyên xưng hô quen thuộc như: Hắn, Nó, Ta, Ngươi, v.v.
 
-**VÍ DỤ VỀ VIỆC LƯỢC BỎ:**
-- **Gốc:** "Bầu trời trong xanh, cao vời vợi, không một gợn mây, và những tia nắng vàng óng ả, ấm áp nhẹ nhàng chiếu xuống con đường đất nhỏ quanh co."
-- **Sau khi rút gọn:** "Nắng vàng chiếu xuống con đường đất nhỏ."
+4. Lược bỏ:
+   - Cắt giảm mô tả cảnh vật dài dòng, cảm xúc lặp lại, thông tin nền không ảnh hưởng trực tiếp đến cốt truyện.
+   - Không thêm nội dung mới, không suy diễn thêm ngoài những gì có trong bản gốc.
 
-**ĐỘ DÀI MỤC TIÊU:**
-- Phiên bản sau khi cô đọng phải đạt độ dài **50-60% so với bản gốc**, không được vượt quá hoặc thấp hơn mức này quá nhiều (ví dụ: không được chỉ rút gọn xuống 85% hoặc ít hơn 50%).
-
-Hãy bắt đầu thực hiện việc cô đọng nội dung trong file original_content.txt, đảm bảo loại bỏ triệt để các chi tiết dư thừa và đạt đúng mục tiêu độ dài.`
+5. Định dạng đầu ra:
+   - Viết lại thành một bản tóm tắt hoàn chỉnh, mạch lạc, theo dạng văn xuôi bình thường.
+   - Không giải thích quy trình, chỉ trả về nội dung chương đã được tóm tắt.`
 
 const getSummaryPrompt = () => {
   const savedPrompt = useAppStore.getState().settings.SUMMARY_PROMPT

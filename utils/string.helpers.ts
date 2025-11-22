@@ -117,6 +117,7 @@ export const formatContentForTTS = (content: string): string => {
 
 export function simpleMdToHtml(md: string) {
   let html = md
+  html = html.replaceAll('```text', '')
 
   // 1. Chuyển đổi In Đậm (**bold**)
   // Tìm **nội dung** và thay thế bằng <strong>nội dung</strong>
