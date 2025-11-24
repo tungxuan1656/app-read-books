@@ -3,7 +3,11 @@ import { getSummarizedContent } from '@/services/summary.service'
 import { getTranslatedContent } from '@/services/translate.service'
 import { useEffect, useRef } from 'react'
 
-export const useChapterPrefetch = (bookId: string, currentChapter: number) => {
+export const useChapterPrefetch = (
+  bookId: string,
+  currentChapter: number,
+  isCurrentChapterReady: boolean = true,
+) => {
   const PREFETCH_COUNT = useAppStore((s) => s.settings.PREFETCH_COUNT || '3')
   const readingAIMode = useAppStore((s) => s.readingAIMode)
   const book = useAppStore((s) => s.id2Book[bookId])
@@ -16,7 +20,7 @@ export const useChapterPrefetch = (bookId: string, currentChapter: number) => {
   }, [currentChapter])
 
   useEffect(() => {
-    if (!book || readingAIMode === 'none') {
+    if (!book || readingAIMode === 'none' || !isCurrentChapterReady) {
       storeActions.updatePrefetchState({ isRunning: false, message: '' })
       return
     }
@@ -62,7 +66,7 @@ export const useChapterPrefetch = (bookId: string, currentChapter: number) => {
             })
           }
         } catch (error) {
-          console.error(`Prefetch error at chapter ${i}:`, error)
+          console.error(`❌ [Prefetch] Error at chapter ${i}:`, error)
         }
       }
 
@@ -79,5 +83,5 @@ export const useChapterPrefetch = (bookId: string, currentChapter: number) => {
     return () => {
       isCancelled = true
     }
-  }, [bookId, currentChapter, readingAIMode, book])
+  }, [bookId, currentChapter, readingAIMode, book, isCurrentChapterReady])
 }

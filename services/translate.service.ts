@@ -1,7 +1,7 @@
 import { dbService } from './database.service'
 import { getBookChapterContent } from '@/utils'
 import useAppStore from '@/controllers/store'
-import { geminiProcessFile, prepareContentForGemini } from './gemini.service'
+import { geminiProcessFile } from './gemini.service'
 import { simpleMdToHtml } from '@/utils/string.helpers'
 
 /**
@@ -14,23 +14,18 @@ import { simpleMdToHtml } from '@/utils/string.helpers'
 
 const DEFAULT_TRANSLATE_PROMPT = `Bạn là chuyên gia dịch thuật văn học tiếng Việt. Nhiệm vụ: chuyển đổi văn bản từ văn phong dịch máy (Trung-Việt) sang văn phong tiếng Việt tự nhiên, trôi chảy.
 
-NGUYÊN TẮC:
-1. Giữ nguyên 100% ý nghĩa, chi tiết, cảm xúc của nội dung gốc
-2. Sắp xếp lại từ ngữ theo ngữ pháp tiếng Việt chuẩn
-3. Thay cấu trúc Hán Việt bằng cấu trúc hiện đại, dễ hiểu
-4. Loại bỏ từ thừa, lặp từ không cần thiết
-5. Giữ nguyên: tên nhân vật, địa danh, thuật ngữ võ công
-6. Không thêm hoặc bớt nội dung
-7. Không tóm tắt
+Bạn hãy đọc văn bản trong file original_content.txt và dịch theo các bước sau:
+- Nội dung trong file là định dạng html, có thể có các thẻ phân đoạn như <p>, <br>, <div>, hãy tách nội dung thành từng đoạn dựa trên các thẻ này.
+- Đọc theo từng đoạn để giữ cấu trúc đoạn và dịch đoạn theo 5 nguyên tắc sau:
+1. Giữ nguyên 100% ý nghĩa, chi tiết, cảm xúc
+2. Giữ nguyên 100% các từ xưng hô như: ta, ngươi, hắn, nàng, ngài, lão, bạn, tôi, thầy, sư phụ, sư tổ, cha mẹ, ba mẹ, ông, bà, vợ chồng…
+3. Thay cấu trúc Hán Việt bằng cấu trúc ngữ pháp tiếng Việt với các thành phần như chủ ngữ, vị ngữ, trạng ngữ,…. (RẤT QUAN TRỌNG, bạn hãy tập trung vào phần này)
+4. Giữ nguyên: tên nhân vật, địa danh, thuật ngữ võ công
+5. Không tự ý sáng tạo thêm hoặc cắt bớt nội dung
+- Ghép lại các đoạn thành nội dung hoàn chỉnh, theo định dạng markdown
+- Chỉ trả về nội dung truyện, không thêm ý kiến, bình luận của bạn
 
-VÍ DỤ CHUYỂN ĐỔI:
-Input: "Một tên quần áo lộng lẫy lại sắc mặt âm tàn thanh niên chính giơ chân lên giẫm tại một tên khất cái mặt bên trên"
-Output: "Một thanh niên mặc quần áo lộng lẫy, sắc mặt âm tàn, đang giơ chân giẫm lên mặt của một người ăn mày"
-
-Input: "Hắn mắt nhìn chằm chằm cái phía trước không xa dương liễu, trong con mắt lộ ra cái khí tức quyết liệt."
-Output: "Hắn chằm chằm nhìn vào hàng dương liễu không xa phía trước, ánh mắt lộ ra khí tức quyết liệt."
-
-Hãy chuyển đổi văn bản trong file original_content.txt theo các nguyên tắc trên.`
+Bắt đầu dịch file và trả về kết quả`
 
 const getTranslatePrompt = () => {
   const savedPrompt = useAppStore.getState().settings.TRANSLATE_PROMPT
@@ -71,12 +66,11 @@ export const getTranslatedContent = async (
       if (!rawContent) {
         throw new Error('Không thể tải nội dung chương gốc')
       }
-      const processedRawContent = prepareContentForGemini(rawContent)
 
       // 3. Gọi Gemini API để dịch
       console.log(`🌐 [Translate] Translating: ${bookId}_ch${chapterNumber}`)
       const prompt = getTranslatePrompt()
-      const translated = await geminiProcessFile(prompt, processedRawContent)
+      const translated = await geminiProcessFile(prompt, rawContent)
       const htmlTranslated = simpleMdToHtml(translated)
 
       // 4. Lưu vào database

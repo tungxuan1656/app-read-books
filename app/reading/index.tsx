@@ -20,8 +20,7 @@ const Reading = () => {
   const chapter = useReadingContent(bookId)
   const { nextChapter, previousChapter, handleScroll } = useReadingNavigation(bookId)
 
-  // Activate prefetch
-  useChapterPrefetch(bookId, chapter.index)
+  useChapterPrefetch(bookId, chapter.index, !chapter.isLoading)
 
   const refScroll = useRef<ScrollView | null>(null)
 
