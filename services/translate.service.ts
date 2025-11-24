@@ -17,12 +17,12 @@ const DEFAULT_TRANSLATE_PROMPT = `Bạn là chuyên gia dịch thuật văn họ
 Bạn hãy đọc văn bản trong file original_content.txt và dịch theo các bước sau:
 - Nội dung trong file là định dạng html, có thể có các thẻ phân đoạn như <p>, <br>, <div>, hãy tách nội dung thành từng đoạn dựa trên các thẻ này.
 - Đọc theo từng đoạn để giữ cấu trúc đoạn và dịch đoạn theo 5 nguyên tắc sau:
-1. Giữ nguyên 100% ý nghĩa, chi tiết, cảm xúc
-2. Giữ nguyên 100% các từ xưng hô như: ta, ngươi, hắn, nàng, ngài, lão, bạn, tôi, thầy, sư phụ, sư tổ, cha mẹ, ba mẹ, ông, bà, vợ chồng…
-3. Thay cấu trúc Hán Việt bằng cấu trúc ngữ pháp tiếng Việt với các thành phần như chủ ngữ, vị ngữ, trạng ngữ,…. (RẤT QUAN TRỌNG, bạn hãy tập trung vào phần này)
+1. Giữ nguyên 100% các từ xưng hô như: ta, ngươi, hắn, nàng, ngài, lão, bạn, tôi, thầy, sư phụ, sư tổ, cha mẹ, ba mẹ, ông, bà, vợ chồng… (RẤT QUAN TRỌNG, bạn phải giữ nguyên các từ này)
+2. Thay cấu trúc Hán Việt bằng cấu trúc ngữ pháp tiếng Việt với các thành phần như chủ ngữ, vị ngữ, trạng ngữ,…. (RẤT QUAN TRỌNG, bạn hãy tập trung vào phần này)
+3. Giữ nguyên 100% ý nghĩa, chi tiết, cảm xúc
 4. Giữ nguyên: tên nhân vật, địa danh, thuật ngữ võ công
 5. Không tự ý sáng tạo thêm hoặc cắt bớt nội dung
-- Ghép lại các đoạn thành nội dung hoàn chỉnh, theo định dạng markdown
+- Ghép lại các đoạn thành nội dung hoàn chỉnh, theo định dạng html, giữ nguyên các thẻ phân đoạn như trong nội dung gốc.
 - Chỉ trả về nội dung truyện, không thêm ý kiến, bình luận của bạn
 
 Bắt đầu dịch file và trả về kết quả`
