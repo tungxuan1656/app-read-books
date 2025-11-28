@@ -1,5 +1,5 @@
 import React from 'react'
-import { TouchableOpacity, ViewStyle } from 'react-native'
+import { TouchableOpacity, TouchableOpacityProps, ViewStyle } from 'react-native'
 import {
   AntDesign,
   Entypo,
@@ -59,6 +59,7 @@ type VectorIconProps = {
     | 'FontAwesome6'
   onPress?: () => void
   buttonStyle?: ViewStyle
+  buttonProps?: TouchableOpacityProps
 }
 
 export const VectorIcon = ({
@@ -69,12 +70,14 @@ export const VectorIcon = ({
   font = 'FontAwesome6',
   onPress,
   buttonStyle,
+  buttonProps,
 }: VectorIconProps) => {
   const IconComponent = allComponents[font]
   return typeof onPress === 'function' ? (
     <TouchableOpacity
       onPress={onPress}
-      style={[{ justifyContent: 'center', alignItems: 'center' }, buttonStyle]}>
+      style={[{ justifyContent: 'center', alignItems: 'center' }, buttonStyle]}
+      {...buttonProps}>
       {/* @ts-ignore */}
       <IconComponent name={name} size={size} color={color} style={style} />
     </TouchableOpacity>

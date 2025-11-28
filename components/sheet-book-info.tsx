@@ -55,6 +55,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             color={AppPalette.gray200}
             size={20}
             onPress={() => storeActions.setTypography({ fontSize: fontSize - 1 })}
+            buttonProps={{ hitSlop: 10 }}
           />
           <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
             {fontSize}
@@ -65,6 +66,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             color={AppPalette.gray200}
             size={20}
             onPress={() => storeActions.setTypography({ fontSize: fontSize + 1 })}
+            buttonProps={{ hitSlop: 10 }}
           />
         </View>
       </View>
@@ -83,6 +85,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             color={AppPalette.gray200}
             size={20}
             onPress={() => storeActions.setTypography({ lineHeight: (lineHeight * 10 - 1) / 10 })}
+            buttonProps={{ hitSlop: 10 }}
           />
           <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
             {Math.round(lineHeight * 10) / 10}
@@ -93,6 +96,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
             color={AppPalette.gray200}
             size={20}
             onPress={() => storeActions.setTypography({ lineHeight: (lineHeight * 10 + 1) / 10 })}
+            buttonProps={{ hitSlop: 10 }}
           />
         </View>
       </View>
