@@ -11,6 +11,7 @@ interface Typography {
 
 interface Settings {
   GEMINI_API_KEY: string
+  GEMINI_API_KEY_INDEX: number
   GEMINI_MODEL: string
   SUMMARY_PROMPT: string
   TRANSLATE_PROMPT: string
@@ -153,6 +154,7 @@ const useAppStore = create<AppState>()(
         // Settings (persisted via MMKV)
         settings: {
           GEMINI_API_KEY: '',
+          GEMINI_API_KEY_INDEX: 0,
           GEMINI_MODEL: '',
           SUMMARY_PROMPT: '',
           TRANSLATE_PROMPT: '',

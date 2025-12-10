@@ -13,7 +13,8 @@ export const DEFAULT_SETTING_CONFIGS: SettingConfig[] = [
     key: 'GEMINI_API_KEY',
     label: 'Gemini API Key',
     placeholder: 'Nhập Gemini API Key của bạn',
-    description: 'API key để sử dụng Google Gemini AI cho tính năng tóm tắt và dịch truyện',
+    description:
+      'API key để sử dụng Google Gemini AI. Hỗ trợ nhập nhiều key (mỗi key một dòng) để xoay vòng tự động khi gặp lỗi rate limit hoặc quota.',
   },
   {
     key: 'GEMINI_MODEL',
