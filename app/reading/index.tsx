@@ -56,7 +56,7 @@ const Reading = () => {
             style={{ flex: 1 }}
             ref={refScroll}
             scrollEventThrottle={300}
-            contentContainerStyle={{ paddingVertical: 44 }}
+            contentContainerStyle={{ paddingVertical: 44, flexGrow: 1 }}
             onScroll={handleScroll}>
             {chapter.content !== '' ? <ContentDisplay chapterHtml={chapter.content} /> : null}
           </ScrollView>
