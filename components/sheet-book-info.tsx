@@ -3,14 +3,24 @@ import { AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppStyles, AppTypo, ReadingAIModes } from '@/constants'
 import useAppStore, { storeActions } from '@/controllers/store'
+import { RELOAD_CONTENT_EVENT } from '@/hooks/use-reading-content'
+import { clearSummaryCache } from '@/services/summary.service'
+import { clearTranslateCache } from '@/services/translate.service'
 import { getListFonts } from '@/utils'
 import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdropProps,
   BottomSheetBackdrop,
 } from '@gorhom/bottom-sheet'
-import React, { forwardRef, useCallback, useMemo } from 'react'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { forwardRef, useCallback, useMemo, useState } from 'react'
+import {
+  ActivityIndicator,
+  DeviceEventEmitter,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 
 export interface SheetBookInfoRef {
   present: (bookId: string) => void
@@ -39,6 +49,29 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
   const handleClose = useCallback(() => {
     onClose?.()
   }, [onClose])
+
+  // Handler cho nút Xử lý lại
+  const handleReprocess = useCallback(async () => {
+    const bookId = useAppStore.getState().reading.bookId
+    const chapterNumber = useAppStore.getState().id2BookReadingChapter[bookId] || 1
+    if (readingAIMode === 'none' || !bookId || !chapterNumber) return
+    try {
+      // Xóa cache của chương hiện tại theo mode
+      if (readingAIMode === 'translate') {
+        await clearTranslateCache(bookId, chapterNumber)
+      } else if (readingAIMode === 'summary') {
+        await clearSummaryCache(bookId, chapterNumber)
+      }
+
+      // Gọi callback để trigger reload nội dung
+      DeviceEventEmitter.emit(RELOAD_CONTENT_EVENT)
+
+      // Đóng bottom sheet
+      bottomSheetRef.current?.close()
+    } catch (error) {
+      console.error('Error reprocessing:', error)
+    }
+  }, [readingAIMode])
 
   // Memoize font list for better performance
   const fontList = useMemo(() => getListFonts(), [])
@@ -152,10 +185,16 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
           {ReadingAIModes.map(renderReadingMode)}
           <TouchableOpacity
-            onPress={() => {}}
+            onPress={handleReprocess}
+            disabled={readingAIMode === 'none'}
             style={[
               styles.viewItemFont,
-              { backgroundColor: AppPalette.red400, flexDirection: 'row', gap: 2 },
+              {
+                backgroundColor: readingAIMode === 'none' ? AppPalette.gray300 : AppPalette.red400,
+                flexDirection: 'row',
+                gap: 4,
+                opacity: readingAIMode === 'none' ? 0.7 : 1,
+              },
             ]}>
             <VectorIcon name="reload-circle" font="Ionicons" size={16} color="white" />
             <Text style={[styles.textItemFont, { color: 'white' }]}>{'Xử lý lại'}</Text>

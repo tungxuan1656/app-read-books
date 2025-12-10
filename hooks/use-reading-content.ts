@@ -3,11 +3,24 @@ import { getChapterHtml, getBookChapterContent } from '@/utils'
 import { getTranslatedContent } from '@/services/translate.service'
 import { getSummarizedContent } from '@/services/summary.service'
 import { useEffect, useState } from 'react'
+import { DeviceEventEmitter } from 'react-native'
+
+// Event name để trigger reload content
+export const RELOAD_CONTENT_EVENT = 'RELOAD_READING_CONTENT'
 
 export default function useReadingContent(bookId: string) {
   const book = useAppStore((s) => s.id2Book[bookId])
   const chapterNumber = useAppStore((s) => s.id2BookReadingChapter[bookId] || 1)
   const readingAIMode = useAppStore((s) => s.readingAIMode)
+  const [reloadTrigger, setReloadTrigger] = useState(0)
+
+  // Lắng nghe event reload content
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(RELOAD_CONTENT_EVENT, () => {
+      setReloadTrigger((prev) => prev + 1)
+    })
+    return () => subscription.remove()
+  }, [])
 
   const [chapter, setChapter] = useState({
     content: '',
@@ -79,7 +92,7 @@ export default function useReadingContent(bookId: string) {
     }
 
     loadChapter()
-  }, [book, bookId, chapterNumber, readingAIMode])
+  }, [book, bookId, chapterNumber, readingAIMode, reloadTrigger])
 
   return { ...chapter, isLoading, message }
 }
