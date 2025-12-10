@@ -151,6 +151,15 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
         <Text style={styles.titleSection}>{'Chế độ đọc AI'}</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
           {ReadingAIModes.map(renderReadingMode)}
+          <TouchableOpacity
+            onPress={() => {}}
+            style={[
+              styles.viewItemFont,
+              { backgroundColor: AppPalette.red400, flexDirection: 'row', gap: 2 },
+            ]}>
+            <VectorIcon name="reload-circle" font="Ionicons" size={16} color="white" />
+            <Text style={[styles.textItemFont, { color: 'white' }]}>{'Xử lý lại'}</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
