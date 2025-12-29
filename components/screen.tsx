@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppColors, AppIcons } from '@/assets'
 import { AppTypo } from '@/constants'
 import { router } from 'expo-router'
-import { VectorIcon } from '../icon'
+import { VectorIcon } from './vector-icon'
 
 type ContainerProps = {
   safe?: 'all' | 'bottom' | 'top' | 'none'

@@ -1,14 +1,14 @@
 import { AppColors } from '@/assets'
 import { Button } from '@/components/button'
+import { Divider } from '@/components/divider'
 import { GToast } from '@/components/g-toast'
-import { Divider, Screen } from '@/components/screen'
+import { Screen } from '@/components/Screen'
 import { AppTypo } from '@/constants'
-import { SettingConfig } from '@/constants/setting-configs'
 import { storeActions } from '@/controllers/store'
 import useAppStore from '@/controllers/store'
 import { router, useLocalSearchParams } from 'expo-router'
 import React from 'react'
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { StyleSheet, Text, TextInput } from 'react-native'
 
 export default function SettingEditor() {
   const params = useLocalSearchParams<{
