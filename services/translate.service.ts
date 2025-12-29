@@ -1,7 +1,7 @@
 import { dbService } from './database.service'
 import { getBookChapterContent } from '@/utils'
 import useAppStore from '@/controllers/store'
-import { getAIProvider } from './ai-provider.service'
+import { getAIProvider } from './ai.service'
 import { simpleMdToHtml } from '@/utils/string.helpers'
 
 /**
