@@ -1,10 +1,17 @@
-export type SettingInputType = 'single' | 'multiline'
+export type SettingInputType = 'single' | 'multiline' | 'picker'
+
+export interface SettingOption {
+  label: string
+  value: string
+}
 
 export interface SettingConfig {
   key: string
   label: string
   placeholder: string
   description?: string
+  inputType?: SettingInputType
+  options?: SettingOption[] // Dùng cho picker
 }
 
 // Danh sách các setting configs mặc định
@@ -24,6 +31,19 @@ export const DEFAULT_SETTING_CONFIGS: SettingConfig[] = [
       'Tên model Gemini sử dụng (ví dụ: gemini-2.0-flash-exp, gemini-1.5-flash, gemini-1.5-pro). Để trống sẽ dùng gemini-2.0-flash-exp',
   },
   {
+    key: 'COPILOT_API_URL',
+    label: 'Copilot API URL',
+    placeholder: 'http://localhost:8317/v1/chat/completions',
+    description:
+      'URL API của Copilot local server. Để trống sẽ dùng http://localhost:8317/v1/chat/completions',
+  },
+  {
+    key: 'COPILOT_MODEL',
+    label: 'Copilot Model',
+    placeholder: 'gpt-4.1',
+    description: 'Tên model Copilot sử dụng (ví dụ: gpt-4.1, gpt-4o). Để trống sẽ dùng gpt-4.1',
+  },
+  {
     key: 'SUMMARY_PROMPT',
     label: 'Prompt tóm tắt truyện',
     placeholder: 'Prompt tóm tắt truyện, nội dung chapter là {{content}}',
@@ -34,7 +54,18 @@ export const DEFAULT_SETTING_CONFIGS: SettingConfig[] = [
     key: 'TRANSLATE_PROMPT',
     label: 'Prompt dịch truyện',
     placeholder: 'Prompt dịch truyện convert sang văn phong tiếng Việt',
-    description: 'Mẫu prompt để yêu cầu Gemini dịch và chuyển đổi văn phong sang tiếng Việt',
+    description: 'Mẫu prompt để yêu cầu AI dịch và chuyển đổi văn phong sang tiếng Việt',
+  },
+  {
+    key: 'TRANSLATE_PROVIDER',
+    label: 'Provider dịch truyện',
+    placeholder: 'Chọn provider',
+    description: 'Chọn AI provider để dịch truyện. Gemini sử dụng API key, Copilot sử dụng local server.',
+    inputType: 'picker',
+    options: [
+      { label: 'Gemini (Google AI)', value: 'gemini' },
+      { label: 'Copilot (Local)', value: 'copilot' },
+    ],
   },
   {
     key: 'CAPCUT_TOKEN',

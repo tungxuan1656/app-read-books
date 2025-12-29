@@ -15,6 +15,9 @@ interface Settings {
   GEMINI_MODEL: string
   SUMMARY_PROMPT: string
   TRANSLATE_PROMPT: string
+  TRANSLATE_PROVIDER: 'gemini' | 'copilot'
+  COPILOT_API_URL: string
+  COPILOT_MODEL: string
   CAPCUT_TOKEN: string
   CAPCUT_WS_URL: string
   SUPABASE_ANON_KEY: string
@@ -158,6 +161,9 @@ const useAppStore = create<AppState>()(
           GEMINI_MODEL: '',
           SUMMARY_PROMPT: '',
           TRANSLATE_PROMPT: '',
+          TRANSLATE_PROVIDER: 'gemini',
+          COPILOT_API_URL: '',
+          COPILOT_MODEL: '',
           CAPCUT_TOKEN: '',
           CAPCUT_WS_URL: '',
           SUPABASE_ANON_KEY: '',

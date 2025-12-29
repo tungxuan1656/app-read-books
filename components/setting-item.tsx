@@ -2,10 +2,10 @@ import { AppColors, AppPalette } from '@/assets'
 import { VectorIcon } from '@/components/Icon'
 import { AppTypo } from '@/constants'
 import { SettingConfig } from '@/constants/setting-configs'
-import useAppStore from '@/controllers/store'
+import useAppStore, { storeActions } from '@/controllers/store'
 import { router } from 'expo-router'
 import React from 'react'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActionSheetIOS, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 interface SettingItemProps {
   config: SettingConfig
@@ -19,6 +19,13 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
     !!currentValue && typeof currentValue === 'string' && currentValue.trim().length > 0
 
   const handlePress = () => {
+    // Nếu là picker, hiển thị ActionSheet
+    if (config.inputType === 'picker' && config.options) {
+      showPickerOptions()
+      return
+    }
+
+    // Mặc định navigate đến editor
     router.push({
       pathname: '/setting-editor',
       params: {
@@ -30,11 +37,55 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
     })
   }
 
+  const showPickerOptions = () => {
+    if (!config.options) return
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [...config.options.map((opt) => opt.label), 'Hủy'],
+          cancelButtonIndex: config.options.length,
+          title: config.label,
+          message: config.description,
+        },
+        (buttonIndex) => {
+          if (buttonIndex < config.options!.length) {
+            const selectedOption = config.options![buttonIndex]
+            storeActions.updateSetting(config.key as keyof typeof settings, selectedOption.value)
+          }
+        },
+      )
+    } else {
+      // Android: Sử dụng Alert với buttons
+      const { Alert } = require('react-native')
+      Alert.alert(
+        config.label,
+        config.description,
+        [
+          ...config.options.map((opt) => ({
+            text: opt.label,
+            onPress: () =>
+              storeActions.updateSetting(config.key as keyof typeof settings, opt.value),
+          })),
+          { text: 'Hủy', style: 'cancel' },
+        ],
+        { cancelable: true },
+      )
+    }
+  }
+
   // Hiển thị giá trị rút gọn
   const displayValue = React.useMemo(() => {
     if (!hasValue) return 'Chưa thiết lập'
+
+    // Nếu là picker, tìm label tương ứng
+    if (config.inputType === 'picker' && config.options) {
+      const option = config.options.find((opt) => opt.value === currentValue)
+      return option?.label || currentValue
+    }
+
     return currentValue
-  }, [currentValue, hasValue])
+  }, [currentValue, hasValue, config])
 
   return (
     <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
