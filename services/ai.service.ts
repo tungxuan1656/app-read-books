@@ -1,4 +1,3 @@
-import useAppStore from '@/controllers/store'
 import { createGeminiProvider } from './ai-providers/gemini.provider'
 import { createCopilotProvider } from './ai-providers/copilot.provider'
 
