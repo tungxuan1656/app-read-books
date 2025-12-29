@@ -78,7 +78,7 @@ export const Button = ({
 
 const styles = StyleSheet.create({
   button: {
-    height: 52,
+    height: 44,
     alignItems: 'center',
     borderRadius: 18,
     flexDirection: 'row',

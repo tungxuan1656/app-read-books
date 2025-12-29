@@ -1,8 +1,7 @@
 import { dbService } from './database.service'
-import { getBookChapterContent } from '@/utils'
 import useAppStore from '@/controllers/store'
-import { getAIProviderByType } from './ai.service'
-import { simpleMdToHtml, formatContentForTTS } from '@/utils/string.helpers'
+import { formatContentForTTS } from '@/utils/string.helpers'
+import { processChapterContent } from './content-processor'
 
 /**
  * Service xử lý tóm tắt chương truyện
@@ -55,8 +54,6 @@ const prepareContent = (content: string): string => {
   return textContent
 }
 
-const pendingRequests = new Map<string, Promise<string>>()
-
 /**
  * Lấy nội dung đã tóm tắt của chương
  */
@@ -64,53 +61,21 @@ export const getSummarizedContent = async (
   bookId: string,
   chapterNumber: number,
 ): Promise<string> => {
-  const requestKey = `${bookId}_ch${chapterNumber}_summary`
+  try {
+    const prompt = getSummaryPrompt()
 
-  if (pendingRequests.has(requestKey)) {
-    console.log(`⏳ [Summary] Awaiting pending request: ${requestKey}`)
-    return pendingRequests.get(requestKey)!
+    return await processChapterContent({
+      bookId,
+      chapterNumber,
+      mode: 'summary',
+      prompt,
+      aiType: 'gemini', // Luôn dùng Gemini cho summary
+      prepareContent,
+    })
+  } catch (error) {
+    console.error(`❌ [Summary] Error: ${bookId}_ch${chapterNumber}`, error)
+    throw error
   }
-
-  const promise = (async () => {
-    try {
-      // 1. Check cache
-      const cached = await dbService.getProcessedChapter(bookId, chapterNumber, 'summary')
-      if (cached) {
-        console.log(`✅ [Summary] Cache hit: ${bookId}_ch${chapterNumber}`)
-        return cached.content
-      }
-
-      // 2. Load raw content
-      const rawContent = await getBookChapterContent(bookId, chapterNumber)
-      if (!rawContent) {
-        throw new Error('Không thể tải nội dung chương gốc')
-      }
-      const processedContent = prepareContent(rawContent)
-
-      // 3. Luôn dùng Gemini cho summary (file upload tốt hơn)
-      const provider = getAIProviderByType('gemini')
-      console.log(`✨ [Summary] Using ${provider.name}: ${bookId}_ch${chapterNumber}`)
-
-      // 4. Process với AI
-      const prompt = getSummaryPrompt()
-      const summarized = await provider.processContent(prompt, processedContent)
-      const htmlSummarized = simpleMdToHtml(summarized)
-
-      // 5. Save to cache
-      await dbService.saveProcessedChapter(bookId, chapterNumber, 'summary', htmlSummarized)
-      console.log(`💾 [Summary] Saved: ${bookId}_ch${chapterNumber}`)
-
-      return htmlSummarized
-    } catch (error) {
-      console.error(`❌ [Summary] Error: ${bookId}_ch${chapterNumber}`, error)
-      return 'Không thể tóm tắt chương truyện này'
-    } finally {
-      pendingRequests.delete(requestKey)
-    }
-  })()
-
-  pendingRequests.set(requestKey, promise)
-  return promise
 }
 
 /**
@@ -123,11 +88,4 @@ export const clearSummaryCache = async (bookId: string, chapterNumber: number) =
   } catch (error) {
     console.error(`❌ [Summary] Error clearing cache:`, error)
   }
-}
-
-/**
- * Xóa toàn bộ cache tóm tắt của một cuốn sách
- */
-export const clearBookSummaryCache = async (bookId: string) => {
-  console.log(`🗑️ [Summary] Clearing all cache for book: ${bookId}`)
 }

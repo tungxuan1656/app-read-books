@@ -1,8 +1,7 @@
 import { dbService } from './database.service'
-import { getBookChapterContent } from '@/utils'
 import useAppStore from '@/controllers/store'
-import { getAIProvider } from './ai.service'
-import { simpleMdToHtml } from '@/utils/string.helpers'
+import { processChapterContent } from './content-processor'
+import { AIProviderType } from './ai.service'
 
 /**
  * Service xử lý dịch chương truyện
@@ -30,8 +29,6 @@ const getTranslatePrompt = (): string => {
   return useAppStore.getState().settings.TRANSLATE_PROMPT || DEFAULT_TRANSLATE_PROMPT
 }
 
-const pendingRequests = new Map<string, Promise<string>>()
-
 /**
  * Lấy nội dung đã dịch của chương
  */
@@ -39,53 +36,21 @@ export const getTranslatedContent = async (
   bookId: string,
   chapterNumber: number,
 ): Promise<string> => {
-  const requestKey = `${bookId}_ch${chapterNumber}_translate`
+  try {
+    const prompt = getTranslatePrompt()
+    const aiType = (useAppStore.getState().settings.TRANSLATE_PROVIDER as AIProviderType) || 'gemini'
 
-  // Tránh duplicate requests
-  if (pendingRequests.has(requestKey)) {
-    console.log(`⏳ [Translate] Awaiting pending request: ${requestKey}`)
-    return pendingRequests.get(requestKey)!
+    return await processChapterContent({
+      bookId,
+      chapterNumber,
+      mode: 'translate',
+      prompt,
+      aiType,
+    })
+  } catch (error) {
+    console.error(`❌ [Translate] Error: ${bookId}_ch${chapterNumber}`, error)
+    return 'Không thể dịch chương truyện này'
   }
-
-  const promise = (async () => {
-    try {
-      // 1. Check cache
-      const cached = await dbService.getProcessedChapter(bookId, chapterNumber, 'translate')
-      if (cached) {
-        console.log(`✅ [Translate] Cache hit: ${bookId}_ch${chapterNumber}`)
-        return cached.content
-      }
-
-      // 2. Load raw content
-      const rawContent = await getBookChapterContent(bookId, chapterNumber)
-      if (!rawContent) {
-        throw new Error('Không thể tải nội dung chương gốc')
-      }
-
-      // 3. Lấy provider (sẽ đọc settings mới nhất)
-      const provider = getAIProvider()
-      console.log(`🌐 [Translate] Using ${provider.name}: ${bookId}_ch${chapterNumber}`)
-
-      // 4. Process với AI
-      const prompt = getTranslatePrompt()
-      const translated = await provider.processContent(prompt, rawContent)
-      const htmlTranslated = simpleMdToHtml(translated)
-
-      // 5. Save to cache
-      await dbService.saveProcessedChapter(bookId, chapterNumber, 'translate', htmlTranslated)
-      console.log(`💾 [Translate] Saved: ${bookId}_ch${chapterNumber}`)
-
-      return htmlTranslated
-    } catch (error) {
-      console.error(`❌ [Translate] Error: ${bookId}_ch${chapterNumber}`, error)
-      return 'Không thể dịch chương truyện này'
-    } finally {
-      pendingRequests.delete(requestKey)
-    }
-  })()
-
-  pendingRequests.set(requestKey, promise)
-  return promise
 }
 
 /**
@@ -98,11 +63,4 @@ export const clearTranslateCache = async (bookId: string, chapterNumber: number)
   } catch (error) {
     console.error(`❌ [Translate] Error clearing cache:`, error)
   }
-}
-
-/**
- * Xóa toàn bộ cache dịch của một cuốn sách
- */
-export const clearBookTranslateCache = async (bookId: string) => {
-  console.log(`🗑️ [Translate] Clearing all cache for book: ${bookId}`)
 }

@@ -17,8 +17,28 @@ export const createGeminiProvider = (): AIProvider => {
       for (let attempt = 0; attempt < Math.min(maxRetries, keys.length || 1); attempt++) {
         try {
           const client = getGeminiClient()
+          const model = getGeminiModel()
 
-          // Upload file
+          // OPTIMIZATION: If content is short (< 30k chars), send text directly
+          // This avoids the overhead of file upload and processing wait time
+          if (content.length < 30000) {
+            const response = await client.models.generateContent({
+              model: model,
+              contents: [
+                {
+                  role: 'user',
+                  parts: [{ text: prompt + '\n\n' + content }],
+                },
+              ],
+            })
+
+            if (!response?.text) {
+              throw new Error('Không nhận được response từ Gemini')
+            }
+            return response.text
+          }
+
+          // Upload file for larger content
           const testFile = new Blob([content], { type: 'text/plain' })
           const file = await client.files.upload({
             file: testFile,
