@@ -2,7 +2,6 @@ import { audioPlayerService } from '@/services/audio-player.service'
 import { convertTTSCapcut, stopConvertTTSCapcut } from '@/services/tts.service'
 import { formatContentForTTS } from '@/utils/string.helpers'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { DeviceEventEmitter } from 'react-native'
 import TrackPlayer, { Event, State, useTrackPlayerEvents } from 'react-native-track-player'
 import useAppStore from '@/controllers/store'
 
@@ -51,21 +50,19 @@ export const useTTSPlayer = (content: string, bookId: string, chapterIndex: numb
     try {
       setIsConverting(true)
       setIsReady(true)
-      
+
       // 1. Preprocess content
-      // Remove HTML tags first
       const textContent = content.replace(/<[^>]*>/g, '')
       const formattedContent = formatContentForTTS(textContent)
-      
-      // Split into sentences (using a simple split by newline for now as per requirement, 
-      // but ideally should be smarter)
+
+      // Split into sentences
       const sentences = formattedContent
         .split(/[.!?\n]/)
-        .map(s => s.trim())
-        .filter(s => s.length > 0)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
 
       setTotalSentences(sentences.length)
-      
+
       // 2. Reset player
       await audioPlayerService.reset()
 
@@ -86,12 +83,12 @@ export const useTTSPlayer = (content: string, bookId: string, chapterIndex: numb
           }
 
           await audioPlayerService.addTrackToQueue(track)
-          
-          // Auto play if it's the first track
+
+          // Auto play first track
           if (index === 0) {
             await audioPlayerService.play()
           }
-        }
+        },
       )
     } catch (error) {
       console.error('Error starting TTS:', error)

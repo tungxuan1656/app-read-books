@@ -38,11 +38,10 @@ export default function useReadingContent(bookId: string) {
 
     const loadChapter = async () => {
       setIsLoading(true)
-      
+
       try {
         let finalContent = ''
 
-        // Load content based on mode
         switch (readingAIMode) {
           case 'none':
             setMessage('Đang tải nội dung gốc...')
@@ -72,19 +71,18 @@ export default function useReadingContent(bookId: string) {
           name: book.references?.[chapterNumber - 1] || '',
           bookId,
         })
-        
-        setMessage('') // Clear message on success
+
+        setMessage('')
       } catch (error) {
         console.error('❌ [Reading] Error loading chapter:', error)
 
-        // Set empty content on error
         setChapter({
           content: '',
           index: chapterNumber,
           name: book.references?.[chapterNumber - 1] || '',
           bookId,
         })
-        
+
         setMessage('Có lỗi xảy ra khi tải chương')
       } finally {
         setIsLoading(false)

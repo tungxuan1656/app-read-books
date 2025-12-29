@@ -1,15 +1,13 @@
 import { dbService } from './database.service'
 import { getBookChapterContent } from '@/utils'
 import useAppStore from '@/controllers/store'
-import { geminiProcessFile, prepareContentForGemini } from './gemini.service'
-import { simpleMdToHtml } from '@/utils/string.helpers'
+import { getAIProviderByType } from './ai-provider.service'
+import { simpleMdToHtml, formatContentForTTS } from '@/utils/string.helpers'
 
 /**
  * Service xử lý tóm tắt chương truyện
- * - Kiểm tra database cache trước
- * - Gọi Gemini API nếu chưa có cache
- * - Lưu kết quả vào database nếu thành công
- * - Return fallback message nếu lỗi
+ * - Luôn sử dụng Gemini (hỗ trợ file upload tốt hơn)
+ * - Cache kết quả vào database
  */
 
 const DEFAULT_SUMMARY_PROMPT = `Bạn là dịch thuật truyện chữ Trung Quốc sang tiếng Việt.
@@ -38,18 +36,29 @@ Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_
    - Viết lại thành một bản tóm tắt hoàn chỉnh, mạch lạc, theo dạng văn xuôi bình thường.
    - Không giải thích quy trình, chỉ trả về nội dung chương đã được tóm tắt.`
 
-const getSummaryPrompt = () => {
-  const savedPrompt = useAppStore.getState().settings.SUMMARY_PROMPT
-  return savedPrompt || DEFAULT_SUMMARY_PROMPT
+const getSummaryPrompt = (): string => {
+  return useAppStore.getState().settings.SUMMARY_PROMPT || DEFAULT_SUMMARY_PROMPT
+}
+
+const prepareContent = (content: string): string => {
+  let textContent = content
+    .replace(/<[^><]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  textContent = formatContentForTTS(textContent)
+
+  if (!textContent || textContent.length < 50) {
+    throw new Error('Nội dung quá ngắn để xử lý')
+  }
+
+  return textContent
 }
 
 const pendingRequests = new Map<string, Promise<string>>()
 
 /**
  * Lấy nội dung đã tóm tắt của chương
- * @param bookId - ID của sách
- * @param chapterNumber - Số thứ tự chương
- * @returns Nội dung đã tóm tắt hoặc fallback message nếu lỗi
  */
 export const getSummarizedContent = async (
   bookId: string,
@@ -57,7 +66,6 @@ export const getSummarizedContent = async (
 ): Promise<string> => {
   const requestKey = `${bookId}_ch${chapterNumber}_summary`
 
-  // 0. Check pending requests
   if (pendingRequests.has(requestKey)) {
     console.log(`⏳ [Summary] Awaiting pending request: ${requestKey}`)
     return pendingRequests.get(requestKey)!
@@ -65,35 +73,36 @@ export const getSummarizedContent = async (
 
   const promise = (async () => {
     try {
-      // 1. Kiểm tra cache trong database
+      // 1. Check cache
       const cached = await dbService.getProcessedChapter(bookId, chapterNumber, 'summary')
       if (cached) {
         console.log(`✅ [Summary] Cache hit: ${bookId}_ch${chapterNumber}`)
         return cached.content
       }
 
-      // 2. Load nội dung gốc
+      // 2. Load raw content
       const rawContent = await getBookChapterContent(bookId, chapterNumber)
       if (!rawContent) {
         throw new Error('Không thể tải nội dung chương gốc')
       }
-      const processedRawContent = prepareContentForGemini(rawContent)
+      const processedContent = prepareContent(rawContent)
 
-      // 3. Gọi Gemini API để tóm tắt
-      console.log(`✨ [Summary] Summarizing: ${bookId}_ch${chapterNumber}`)
+      // 3. Luôn dùng Gemini cho summary (file upload tốt hơn)
+      const provider = getAIProviderByType('gemini')
+      console.log(`✨ [Summary] Using ${provider.name}: ${bookId}_ch${chapterNumber}`)
+
+      // 4. Process với AI
       const prompt = getSummaryPrompt()
-      const summarized = await geminiProcessFile(prompt, processedRawContent)
+      const summarized = await provider.processContent(prompt, processedContent)
       const htmlSummarized = simpleMdToHtml(summarized)
 
-      // 4. Lưu vào database
+      // 5. Save to cache
       await dbService.saveProcessedChapter(bookId, chapterNumber, 'summary', htmlSummarized)
-      console.log(`💾 [Summary] Saved to cache: ${bookId}_ch${chapterNumber}`)
+      console.log(`💾 [Summary] Saved: ${bookId}_ch${chapterNumber}`)
 
       return htmlSummarized
     } catch (error) {
       console.error(`❌ [Summary] Error: ${bookId}_ch${chapterNumber}`, error)
-
-      // Return fallback message - KHÔNG lưu vào database
       return 'Không thể tóm tắt chương truyện này'
     } finally {
       pendingRequests.delete(requestKey)
@@ -112,7 +121,7 @@ export const clearSummaryCache = async (bookId: string, chapterNumber: number) =
     await dbService.deleteProcessedChapter(bookId, chapterNumber, 'summary')
     console.log(`🗑️ [Summary] Cache cleared: ${bookId}_ch${chapterNumber}`)
   } catch (error) {
-    console.error(`❌ [Summary] Error clearing cache: ${bookId}_ch${chapterNumber}`, error)
+    console.error(`❌ [Summary] Error clearing cache:`, error)
   }
 }
 
@@ -120,10 +129,5 @@ export const clearSummaryCache = async (bookId: string, chapterNumber: number) =
  * Xóa toàn bộ cache tóm tắt của một cuốn sách
  */
 export const clearBookSummaryCache = async (bookId: string) => {
-  try {
-    // Implement trong database.service.ts nếu cần
-    console.log(`🗑️ [Summary] Clearing all cache for book: ${bookId}`)
-  } catch (error) {
-    console.error(`❌ [Summary] Error clearing book cache: ${bookId}`, error)
-  }
+  console.log(`🗑️ [Summary] Clearing all cache for book: ${bookId}`)
 }
