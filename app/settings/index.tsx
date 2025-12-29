@@ -1,13 +1,13 @@
 import { AppColors, AppPalette } from '@/assets'
-import { Screen } from '@/components/Screen'
-import { Divider } from '@/components/Screen'
+import { Screen } from '@/components/screen'
+import { Divider } from '@/components/screen'
 import { SettingItem } from '@/components/setting-item'
 import { DEFAULT_SETTING_CONFIGS } from '@/constants'
 import React from 'react'
 import { FlatList, ListRenderItem, TouchableOpacity, Text, View } from 'react-native'
 import { SettingConfig } from '@/constants/setting-configs'
 import { AppTypo } from '@/constants'
-import { VectorIcon } from '@/components/Icon'
+import { VectorIcon } from '@/components/icon'
 import { router } from 'expo-router'
 
 export default function Settings() {

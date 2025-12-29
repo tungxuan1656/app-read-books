@@ -1,2 +1,2 @@
-export * from './Icon'
-export * from './VectorIcon'
+export * from './icon'
+export * from './vector-icon'

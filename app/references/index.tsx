@@ -1,10 +1,10 @@
-import { Divider, Screen } from '@/components/Screen'
+import { Divider, Screen } from '@/components/screen'
 import { router } from 'expo-router'
 import React, { useLayoutEffect, useRef } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AppTypo } from '../../constants'
 import useAppStore, { storeActions } from '@/controllers/store'
-import { VectorIcon } from '@/components/Icon'
+import { VectorIcon } from '@/components/icon'
 import { AppPalette } from '@/assets'
 
 const References = () => {

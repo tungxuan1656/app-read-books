@@ -1,2 +1,2 @@
-export * from './Divider'
-export * from './Screen'
+export * from './divider'
+export * from './screen'
