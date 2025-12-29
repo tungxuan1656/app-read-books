@@ -1,6 +1,6 @@
 import DownloadBookItem, { ExportedBook } from '@/components/download-book-item'
 import { GToast } from '@/components/g-toast'
-import { Divider, Screen } from '@/components/screen-2'
+import { Divider, Screen } from '@/components/screen'
 import { VectorIcon } from '@/components/icon'
 import { router } from 'expo-router'
 import React, { useCallback, useEffect, useState } from 'react'

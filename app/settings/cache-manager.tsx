@@ -1,7 +1,7 @@
 import { AppPalette } from '@/assets'
 import { GToast } from '@/components/g-toast'
 import { VectorIcon } from '@/components/icon'
-import { Divider, Screen } from '@/components/screen-2'
+import { Divider, Screen } from '@/components/screen'
 import { AppTypo } from '@/constants'
 import { dbService } from '@/services/database.service'
 import { clearTTSFolder } from '@/services/tts.service'

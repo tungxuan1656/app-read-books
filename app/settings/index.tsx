@@ -1,6 +1,6 @@
 import { AppColors, AppPalette } from '@/assets'
-import { Screen } from '@/components/screen-2'
-import { Divider } from '@/components/screen-2'
+import { Screen } from '@/components/screen'
+import { Divider } from '@/components/screen'
 import { SettingItem } from '@/components/setting-item'
 import { DEFAULT_SETTING_CONFIGS } from '@/constants'
 import React from 'react'
