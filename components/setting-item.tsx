@@ -1,5 +1,5 @@
 import { AppColors, AppPalette } from '@/assets'
-import { VectorIcon } from '@/components/Icon'
+import { VectorIcon } from './vector-icon'
 import { AppTypo } from '@/constants'
 import { SettingConfig } from '@/constants/setting-configs'
 import useAppStore, { storeActions } from '@/controllers/store'

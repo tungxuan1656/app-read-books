@@ -3,7 +3,7 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AppPalette } from '@/assets'
 import { AppTypo } from '@/constants'
 import { formatBytes } from '@/utils'
-import { VectorIcon } from './Icon'
+import { VectorIcon } from './vector-icon'
 
 type BookMeta = {
   id: number

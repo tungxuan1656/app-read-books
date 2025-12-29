@@ -2,11 +2,11 @@ import { AppPalette } from '@/assets'
 import React, { useCallback, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { VectorIcon } from '../Icon'
 import SheetBookInfo, { SheetBookInfoRef } from '../sheet-book-info'
 import useAppStore from '@/controllers/store'
 import TTSControl from '../tts-control'
 import useReadingContent from '@/hooks/use-reading-content'
+import { VectorIcon } from '../vector-icon'
 
 function ReadingButtonLeftControl() {
   const insets = useSafeAreaInsets()

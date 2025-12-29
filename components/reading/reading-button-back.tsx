@@ -1,8 +1,8 @@
 import React from 'react'
-import { VectorIcon } from '../Icon'
 import { AppPalette } from '@/assets'
 import { router } from 'expo-router'
 import { StyleSheet } from 'react-native'
+import { VectorIcon } from '../vector-icon'
 
 function ReadingButtonBack() {
   return (

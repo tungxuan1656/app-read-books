@@ -1,8 +1,8 @@
 import { AppPalette } from '@/assets'
 import React, { useCallback } from 'react'
 import { StyleSheet, View } from 'react-native'
-import { VectorIcon } from '../Icon'
 import { router } from 'expo-router'
+import { VectorIcon } from '../vector-icon'
 
 export default function ReadingButtonTopNavigation({
   previousChapter,

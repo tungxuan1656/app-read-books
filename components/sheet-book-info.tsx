@@ -1,6 +1,6 @@
 import { ReadingAIMode } from '@/@types/common'
 import { AppPalette } from '@/assets'
-import { VectorIcon } from '@/components/Icon'
+import { VectorIcon } from './vector-icon'
 import { AppStyles, AppTypo, ReadingAIModes } from '@/constants'
 import useAppStore, { storeActions } from '@/controllers/store'
 import { RELOAD_CONTENT_EVENT } from '@/hooks/use-reading-content'

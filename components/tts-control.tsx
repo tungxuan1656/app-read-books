@@ -1,9 +1,9 @@
-import { AppColors, AppPalette } from '@/assets'
-import { VectorIcon } from '@/components/Icon'
+import { AppPalette } from '@/assets'
 import { AppTypo } from '@/constants'
 import { useTTSPlayer } from '@/hooks/use-tts-player'
 import React from 'react'
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { VectorIcon } from './vector-icon'
 
 interface TTSControlProps {
   content: string

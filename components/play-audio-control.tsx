@@ -1,9 +1,9 @@
 import { AppPalette } from '@/assets'
-import { VectorIcon } from '@/components/Icon'
+import { VectorIcon } from './vector-icon'
 import { AppTypo } from '@/constants'
 import { audioPlayerService } from '@/services/audio-player.service'
 import React, { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, DeviceEventEmitter, StyleSheet, Text, View } from 'react-native'
+import { DeviceEventEmitter, StyleSheet, Text, View } from 'react-native'
 import TrackPlayer, {
   Event,
   State,

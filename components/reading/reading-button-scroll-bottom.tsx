@@ -1,8 +1,8 @@
 import React from 'react'
-import { VectorIcon } from '../Icon'
 import { StyleSheet } from 'react-native'
 import { AppPalette } from '@/assets'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { VectorIcon } from '../vector-icon'
 
 function ReadingButtonScrollBottom({ onScrollToBottom }: { onScrollToBottom: () => void }) {
   const insets = useSafeAreaInsets()

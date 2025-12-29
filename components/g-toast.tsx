@@ -4,7 +4,7 @@ import React from 'react'
 import { Dimensions, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast, { BaseToast, ToastConfig, ToastConfigParams } from 'react-native-toast-message'
-import { VectorIcon } from './Icon'
+import { VectorIcon } from './vector-icon'
 
 const renderLeadingIcon = (name: string, font: string) => {
   return (

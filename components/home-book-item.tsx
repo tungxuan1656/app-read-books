@@ -1,12 +1,12 @@
+import { AppPalette } from '@/assets'
+import { AppTypo } from '@/constants'
+import useAppStore from '@/controllers/store'
+import { deleteBook, getFolderBooks } from '@/utils'
+import { router } from 'expo-router'
 import React from 'react'
 import { Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { VectorIcon } from './Icon'
-import useAppStore from '@/controllers/store'
-import { AppTypo } from '@/constants'
-import { AppPalette } from '@/assets'
-import { router } from 'expo-router'
-import { deleteBook, getFolderBooks } from '@/utils'
 import { GToast } from './g-toast'
+import { VectorIcon } from './vector-icon'
 
 const HomeBookItem = ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: () => void }) => {
   const book = useAppStore((state) => state.id2Book[id])

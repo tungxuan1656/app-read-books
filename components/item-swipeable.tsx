@@ -5,7 +5,7 @@ import Reanimated, {
   type SharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated'
-import { VectorIcon } from './Icon'
+import { VectorIcon } from './vector-icon'
 
 type IconFont =
   | 'MaterialCommunityIcons'
