@@ -1,6 +1,7 @@
 import { getBookChapterContent } from '@/utils'
 import { processChapterContent } from './content-processor'
 import { getActionByKey } from './ai-actions.service'
+import useAppStore from '@/controllers/store'
 
 export const getLoadingMessage = (actionKey: string, chapterNumber: number): string => {
   if (actionKey === 'none') return 'Đang tải nội dung gốc...'
@@ -28,11 +29,13 @@ export const getReadingContent = async (
     throw new Error(`Không tìm thấy hành động AI: ${actionKey}`)
   }
 
+  const aiProvider = useAppStore.getState().settings.AI_PROVIDER
+
   return await processChapterContent({
     bookId,
     chapterNumber,
     actionKey: action.key,
     prompt: action.prompt,
-    aiType: action.aiProvider,
+    aiType: aiProvider,
   })
 }

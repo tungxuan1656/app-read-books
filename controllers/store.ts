@@ -19,6 +19,7 @@ interface Settings {
   CAPCUT_WS_URL: string
   SUPABASE_ANON_KEY: string
   PREFETCH_COUNT: string
+  AI_PROVIDER: 'gemini' | 'copilot'
   AI_PROCESS_ACTIONS: string // JSON string of AIAction[]
 }
 
@@ -163,6 +164,7 @@ const useAppStore = create<AppState>()(
           CAPCUT_WS_URL: '',
           SUPABASE_ANON_KEY: '',
           PREFETCH_COUNT: '3',
+          AI_PROVIDER: 'gemini',
           AI_PROCESS_ACTIONS: JSON.stringify([
             {
               key: 'translate',
@@ -181,7 +183,6 @@ Bạn hãy đọc văn bản trong file original_content.txt và dịch theo cá
 - Chỉ trả về nội dung truyện, không thêm ý kiến, bình luận của bạn
 
 Bắt đầu dịch file và trả về kết quả`,
-              aiProvider: 'gemini',
             },
             {
               key: 'summary',
@@ -211,7 +212,6 @@ Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_
 5. Định dạng đầu ra:
    - Viết lại thành một bản tóm tắt hoàn chỉnh, mạch lạc, theo dạng văn xuôi bình thường.
    - Không giải thích quy trình, chỉ trả về nội dung chương đã được tóm tắt.`,
-              aiProvider: 'gemini',
             },
           ]),
         },

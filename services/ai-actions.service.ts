@@ -1,11 +1,9 @@
 import useAppStore from '@/controllers/store'
-import { AIProviderType } from './ai.service'
 
 export interface AIAction {
   key: string
   name: string
   prompt: string
-  aiProvider?: AIProviderType
 }
 
 export const getAIActions = (): AIAction[] => {

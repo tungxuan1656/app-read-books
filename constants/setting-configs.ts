@@ -92,6 +92,17 @@ export const SETTING_GROUPS: SettingGroup[] = [
         placeholder: '3',
         description: 'Số chương sẽ được tự động tải trước khi đọc (mặc định 3)',
       },
+      {
+        key: 'AI_PROVIDER',
+        label: 'AI Provider',
+        placeholder: 'gemini',
+        description: 'Chọn AI Provider mặc định cho các tác vụ xử lý nội dung.',
+        inputType: 'picker',
+        options: [
+          { label: 'Google Gemini', value: 'gemini' },
+          { label: 'GitHub Copilot', value: 'copilot' },
+        ],
+      },
     ],
   },
   {
@@ -102,7 +113,7 @@ export const SETTING_GROUPS: SettingGroup[] = [
         label: 'AI Actions List',
         placeholder: '[]',
         description:
-          'Danh sách các hành động AI (JSON). Mỗi hành động bao gồm: key, name, prompt, aiProvider (gemini/copilot).',
+          'Danh sách các hành động AI (JSON). Mỗi hành động bao gồm: key, name, prompt.',
         inputType: 'multiline',
       },
     ],
