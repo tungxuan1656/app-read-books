@@ -1,1 +1,1 @@
-export type ReadingAIMode = 'none' | 'translate' | 'summary'
+export type ReadingAIMode = string

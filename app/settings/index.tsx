@@ -3,15 +3,23 @@ import { Divider } from '@/components/divider'
 import { Screen } from '@/components/screen'
 import { SettingItem } from '@/components/setting-item'
 import { VectorIcon } from '@/components/vector-icon'
-import { AppTypo, DEFAULT_SETTING_CONFIGS } from '@/constants'
-import { SettingConfig } from '@/constants/setting-configs'
+import { AppTypo } from '@/constants'
+import { SETTING_GROUPS, SettingGroup } from '@/constants/setting-configs'
 import { router } from 'expo-router'
 import React from 'react'
-import { FlatList, ListRenderItem, Text, TouchableOpacity, View } from 'react-native'
+import { SectionList, Text, TouchableOpacity, View } from 'react-native'
 
 export default function Settings() {
-  const renderItem: ListRenderItem<SettingConfig> = React.useCallback(({ item }) => {
+  const renderItem = React.useCallback(({ item }: { item: any }) => {
     return <SettingItem config={item} />
+  }, [])
+
+  const renderSectionHeader = React.useCallback(({ section: { title } }: { section: any }) => {
+    return (
+      <View style={{ paddingHorizontal: 16, paddingVertical: 12, backgroundColor: AppColors.bgExtra }}>
+        <Text style={[AppTypo.body.semiBold, { color: AppPalette.gray600 }]}>{title}</Text>
+      </View>
+    )
   }, [])
 
   const renderFooter = () => (
@@ -40,13 +48,15 @@ export default function Settings() {
       <Screen.Header title="Cài đặt" />
       <Divider />
       <Screen.Content style={{ backgroundColor: AppColors.bgExtra }}>
-        <FlatList
-          data={DEFAULT_SETTING_CONFIGS}
+        <SectionList
+          sections={SETTING_GROUPS.map((g) => ({ title: g.title, data: g.configs }))}
           renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
           keyExtractor={(item) => item.key}
           ItemSeparatorComponent={Divider}
           contentContainerStyle={{ flexGrow: 1 }}
           ListFooterComponent={renderFooter}
+          stickySectionHeadersEnabled={false}
         />
       </Screen.Content>
     </Screen.Container>

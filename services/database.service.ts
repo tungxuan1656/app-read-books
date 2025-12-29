@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite'
 
-type ReadingMode = 'normal' | 'translate' | 'summary'
+type ReadingMode = string
 
 interface ProcessedChapter {
   id: number
@@ -44,7 +44,7 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         book_id TEXT NOT NULL,
         chapter_number INTEGER NOT NULL,
-        mode TEXT NOT NULL CHECK(mode IN ('normal', 'translate', 'summary')),
+        mode TEXT NOT NULL,
         content TEXT NOT NULL,
         content_hash TEXT,
         created_at INTEGER NOT NULL,
@@ -65,7 +65,7 @@ class DatabaseService {
   async getProcessedChapter(
     bookId: string,
     chapter: number,
-    mode: ReadingMode,
+    mode: string,
   ): Promise<ProcessedChapter | null> {
     if (!this.db) await this.initialize()
 
@@ -84,7 +84,7 @@ class DatabaseService {
   async saveProcessedChapter(
     bookId: string,
     chapter: number,
-    mode: ReadingMode,
+    mode: string,
     content: string,
     contentHash?: string,
   ): Promise<void> {

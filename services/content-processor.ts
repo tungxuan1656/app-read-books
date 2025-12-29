@@ -1,40 +1,55 @@
 import { dbService } from './database.service'
 import { getBookChapterContent } from '@/utils'
 import { getAIProviderByType, AIProviderType } from './ai.service'
-import { simpleMdToHtml } from '@/utils/string.helpers'
+import { simpleMdToHtml, formatContentForTTS } from '@/utils/string.helpers'
 
 interface ProcessOptions {
   bookId: string
   chapterNumber: number
-  mode: 'translate' | 'summary'
+  actionKey: string
   prompt: string
   aiType?: AIProviderType
-  prepareContent?: (content: string) => string
+  preprocess?: 'none' | 'tts'
 }
 
 const pendingRequests = new Map<string, Promise<string>>()
 
+const prepareContent = (content: string, preprocess: 'none' | 'tts'): string => {
+  if (preprocess === 'tts') {
+    let textContent = content
+      .replace(/<[^><]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    textContent = formatContentForTTS(textContent)
+    if (!textContent || textContent.length < 50) {
+      throw new Error('Nội dung quá ngắn để xử lý')
+    }
+    return textContent
+  }
+  return content
+}
+
 export const processChapterContent = async ({
   bookId,
   chapterNumber,
-  mode,
+  actionKey,
   prompt,
   aiType,
-  prepareContent,
+  preprocess = 'none',
 }: ProcessOptions): Promise<string> => {
-  const requestKey = `${bookId}_ch${chapterNumber}_${mode}`
+  const requestKey = `${bookId}_ch${chapterNumber}_${actionKey}`
 
   if (pendingRequests.has(requestKey)) {
-    console.log(`⏳ [${mode}] Awaiting pending request: ${requestKey}`)
+    console.log(`⏳ [${actionKey}] Awaiting pending request: ${requestKey}`)
     return pendingRequests.get(requestKey)!
   }
 
   const promise = (async () => {
     try {
       // 1. Check cache
-      const cached = await dbService.getProcessedChapter(bookId, chapterNumber, mode)
+      const cached = await dbService.getProcessedChapter(bookId, chapterNumber, actionKey)
       if (cached) {
-        console.log(`✅ [${mode}] Cache hit: ${bookId}_ch${chapterNumber}`)
+        console.log(`✅ [${actionKey}] Cache hit: ${bookId}_ch${chapterNumber}`)
         return cached.content
       }
 
@@ -44,23 +59,23 @@ export const processChapterContent = async ({
         throw new Error('Không thể tải nội dung chương gốc')
       }
 
-      const contentToProcess = prepareContent ? prepareContent(rawContent) : rawContent
+      const contentToProcess = prepareContent(rawContent, preprocess)
 
       // 3. Get Provider
       const provider = getAIProviderByType(aiType || 'gemini')
-      console.log(`🌐 [${mode}] Using ${provider.name}: ${bookId}_ch${chapterNumber}`)
+      console.log(`🌐 [${actionKey}] Using ${provider.name}: ${bookId}_ch${chapterNumber}`)
 
       // 4. Process with AI
       const processedText = await provider.processContent(prompt, contentToProcess)
       const htmlContent = simpleMdToHtml(processedText)
 
       // 5. Save to cache
-      await dbService.saveProcessedChapter(bookId, chapterNumber, mode, htmlContent)
-      console.log(`💾 [${mode}] Saved: ${bookId}_ch${chapterNumber}`)
+      await dbService.saveProcessedChapter(bookId, chapterNumber, actionKey, htmlContent)
+      console.log(`💾 [${actionKey}] Saved: ${bookId}_ch${chapterNumber}`)
 
       return htmlContent
     } catch (error) {
-      console.error(`❌ [${mode}] Error: ${bookId}_ch${chapterNumber}`, error)
+      console.error(`❌ [${actionKey}] Error: ${bookId}_ch${chapterNumber}`, error)
       throw error
     } finally {
       pendingRequests.delete(requestKey)
@@ -69,4 +84,17 @@ export const processChapterContent = async ({
 
   pendingRequests.set(requestKey, promise)
   return promise
+}
+
+export const clearProcessedChapter = async (
+  bookId: string,
+  chapterNumber: number,
+  actionKey: string,
+) => {
+  try {
+    await dbService.deleteProcessedChapter(bookId, chapterNumber, actionKey)
+    console.log(`🗑️ [${actionKey}] Cache cleared: ${bookId}_ch${chapterNumber}`)
+  } catch (error) {
+    console.error(`❌ [${actionKey}] Error clearing cache:`, error)
+  }
 }

@@ -1,6 +1,5 @@
 import useAppStore, { storeActions } from '@/controllers/store'
-import { getSummarizedContent } from '@/services/summary.service'
-import { getTranslatedContent } from '@/services/translate.service'
+import { getReadingContent } from '@/services/reading.service'
 import { useEffect, useRef } from 'react'
 
 export const useChapterPrefetch = (
@@ -51,14 +50,10 @@ export const useChapterPrefetch = (
 
         try {
           storeActions.updatePrefetchState({
-            message: `Đang ${readingAIMode === 'translate' ? 'dịch' : 'tóm tắt'} chương ${i}...`,
+            message: `Đang xử lý chương ${i}...`,
           })
 
-          if (readingAIMode === 'translate') {
-            await getTranslatedContent(bookId, i)
-          } else if (readingAIMode === 'summary') {
-            await getSummarizedContent(bookId, i)
-          }
+          await getReadingContent(bookId, i, readingAIMode)
 
           if (!isCancelled) {
             storeActions.updatePrefetchState({

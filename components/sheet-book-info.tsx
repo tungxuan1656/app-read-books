@@ -1,26 +1,24 @@
 import { ReadingAIMode } from '@/@types/common'
 import { AppPalette } from '@/assets'
-import { VectorIcon } from './vector-icon'
 import { AppStyles, AppTypo, ReadingAIModes } from '@/constants'
 import useAppStore, { storeActions } from '@/controllers/store'
 import { RELOAD_CONTENT_EVENT } from '@/hooks/use-reading-content'
-import { clearSummaryCache } from '@/services/summary.service'
-import { clearTranslateCache } from '@/services/translate.service'
+import { clearProcessedChapter } from '@/services/content-processor'
 import { getListFonts } from '@/utils'
 import BottomSheet, {
-  BottomSheetView,
-  BottomSheetBackdropProps,
   BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+  BottomSheetView,
 } from '@gorhom/bottom-sheet'
-import React, { forwardRef, useCallback, useMemo, useState } from 'react'
+import React, { forwardRef, useCallback, useMemo } from 'react'
 import {
-  ActivityIndicator,
   DeviceEventEmitter,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native'
+import { VectorIcon } from './vector-icon'
 
 export interface SheetBookInfoRef {
   present: (bookId: string) => void
@@ -56,12 +54,8 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
     const chapterNumber = useAppStore.getState().id2BookReadingChapter[bookId] || 1
     if (readingAIMode === 'none' || !bookId || !chapterNumber) return
     try {
-      // Xóa cache của chương hiện tại theo mode
-      if (readingAIMode === 'translate') {
-        await clearTranslateCache(bookId, chapterNumber)
-      } else if (readingAIMode === 'summary') {
-        await clearSummaryCache(bookId, chapterNumber)
-      }
+      // Xóa cache của chương hiện tại theo mode (actionKey)
+      await clearProcessedChapter(bookId, chapterNumber, readingAIMode)
 
       // Gọi callback để trigger reload nội dung
       DeviceEventEmitter.emit(RELOAD_CONTENT_EVENT)

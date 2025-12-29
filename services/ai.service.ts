@@ -13,15 +13,6 @@ export interface AIProvider {
 export type AIProviderType = 'gemini' | 'copilot'
 
 /**
- * Lấy AI Provider dựa trên settings hiện tại
- * Mỗi lần gọi sẽ đọc settings mới nhất, không cache
- */
-export const getAIProvider = (): AIProvider => {
-  const provider = useAppStore.getState().settings.TRANSLATE_PROVIDER as AIProviderType
-  return getAIProviderByType(provider || 'gemini')
-}
-
-/**
  * Lấy AI Provider theo type cụ thể
  */
 export const getAIProviderByType = (type: AIProviderType): AIProvider => {

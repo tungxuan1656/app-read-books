@@ -1,34 +1,39 @@
 import { getBookChapterContent } from '@/utils'
-import { getTranslatedContent } from './translate.service'
-import { getSummarizedContent } from './summary.service'
+import { processChapterContent } from './content-processor'
+import { getActionByKey } from './ai-actions.service'
 
-export type ReadingMode = 'none' | 'translate' | 'summary'
+export const getLoadingMessage = (actionKey: string, chapterNumber: number): string => {
+  if (actionKey === 'none') return 'Đang tải nội dung gốc...'
 
-export const getLoadingMessage = (mode: ReadingMode, chapterNumber: number): string => {
-  switch (mode) {
-    case 'translate':
-      return `Đang dịch chương ${chapterNumber}...`
-    case 'summary':
-      return `Đang tóm tắt chương ${chapterNumber}...`
-    default:
-      return 'Đang tải nội dung gốc...'
+  const action = getActionByKey(actionKey)
+  if (action) {
+    return `Đang xử lý: ${action.name} (Chương ${chapterNumber})...`
   }
+  return `Đang xử lý chương ${chapterNumber}...`
 }
 
 export const getReadingContent = async (
   bookId: string,
   chapterNumber: number,
-  mode: ReadingMode,
+  actionKey: string,
 ): Promise<string> => {
-  switch (mode) {
-    case 'translate':
-      return await getTranslatedContent(bookId, chapterNumber)
-    case 'summary':
-      return await getSummarizedContent(bookId, chapterNumber)
-    case 'none':
-    default:
-      const content = await getBookChapterContent(bookId, chapterNumber)
-      if (!content) throw new Error('Không thể tải nội dung chương')
-      return content
+  if (actionKey === 'none') {
+    const content = await getBookChapterContent(bookId, chapterNumber)
+    if (!content) throw new Error('Không thể tải nội dung chương')
+    return content
   }
+
+  const action = getActionByKey(actionKey)
+  if (!action) {
+    throw new Error(`Không tìm thấy hành động AI: ${actionKey}`)
+  }
+
+  return await processChapterContent({
+    bookId,
+    chapterNumber,
+    actionKey: action.key,
+    prompt: action.prompt,
+    aiType: action.aiProvider,
+    preprocess: action.preprocess,
+  })
 }
