@@ -1,6 +1,6 @@
 import React, { type ErrorInfo, useState } from 'react'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
-import { Screen } from './Screen'
+import { Screen } from './screen-2'
 import { AppTypo } from '@/constants'
 import { AppColors } from '@/assets'
 

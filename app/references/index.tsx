@@ -1,4 +1,4 @@
-import { Divider, Screen } from '@/components/screen'
+import { Divider, Screen } from '@/components/screen-2'
 import { router } from 'expo-router'
 import React, { useLayoutEffect, useRef } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
