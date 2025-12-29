@@ -1,11 +1,12 @@
-import { Divider, Screen } from '@/components/screen'
+import { Screen } from '@/components/screen'
 import { router } from 'expo-router'
 import React, { useLayoutEffect, useRef } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AppTypo } from '../../constants'
 import useAppStore, { storeActions } from '@/controllers/store'
-import { VectorIcon } from '@/components/icon'
 import { AppPalette } from '@/assets'
+import { VectorIcon } from '@/components/vector-icon'
+import { Divider } from '@/components/divider'
 
 const References = () => {
   const refList = useRef<FlatList | null>(null)

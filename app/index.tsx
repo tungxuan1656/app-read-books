@@ -1,15 +1,16 @@
 import { AppColors, AppPalette } from '@/assets'
 import { GToast } from '@/components/g-toast'
 import HomeBookItem, { useBookActions } from '@/components/home-book-item'
-import { VectorIcon } from '@/components/icon'
 import { ItemSwipeable, SwipeableAction, ViewSwipeable } from '@/components/item-swipeable'
-import { Divider, Screen } from '@/components/screen'
+import { Screen } from '@/components/screen'
 import { router, useFocusEffect } from 'expo-router'
 import React, { useCallback } from 'react'
 import { FlatList, ListRenderItem, Text, View } from 'react-native'
 import { AppTypo } from '../constants'
 import useAppStore, { storeActions } from '../controllers/store'
 import { readFolderBooks } from '../utils'
+import { VectorIcon } from '@/components/vector-icon'
+import { Divider } from '@/components/divider'
 
 const BookItemWithSwipe = React.memo(
   ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: () => void }) => {
@@ -111,7 +112,11 @@ export default function Home() {
           keyExtractor={(item) => item}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 100 }}>
-              <Text style={[AppTypo.body.regular, { marginHorizontal: 20, color: AppColors.textExtra }]}>
+              <Text
+                style={[
+                  AppTypo.body.regular,
+                  { marginHorizontal: 20, color: AppColors.textExtra },
+                ]}>
                 {'Nhấn vào dấu + để thêm truyện nhé!'}
               </Text>
             </View>

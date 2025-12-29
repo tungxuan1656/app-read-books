@@ -1,14 +1,13 @@
 import { AppColors, AppPalette } from '@/assets'
+import { Divider } from '@/components/divider'
 import { Screen } from '@/components/screen'
-import { Divider } from '@/components/screen'
 import { SettingItem } from '@/components/setting-item'
-import { DEFAULT_SETTING_CONFIGS } from '@/constants'
-import React from 'react'
-import { FlatList, ListRenderItem, TouchableOpacity, Text, View } from 'react-native'
+import { VectorIcon } from '@/components/vector-icon'
+import { AppTypo, DEFAULT_SETTING_CONFIGS } from '@/constants'
 import { SettingConfig } from '@/constants/setting-configs'
-import { AppTypo } from '@/constants'
-import { VectorIcon } from '@/components/icon'
 import { router } from 'expo-router'
+import React from 'react'
+import { FlatList, ListRenderItem, Text, TouchableOpacity, View } from 'react-native'
 
 export default function Settings() {
   const renderItem: ListRenderItem<SettingConfig> = React.useCallback(({ item }) => {

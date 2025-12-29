@@ -1,7 +1,6 @@
 import DownloadBookItem, { ExportedBook } from '@/components/download-book-item'
 import { GToast } from '@/components/g-toast'
-import { Divider, Screen } from '@/components/screen'
-import { VectorIcon } from '@/components/icon'
+import { Screen } from '@/components/screen'
 import { router } from 'expo-router'
 import React, { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, FlatList, ListRenderItem, StyleSheet, Text, View } from 'react-native'
@@ -11,6 +10,8 @@ import { AppStyles, AppTypo } from '../../constants'
 import { deleteDownloadFile, downloadFile, getFilenameOfUrl } from '../../services/download.service'
 import { createFolderBooks, getFolderBooks, getPathSaveZipBook, showToastError } from '../../utils'
 import useAppStore from '@/controllers/store'
+import { VectorIcon } from '@/components/vector-icon'
+import { Divider } from '@/components/divider'
 
 const GET_EXPORTED_BOOKS_URL =
   'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books'
