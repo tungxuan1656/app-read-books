@@ -54,8 +54,3 @@ export const AppSize = {
   custom: (n: number) => n,
 }
 
-export const ReadingAIModes = [
-  { value: 'none', label: 'Không' },
-  { value: 'summary', label: 'Tóm tắt' },
-  { value: 'translate', label: 'Dịch convert' },
-]

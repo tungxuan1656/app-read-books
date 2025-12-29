@@ -181,7 +181,6 @@ Bạn hãy đọc văn bản trong file original_content.txt và dịch theo cá
 - Chỉ trả về nội dung truyện, không thêm ý kiến, bình luận của bạn
 
 Bắt đầu dịch file và trả về kết quả`,
-              preprocess: 'none',
               aiProvider: 'gemini',
             },
             {
@@ -212,7 +211,6 @@ Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_
 5. Định dạng đầu ra:
    - Viết lại thành một bản tóm tắt hoàn chỉnh, mạch lạc, theo dạng văn xuôi bình thường.
    - Không giải thích quy trình, chỉ trả về nội dung chương đã được tóm tắt.`,
-              preprocess: 'tts',
               aiProvider: 'gemini',
             },
           ]),

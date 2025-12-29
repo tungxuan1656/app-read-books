@@ -1,8 +1,9 @@
 import { ReadingAIMode } from '@/@types/common'
 import { AppPalette } from '@/assets'
-import { AppStyles, AppTypo, ReadingAIModes } from '@/constants'
+import { AppStyles, AppTypo } from '@/constants'
 import useAppStore, { storeActions } from '@/controllers/store'
 import { RELOAD_CONTENT_EVENT } from '@/hooks/use-reading-content'
+import { getAIActions } from '@/services/ai-actions.service'
 import { clearProcessedChapter } from '@/services/content-processor'
 import { getListFonts } from '@/utils'
 import BottomSheet, {
@@ -69,6 +70,14 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
 
   // Memoize font list for better performance
   const fontList = useMemo(() => getListFonts(), [])
+
+  const aiModes = useMemo(() => {
+    const actions = getAIActions()
+    return [
+      { value: 'none', label: 'Không' },
+      ...actions.map((a) => ({ value: a.key, label: a.name })),
+    ]
+  }, [])
 
   // Memoize font controls for better performance
   const fontSizeControls = useMemo(
@@ -144,7 +153,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
   )
 
   const renderReadingMode = useCallback(
-    (mode: (typeof ReadingAIModes)[number]) => (
+    (mode: { value: string; label: string }) => (
       <TouchableOpacity
         key={mode.value}
         onPress={() => storeActions.setReadingAIMode(mode.value as ReadingAIMode)}
@@ -177,7 +186,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClos
         </View>
         <Text style={styles.titleSection}>{'Chế độ đọc AI'}</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-          {ReadingAIModes.map(renderReadingMode)}
+          {aiModes.map(renderReadingMode)}
           <TouchableOpacity
             onPress={handleReprocess}
             disabled={readingAIMode === 'none'}

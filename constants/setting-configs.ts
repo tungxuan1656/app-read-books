@@ -102,7 +102,7 @@ export const SETTING_GROUPS: SettingGroup[] = [
         label: 'AI Actions List',
         placeholder: '[]',
         description:
-          'Danh sách các hành động AI (JSON). Mỗi hành động bao gồm: key, name, prompt, preprocess (none/tts), aiProvider (gemini/copilot).',
+          'Danh sách các hành động AI (JSON). Mỗi hành động bao gồm: key, name, prompt, aiProvider (gemini/copilot).',
         inputType: 'multiline',
       },
     ],

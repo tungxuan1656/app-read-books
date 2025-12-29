@@ -35,33 +35,7 @@ export const clearChapterCache = async (bookId: string, chapterNumber: number): 
   }
 }
 
-/**
- * Lấy thống kê cache của một cuốn sách
- */
-export const getBookCacheStats = async (
-  bookId: string,
-): Promise<{
-  translateCount: number
-  summaryCount: number
-}> => {
-  try {
-    const processedChapters = await dbService.getProcessedChaptersForBook(bookId)
-    
-    const translateCount = processedChapters.filter(c => c.mode === 'translate').length
-    const summaryCount = processedChapters.filter(c => c.mode === 'summary').length
 
-    return {
-      translateCount,
-      summaryCount,
-    }
-  } catch (error) {
-    console.error(`❌ [Content Cache] Error getting cache stats for book ${bookId}:`, error)
-    return {
-      translateCount: 0,
-      summaryCount: 0,
-    }
-  }
-}
 
 /**
  * Xóa toàn bộ cache - sử dụng cẩn thận

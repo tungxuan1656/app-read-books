@@ -9,25 +9,9 @@ interface ProcessOptions {
   actionKey: string
   prompt: string
   aiType?: AIProviderType
-  preprocess?: 'none' | 'tts'
 }
 
 const pendingRequests = new Map<string, Promise<string>>()
-
-const prepareContent = (content: string, preprocess: 'none' | 'tts'): string => {
-  if (preprocess === 'tts') {
-    let textContent = content
-      .replace(/<[^><]*>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-    textContent = formatContentForTTS(textContent)
-    if (!textContent || textContent.length < 50) {
-      throw new Error('Nội dung quá ngắn để xử lý')
-    }
-    return textContent
-  }
-  return content
-}
 
 export const processChapterContent = async ({
   bookId,
@@ -35,7 +19,6 @@ export const processChapterContent = async ({
   actionKey,
   prompt,
   aiType,
-  preprocess = 'none',
 }: ProcessOptions): Promise<string> => {
   const requestKey = `${bookId}_ch${chapterNumber}_${actionKey}`
 
@@ -59,14 +42,12 @@ export const processChapterContent = async ({
         throw new Error('Không thể tải nội dung chương gốc')
       }
 
-      const contentToProcess = prepareContent(rawContent, preprocess)
-
       // 3. Get Provider
       const provider = getAIProviderByType(aiType || 'gemini')
       console.log(`🌐 [${actionKey}] Using ${provider.name}: ${bookId}_ch${chapterNumber}`)
 
       // 4. Process with AI
-      const processedText = await provider.processContent(prompt, contentToProcess)
+      const processedText = await provider.processContent(prompt, rawContent)
       const htmlContent = simpleMdToHtml(processedText)
 
       // 5. Save to cache

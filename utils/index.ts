@@ -30,7 +30,6 @@ export {
 export {
   preprocessSentence,
   splitContentToParagraph,
-  breakSummaryIntoLines,
   formatContentForTTS,
 } from './string.helpers'
 
@@ -38,6 +37,5 @@ export {
 export {
   clearBookCache,
   clearChapterCache,
-  getBookCacheStats,
   clearAllCache,
 } from './content-cache.helpers'

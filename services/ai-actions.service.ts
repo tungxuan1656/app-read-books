@@ -5,7 +5,6 @@ export interface AIAction {
   key: string
   name: string
   prompt: string
-  preprocess: 'none' | 'tts'
   aiProvider?: AIProviderType
 }
 

@@ -34,6 +34,5 @@ export const getReadingContent = async (
     actionKey: action.key,
     prompt: action.prompt,
     aiType: action.aiProvider,
-    preprocess: action.preprocess,
   })
 }

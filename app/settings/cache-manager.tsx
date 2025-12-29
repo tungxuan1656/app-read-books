@@ -36,7 +36,7 @@ const CacheManagement = () => {
   const handleClearAllCache = useCallback(() => {
     Alert.alert(
       'Xóa toàn bộ dữ liệu?',
-      'Hành động này sẽ xóa tất cả các chương truyện đã dịch và tóm tắt. Bạn có chắc chắn không?',
+      'Hành động này sẽ xóa tất cả các chương truyện đã xử lý bởi AI. Bạn có chắc chắn không?',
       [
         { text: 'Hủy', style: 'cancel' },
         {
@@ -95,7 +95,7 @@ const CacheManagement = () => {
           <View style={styles.statsCard}>
             <Text style={AppTypo.h3.bold}>Tổng quan</Text>
             <View style={styles.statRow}>
-              <Text style={AppTypo.body.regular}>Số chương đã xử lý (Dịch/Tóm tắt):</Text>
+              <Text style={AppTypo.body.regular}>Số chương đã xử lý (AI):</Text>
               <Text style={AppTypo.body.semiBold}>{stats.totalChapters}</Text>
             </View>
             <View style={styles.statRow}>
