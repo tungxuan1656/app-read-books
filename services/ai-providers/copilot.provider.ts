@@ -64,10 +64,9 @@ interface CopilotMessage {
 /**
  * Chia content thành các chunks dựa trên logic thông minh:
  * - Split bằng <br><br>
- * - Nhóm thành số phần tối ưu (10, 5, hoặc 1 phần tùy độ dài)
- * - Nếu mỗi chunk < 1k ký tự, giảm số phần xuống
+ * - Thử từ maxChunks lùi dần về 1 cho đến khi avgChunkSize >= MIN_CHUNK_SIZE
  */
-const splitContentIntoChunks = (content: string): string[] => {
+const splitContentIntoChunks = (content: string, maxChunks: number = 10): string[] => {
   const SPLIT_KEY = '<br><br>'
   const MIN_CHUNK_SIZE = 1300 // Minimum average size per chunk
 
@@ -92,34 +91,19 @@ const splitContentIntoChunks = (content: string): string[] => {
     return chunks
   }
 
-  // Thử với 8 chunks
-  let chunks = groupPartsIntoChunks(8)
-  let avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
+  // Thử từ maxChunks lùi dần về 1
+  for (let numChunks = maxChunks; numChunks >= 1; numChunks--) {
+    const chunks = groupPartsIntoChunks(numChunks)
+    const avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
 
-  // Nếu chunk quá nhỏ, thử với 5 chunks
-  if (avgChunkSize < MIN_CHUNK_SIZE && chunks.length > 5) {
-    chunks = groupPartsIntoChunks(5)
-    avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
+    // Nếu thoả mãn điều kiện hoặc đã về 1 chunk, dùng kết quả này
+    if (avgChunkSize >= MIN_CHUNK_SIZE || numChunks === 1) {
+      return chunks
+    }
   }
 
-  // Nếu vẫn quá nhỏ, thử với 3 chunks
-  if (avgChunkSize < MIN_CHUNK_SIZE && chunks.length > 3) {
-    chunks = groupPartsIntoChunks(3)
-    avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
-  }
-
-  // Nếu vẫn quá nhỏ, thử với 2 chunks
-  if (avgChunkSize < MIN_CHUNK_SIZE && chunks.length > 2) {
-    chunks = groupPartsIntoChunks(2)
-    avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
-  }
-
-  // Nếu vẫn quá nhỏ, không chia nữa
-  if (avgChunkSize < MIN_CHUNK_SIZE) {
-    return [content]
-  }
-
-  return chunks
+  // Fallback (không bao giờ xảy ra vì loop đã về 1)
+  return [content]
 }
 
 export const getCopilotApiUrl = (): string => {
