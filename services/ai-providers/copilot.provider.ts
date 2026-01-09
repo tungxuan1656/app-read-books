@@ -68,7 +68,7 @@ interface CopilotMessage {
  */
 const splitContentIntoChunks = (content: string, maxChunks: number = 10): string[] => {
   const SPLIT_KEY = '<br><br>'
-  const MIN_CHUNK_SIZE = 1300 // Minimum average size per chunk
+  const MIN_CHUNK_SIZE = getCopilotMinChunkSize() // Minimum average size per chunk
 
   // Split content by key
   const parts = content.split(SPLIT_KEY)
@@ -115,6 +115,12 @@ export const getCopilotApiUrl = (): string => {
 
 export const getCopilotModel = (): string => {
   return useAppStore.getState().settings.COPILOT_MODEL?.trim() || 'gpt-4.1'
+}
+
+export const getCopilotMinChunkSize = (): number => {
+  const value = useAppStore.getState().settings.COPILOT_MIN_CHUNK_SIZE?.trim()
+  const parsed = value ? parseInt(value, 10) : NaN
+  return !isNaN(parsed) && parsed > 0 ? parsed : 1300
 }
 
 const callCopilotAPI = async (

@@ -21,6 +21,7 @@ interface Settings {
   PREFETCH_COUNT: string
   AI_PROVIDER: 'gemini' | 'copilot'
   AI_PROCESS_ACTIONS: string // JSON string of AIAction[]
+  COPILOT_MIN_CHUNK_SIZE: string
 }
 
 interface Reading {
@@ -214,6 +215,7 @@ Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_
    - Không giải thích quy trình, chỉ trả về nội dung chương đã được tóm tắt.`,
             },
           ]),
+          COPILOT_MIN_CHUNK_SIZE: '1300',
         },
         updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) =>
           set((state) => ({

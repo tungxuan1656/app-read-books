@@ -56,6 +56,13 @@ export const SETTING_GROUPS: SettingGroup[] = [
         placeholder: 'gpt-4.1',
         description: 'Tên model Copilot sử dụng (ví dụ: gpt-4.1, gpt-4o). Để trống sẽ dùng gpt-4.1',
       },
+      {
+        key: 'COPILOT_MIN_CHUNK_SIZE',
+        label: 'Min Chunk Size',
+        placeholder: '1300',
+        description:
+          'Kích thước tối thiểu trung bình của mỗi chunk khi chia nội dung (mặc định 1300 ký tự). Giá trị càng lớn, số chunk càng ít.',
+      },
     ],
   },
   {
