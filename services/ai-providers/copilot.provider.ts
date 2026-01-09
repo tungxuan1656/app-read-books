@@ -69,7 +69,7 @@ interface CopilotMessage {
  */
 const splitContentIntoChunks = (content: string): string[] => {
   const SPLIT_KEY = '<br><br>'
-  const MIN_CHUNK_SIZE = 1000
+  const MIN_CHUNK_SIZE = 1300 // Minimum average size per chunk
 
   // Split content by key
   const parts = content.split(SPLIT_KEY)
