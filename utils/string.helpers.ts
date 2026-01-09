@@ -78,8 +78,8 @@ export function simpleMdToHtml(md: string) {
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
 
   // 3. Chuyển đổi Xuống dòng thành Thẻ <br> hoặc <p></p>
-  // Thay thế hai lần xuống dòng liên tiếp bằng </p><p> để tạo đoạn văn mới
-  html = `<p>${html.replace(/\n\n/g, '<br><br>')}</p>`
+  // Thay thế hai lần xuống dòng liên tiếp bằng </p><> để tạo đoạn văn mới
+  html = html.replace(/\n\n/g, '<br><br>')
 
   return html
 }

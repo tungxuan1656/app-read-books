@@ -23,7 +23,7 @@ export const createCopilotProvider = (): AIProvider => {
           { role: 'user', content: `Đây là nội dung cần xử lý:\n\n${content}` },
         ]
         const result = await callCopilotAPI(messages)
-        return cleanCopilotResponse(result)
+        return result
       }
 
       // Xử lý song song nhiều chunks
@@ -37,8 +37,7 @@ export const createCopilotProvider = (): AIProvider => {
           },
         ]
         const result = await callCopilotAPI(messages)
-
-        return cleanCopilotResponse(result)
+        return result
       })
 
       // Đợi tất cả promises hoàn thành và join kết quả
@@ -173,7 +172,9 @@ const cleanCopilotResponse = (response: string): string => {
   let cleaned = response.trim()
   cleaned = cleaned.replace(/^```(?:html|xml|text|markdown)?\s*\n?/gi, '')
   cleaned = cleaned.replace(/\n?```\s*$/gi, '')
-  // Replace 3 or more consecutive <br> tags with just 2
+  // Remove div and p tags (opening and closing with any attributes)
+  cleaned = cleaned.replace(/<\/?div[^>]*>/gi, '')
+  cleaned = cleaned.replace(/<\/?p[^>]*>/gi, '')
   cleaned = cleaned.replace(/(<br>){3,}/gi, '<br><br>')
   return cleaned.trim()
 }
