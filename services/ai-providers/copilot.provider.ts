@@ -15,8 +15,6 @@ export const createCopilotProvider = (): AIProvider => {
 
       // Split content into chunks
       const chunks = splitContentIntoChunks(content)
-      
-      console.log(`Copilot: Processing content in ${chunks.length} chunk(s)`)
 
       // Nếu chỉ có 1 chunk, xử lý bình thường
       if (chunks.length === 1) {
@@ -33,17 +31,23 @@ export const createCopilotProvider = (): AIProvider => {
         console.log(`Copilot: Processing chunk ${index + 1}/${chunks.length}`)
         const messages: CopilotMessage[] = [
           { role: 'system', content: adjustedPrompt },
-          { role: 'user', content: `Đây là nội dung cần xử lý (phần ${index + 1}/${chunks.length}):\n\n${chunk}` },
+          {
+            role: 'user',
+            content: `Đây là nội dung cần xử lý (phần ${index + 1}/${chunks.length}):\n\n${chunk}`,
+          },
         ]
         const result = await callCopilotAPI(messages)
+
         return cleanCopilotResponse(result)
       })
 
       // Đợi tất cả promises hoàn thành và join kết quả
       const results = await Promise.all(promises)
       console.log('Copilot: All chunks processed, joining results')
-      
-      return results.join('<br><br>')
+
+      const output = cleanCopilotResponse(results.join('<br><br>'))
+
+      return output
     },
   }
 }
@@ -66,48 +70,51 @@ interface CopilotMessage {
 const splitContentIntoChunks = (content: string): string[] => {
   const SPLIT_KEY = '<br><br>'
   const MIN_CHUNK_SIZE = 1000
-  
+
   // Split content by key
   const parts = content.split(SPLIT_KEY)
-  
+
   // Nếu không có gì để split hoặc chỉ có 1 phần
   if (parts.length <= 1) {
     return [content]
   }
-  
+
   // Hàm helper để nhóm các parts thành số chunks mong muốn
   const groupPartsIntoChunks = (numChunks: number): string[] => {
     const chunks: string[] = []
     const partsPerChunk = Math.ceil(parts.length / numChunks)
-    
+
     for (let i = 0; i < parts.length; i += partsPerChunk) {
       const chunkParts = parts.slice(i, i + partsPerChunk)
       chunks.push(chunkParts.join(SPLIT_KEY))
     }
-    
+
     return chunks
   }
-  
+
   // Thử với 10 chunks
   let chunks = groupPartsIntoChunks(10)
   let avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
-  
+
   // Nếu chunk quá nhỏ, thử với 5 chunks
   if (avgChunkSize < MIN_CHUNK_SIZE && chunks.length > 5) {
     chunks = groupPartsIntoChunks(5)
     avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
   }
-  
+
   // Nếu vẫn quá nhỏ, không chia nữa
   if (avgChunkSize < MIN_CHUNK_SIZE) {
     return [content]
   }
-  
+
   return chunks
 }
 
 export const getCopilotApiUrl = (): string => {
-  return useAppStore.getState().settings.COPILOT_API_URL?.trim() || 'http://localhost:8317/v1/chat/completions'
+  return (
+    useAppStore.getState().settings.COPILOT_API_URL?.trim() ||
+    'http://localhost:8317/v1/chat/completions'
+  )
 }
 
 export const getCopilotModel = (): string => {
@@ -164,5 +171,7 @@ const cleanCopilotResponse = (response: string): string => {
   let cleaned = response.trim()
   cleaned = cleaned.replace(/^```(?:html|xml|text|markdown)?\s*\n?/gi, '')
   cleaned = cleaned.replace(/\n?```\s*$/gi, '')
+  // Replace 3 or more consecutive <br> tags with just 2
+  cleaned = cleaned.replace(/(<br>){3,}/gi, '<br><br>')
   return cleaned.trim()
 }
