@@ -11,7 +11,6 @@ let isCancelled = false
 
 // Function to stop TTS conversion
 export const stopConvertTTSCapcut = () => {
-  console.log('🎵 [TTS] Cancelling TTS conversion...')
   isCancelled = true
 }
 
