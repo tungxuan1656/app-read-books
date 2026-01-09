@@ -122,7 +122,7 @@ export const getChapterHtml = (html: string): string => {
   return `
     <html lang="en">
       <body>
-        ${html}
+        ${html.replace(/(<br>){3,}/gi, '<br><br>')}
       </body>
     </html>
   `
