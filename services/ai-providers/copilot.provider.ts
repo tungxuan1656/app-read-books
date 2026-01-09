@@ -28,7 +28,7 @@ export const createCopilotProvider = (): AIProvider => {
 
       // Xử lý song song nhiều chunks
       const promises = chunks.map(async (chunk, index) => {
-        console.log(`Copilot: Processing chunk ${index + 1}/${chunks.length}`)
+        console.log(`Copilot: Processing chunk ${index + 1}/${chunks.length}: ${chunk.length} characters`)
         const messages: CopilotMessage[] = [
           { role: 'system', content: adjustedPrompt },
           {
