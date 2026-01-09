@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import SheetBookInfo, { SheetBookInfoRef } from '../sheet-book-info'
 import useAppStore from '@/controllers/store'
-import TTSControl from '../tts-control'
 import useReadingContent from '@/hooks/use-reading-content'
 import { VectorIcon } from '../vector-icon'
 
@@ -21,11 +20,11 @@ function ReadingButtonLeftControl() {
   return (
     <>
       <View style={[styles.container, { bottom: 12 + insets.bottom }]}>
-        <TTSControl 
+        {/* <TTSControl 
           content={chapter.content} 
           bookId={bookId} 
           chapterIndex={chapter.index} 
-        />
+        /> */}
         
         <VectorIcon
           name="book-open-reader"

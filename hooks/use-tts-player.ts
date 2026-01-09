@@ -2,7 +2,7 @@ import { audioPlayerService } from '@/services/audio-player.service'
 import { convertTTSCapcut, stopConvertTTSCapcut } from '@/services/tts.service'
 import { formatContentForTTS } from '@/utils/string.helpers'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import TrackPlayer, { Event, State, useTrackPlayerEvents } from 'react-native-track-player'
+import { Event, State, useTrackPlayerEvents } from 'react-native-track-player'
 import useAppStore from '@/controllers/store'
 
 export const useTTSPlayer = (content: string, bookId: string, chapterIndex: number) => {
