@@ -92,13 +92,25 @@ const splitContentIntoChunks = (content: string): string[] => {
     return chunks
   }
 
-  // Thử với 10 chunks
-  let chunks = groupPartsIntoChunks(10)
+  // Thử với 8 chunks
+  let chunks = groupPartsIntoChunks(8)
   let avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
 
   // Nếu chunk quá nhỏ, thử với 5 chunks
   if (avgChunkSize < MIN_CHUNK_SIZE && chunks.length > 5) {
     chunks = groupPartsIntoChunks(5)
+    avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
+  }
+
+  // Nếu vẫn quá nhỏ, thử với 3 chunks
+  if (avgChunkSize < MIN_CHUNK_SIZE && chunks.length > 3) {
+    chunks = groupPartsIntoChunks(3)
+    avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
+  }
+
+  // Nếu vẫn quá nhỏ, thử với 2 chunks
+  if (avgChunkSize < MIN_CHUNK_SIZE && chunks.length > 2) {
+    chunks = groupPartsIntoChunks(2)
     avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
   }
 
