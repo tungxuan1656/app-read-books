@@ -81,6 +81,28 @@ class DatabaseService {
     }
   }
 
+  async getChaptersCacheStatus(
+    bookId: string,
+    chapters: number[],
+    mode: string,
+  ): Promise<Set<number>> {
+    if (!this.db) await this.initialize()
+    if (chapters.length === 0) return new Set()
+
+    try {
+      const placeholders = chapters.map(() => '?').join(',')
+      const results = await this.db!.getAllAsync<{ chapter_number: number }>(
+        `SELECT chapter_number FROM processed_chapters 
+         WHERE book_id = ? AND mode = ? AND chapter_number IN (${placeholders})`,
+        [bookId, mode, ...chapters],
+      )
+      return new Set(results.map((r) => r.chapter_number))
+    } catch (error) {
+      console.error('Error getting chapters cache status:', error)
+      return new Set()
+    }
+  }
+
   async saveProcessedChapter(
     bookId: string,
     chapter: number,
