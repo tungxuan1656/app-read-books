@@ -11,6 +11,7 @@ import React, { useCallback, useEffect, useRef } from 'react'
 export default function useReadingNavigation(bookId: string) {
   const refTimeout = useRef<number | undefined>(undefined)
   const refTimeoutSave = useRef<number | undefined>(undefined)
+  const refCanChangeChapter = useRef<boolean>(true)
 
   // Initialize reading state on mount
   useEffect(() => {
@@ -31,9 +32,14 @@ export default function useReadingNavigation(bookId: string) {
 
   const nextChapter = useCallback(
     (timeout?: number) => {
+      if (!refCanChangeChapter.current) return
       clearTimeout(refTimeout.current)
       refTimeout.current = setTimeout(() => {
         storeActions.nextReadingChapter(bookId)
+        refCanChangeChapter.current = false
+        setTimeout(() => {
+          refCanChangeChapter.current = true
+        }, 1000)
       }, timeout || 50)
     },
     [bookId],
@@ -41,9 +47,14 @@ export default function useReadingNavigation(bookId: string) {
 
   const previousChapter = useCallback(
     (timeout?: number) => {
+      if (!refCanChangeChapter.current) return
       clearTimeout(refTimeout.current)
       refTimeout.current = setTimeout(() => {
         storeActions.previousReadingChapter(bookId)
+        refCanChangeChapter.current = false
+        setTimeout(() => {
+          refCanChangeChapter.current = true
+        }, 1000)
       }, timeout || 50)
     },
     [bookId],
