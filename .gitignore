@@ -23,3 +23,5 @@ ios/
 android/
 
 .env
+.gitnexus
+.agents/skills
