@@ -2,56 +2,46 @@
 
 ## 1) Required Rules
 
-- Data objects exchanged between FE/BE: suffix `DTO`.
-- Data types sent to API: suffix `Request`.
-- Data types received from API (beyond the common wrapper): suffix `Response`.
+- Remote transport shape: suffix `DTO`.
+- Input payload to API/provider/service boundary: suffix `Request`.
+- Output payload from API/provider/service boundary: suffix `Response`.
 
-## 2) Naming Conventions
+## 2) Domain Naming
 
-- Entity DTO: `UserDTO`, `GoalDTO`, `JournalEntryDTO`.
-- API input: `CreateDeedRequest`, `UpdateMeRequest`, `GetGoalHistoryRequest`.
-- API business output: `AuthResponse`, `SessionResponse`, `GoalHistoryResponse`.
-- Common wrapper remains: `ApiResponse<T>`.
+- Keep domain terms explicit: `Book`, `Chapter`, `Reading`, `TTS`, `AIAction`.
+- Avoid vague names (`Data`, `Payload`, `Result`) unless a boundary type explicitly requires them.
 
-## 3) Standard Template
+## 3) Example
 
 ```ts
-export type UserDTO = {
+export type BookDTO = {
   id: string
-  email: string
   name: string
+  references: string[]
 }
 
-export type UpdateMeRequest = {
-  name?: string
-  avatarUrl?: string
+export type ProcessChapterRequest = {
+  bookId: string
+  chapterNumber: number
+  actionKey: string
 }
 
-export type GoalHistoryResponse = {
-  items: GoalHistoryItemDTO[]
-  pagination: PaginationDTO
-}
-```
-
-## 4) Usage in API Functions
-
-```ts
-export const updateMe = async (
-  payload: UpdateMeRequest,
-): Promise<ApiResponse<UserDTO>> => {
-  const response = await client.patch<ApiResponse<UserDTO>>(API_ENDPOINTS.users.me, payload)
-  return response.data
+export type ProcessChapterResponse = {
+  content: string
+  cached: boolean
 }
 ```
 
-## 5) Do Not Use
+## 4) Store Types
 
-- `UserData`, `GoalModel`, `Payload`, `Result` (ambiguous, non-standard).
-- Mixing DTO with Request/Response in the same type name.
+- Store slices should use semantic names:
+  - `Typography`
+  - `Settings`
+  - `Reading`
+- Keep interface names singular and meaningful.
 
-## 6) Quick Checklist
+## 5) Checklist
 
-- [ ] Data exchange type objects have `DTO` suffix
-- [ ] API input types have `Request` suffix
-- [ ] API business output types have `Response` suffix
-- [ ] API functions return explicitly typed `Promise<ApiResponse<...>>`
+- [ ] Boundary types use DTO/Request/Response consistently.
+- [ ] Domain models have explicit names.
+- [ ] No mixed or ambiguous naming style in the same module.

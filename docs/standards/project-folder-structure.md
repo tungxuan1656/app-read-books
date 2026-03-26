@@ -1,98 +1,79 @@
-# Large Project Folder Structure (finalized per new proposal)
+# Project Folder Structure (Expo React Native)
 
-## 1) Standard Structure
+## 1) Canonical Structure
 
 ```text
-src/
-  app.tsx
-  main.tsx
+app/
+  _layout.tsx
+  index.tsx
+  reading/index.tsx
+  add-book/index.tsx
+  settings/index.tsx
+  settings/cache-manager.tsx
+  ...
 
-  api/
-    client.ts
-    endpoints.ts
-    feature*/
-    ...
+components/
+  *.tsx
+  reading/*.tsx
 
-  assets/
+hooks/
+  use-*.ts
 
-  hooks/
-    shared/
-    feature*/
-    ...
+services/
+  *.service.ts
+  ai-providers/*.provider.ts
 
-  components/
-    ui/
-    shared/
-    feature*/
-    ...
+controllers/
+  store.ts
+  mmkv.ts
 
-  stores/
-    auth.store.ts       # feature*.store.ts (placed directly, no subfolders)
-    control.store.ts
-    types.ts
-    ...
+constants/
+  *.ts
 
-  lib/
-    constants/
-    forms/
-    i18n/
-    storages/
-    utils/
+utils/
+  *.helpers.ts
 
-  pages/
-    feature*/
-    ...
+assets/
+  fonts/
+  images/
+  app-*.ts
 
-  styles/
-  types/
+@types/
+  *.d.ts
 ```
 
-> `feature*` (replace with actual feature name).
+## 2) Layer Responsibilities
 
-## 2) Strict Boundaries for `lib`
+- `app/`: route screens only (UI composition + route behavior).
+- `components/`: reusable UI blocks.
+- `hooks/`: screen-level orchestration logic and lifecycle handling.
+- `services/`: business logic, IO, AI/TTS, cache integration, player integration.
+- `controllers/`: app-level state and storage adapters.
+- `constants/`: app constants, style tokens, settings schema descriptors.
+- `utils/`: pure helpers and filesystem-level helpers.
+- `@types/`: shared project type declarations.
 
-`lib` only contains **cross-feature reusable code** (usable by 2 or more features).
+## 3) Placement Rules
 
-- `lib/constants`: app constants, config constants.
-- `lib/forms/form-schemas.ts`: single source of truth for all Zod form schemas in the app.
-- `lib/i18n`: internationalization setup.
-- `lib/storages`: localStorage/sessionStorage/indexedDB wrappers.
-- `lib/utils`: pure utility functions shared across the entire app.
-
-Do not place in `lib`:
-- `hooks` (place in `src/hooks/shared` or `src/hooks/feature*`),
-- `stores` (place in `src/stores/feature*.store.ts`),
-- logic specific to 1 feature.
-
-Do not put in `lib`:
-- UI components for 1 feature,
-- API handlers for 1 feature.
-
-## 3) File Placement Rules by Layer
-
-- `api/<feature>`: HTTP calls only + endpoint mapping.
-- `hooks/shared`: hooks shared across multiple features.
-- `hooks/<feature>`: feature-specific hooks (including react-query hooks for the feature).
-- `stores/<feature>.store.ts`: zustand store per feature, placed **directly** in `stores/`, no subfolders.
-- `lib/forms/form-schemas.ts`: **all form schemas must be here** (do not create `*.schema.ts` in feature folders).
-- `components/<feature>`: components belonging to that feature.
-- `pages/<feature>`: pages for the feature.
-- `types`: shared types or API contracts.
+- Do not put heavy business logic in `app/*` or `components/*`.
+- Do not call remote APIs directly from components; go through `services/*`.
+- Use hooks to orchestrate services, store state, and component interaction.
+- Keep cache/persistence logic in `services/*` or `controllers/*`, not in UI files.
+- New feature screen path must live under `app/<feature>/index.tsx`.
 
 ## 4) Import Rules
 
-- Feature code should prioritize importing from within the same feature first.
-- Only promote to `lib` when proven reusable.
-- Shared hooks import from `hooks/shared`; feature-specific hooks import from `hooks/<feature>`.
-- Child components export via `index.ts` in each folder for clean imports.
+- Prefer alias imports `@/...`.
+- Keep imports grouped:
+  - third-party packages
+  - blank line
+  - internal `@/...` imports
+- Reuse existing modules before adding new top-level folders.
 
-## 5) Application Checklist
+## 5) Checklist
 
-- [ ] Has `api/client.ts`, `api/endpoints.ts` as shared resources
-- [ ] Each feature has its own branch in `api/hooks/components/stores/pages`
-- [ ] `hooks` separates `shared/` and `feature*/`
-- [ ] `stores` placed outside `lib`, flat files as `stores/feature*.store.ts`
-- [ ] `lib` only contains `constants`, `forms`, `i18n`, `storages`, `utils`
-- [ ] All schemas located in `lib/forms/form-schemas.ts`; features do not create separate `*.schema.ts` files
-- [ ] `lib` is not used as a dumping ground for everything
-- [ ] Uses consistent import alias (`@/...`)
+- [ ] New route added under `app/` with Expo Router naming.
+- [ ] Business logic implemented in `services/`, not screen component.
+- [ ] State updates use store actions/selectors from `controllers/store.ts`.
+- [ ] Utility logic extracted to `utils/` when reused.
+- [ ] New types are added in `@types/` or colocated service type blocks.

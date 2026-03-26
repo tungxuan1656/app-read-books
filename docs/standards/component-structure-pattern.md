@@ -1,67 +1,73 @@
-# Component Structure Pattern (Page vs Child Component)
+# Component Structure Pattern (Screen vs Reusable Component)
 
 ## 1) Required Rules
 
-- **Page**: declare as `const ComponentName = () => {}` and `export default ComponentName` in the page file.
-- **Child component**: use `export const ComponentName = () => {}`.
-- **Each child component folder** must have an `index.ts` to aggregate and re-export all components in the folder.
+- **Screen route file** (`app/**/index.tsx`): `const ScreenName = () => {}` + `export default ScreenName`.
+- **Reusable component** (`components/**`): `export const ComponentName = (...) => {}`.
+- Keep component props typed and explicit.
 
-## 2) Page Template
+## 2) Screen Template
 
 ```tsx
-// pages/goals-page.tsx
-const GoalsPage = () => {
-  return <div>Goals page</div>
+// app/feature/index.tsx
+import { Screen } from '@/components/screen'
+import { Text, View } from 'react-native'
+
+const FeatureScreen = () => {
+  return (
+    <Screen>
+      <View>
+        <Text>Feature</Text>
+      </View>
+    </Screen>
+  )
 }
 
-export default GoalsPage
+export default FeatureScreen
 ```
 
-## 3) Child Component Template
+## 3) Reusable Component Template
 
 ```tsx
-// components/goals/goal-card.tsx
-type GoalCardProps = {
+// components/feature-card.tsx
+import { Text, View } from 'react-native'
+
+type FeatureCardProps = {
   title: string
 }
 
-export const GoalCard = ({ title }: GoalCardProps) => {
-  return <div>{title}</div>
+export const FeatureCard = ({ title }: FeatureCardProps) => {
+  return (
+    <View>
+      <Text>{title}</Text>
+    </View>
+  )
 }
 ```
 
-## 4) `index.ts` Template in Component Folder
+## 4) Logic Split Rules
 
-```ts
-// components/goals/index.ts  — only export PUBLIC components
-export * from './goal-card'
-export * from './goal-progress'
-export * from './goal-form'
+- UI rendering in components.
+- Lifecycle orchestration in hooks.
+- Business/IO in services.
+- Do not mix all three layers in one file.
 
-// NOTE: goal-card-skeleton, goal-row-item are internal — intentionally NOT exported here.
-```
+## 5) File Size and Complexity
 
-**Distinguishing public vs internal:**
-- **Public**: components used outside the folder → include in `index.ts`.
-- **Internal**: components only used within the folder (sub-components of a larger component) → **not** included in `index.ts`, kept as module-private.
+- If file exceeds ~200 lines, consider split by concern:
+  - presentational component
+  - hook for orchestration
+  - helper/service extraction
 
-## 5) Recommended Import Style
+## 6) Naming
 
-```tsx
-import { GoalCard, GoalForm, GoalProgress } from '@/components/goals'
-```
+- Keep kebab-case filenames.
+- Hooks must start with `use-`.
+- Service files should end with `.service.ts`.
 
-## 6) File Size Rules
+## 7) Checklist
 
-- Files/components **over 200 lines** must be split by clear concerns (shell, list, mock data, utils, ...).
-- Each component/hook should be responsible for **one thing** — do not combine too many concerns in the same file.
-- Mock data must be separated into `<domain>.mock.ts` — not embedded directly in components.
-
-## 7) Quick Checklist for New Components
-
-- [ ] Page uses `const XPage` + `export default XPage`
-- [ ] Child component uses `export const`
-- [ ] Component folder has `index.ts` — only exports public components
-- [ ] Internal sub-components are **not** in `index.ts`
-- [ ] File under 200 lines; if exceeded, split by concern
-- [ ] Consumer imports from folder (not individual files unless necessary)
+- [ ] Screen files are route-focused and lightweight.
+- [ ] Reusable component is stateless or minimally stateful.
+- [ ] Side-effects are extracted from component body when possible.
+- [ ] No direct IO calls inside presentational components.

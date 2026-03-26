@@ -24,4 +24,5 @@ android/
 
 .env
 .gitnexus
-.agents/skills
+.agents/skills/gitnexus/*
+.agents/skills/generated/*
