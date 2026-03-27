@@ -1,19 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
-import { AppPalette } from '@/assets'
 import { Divider } from '@/components/divider'
 import { GToast } from '@/components/g-toast'
 import { Screen } from '@/components/screen'
 import { VectorIcon } from '@/components/vector-icon'
-import { AppTypo } from '@/constants'
 import { dbService } from '@/services/database.service'
 
 const CacheManagement = () => {
@@ -67,25 +58,25 @@ const CacheManagement = () => {
       <Divider />
 
       <Screen.Content>
-        <ScrollView contentContainerStyle={styles.content} style={{ flex: 1 }}>
-          <View style={styles.statsCard}>
-            <Text style={AppTypo.h3.bold}>Tổng quan</Text>
-            <View style={styles.statRow}>
-              <Text style={AppTypo.body.regular}>Số chương đã xử lý (AI):</Text>
-              <Text style={AppTypo.body.semiBold}>{stats.totalChapters}</Text>
+        <ScrollView
+          contentContainerStyle={{ padding: 16, gap: 24, flexGrow: 1 }}>
+          <View className='gap-3 rounded-xl bg-gray-100 p-4'>
+            <Text className='text-xl font-bold'>Tổng quan</Text>
+            <View className='flex-row items-center justify-between'>
+              <Text className='text-sm font-normal'>
+                Số chương đã xử lý (AI):
+              </Text>
+              <Text className='text-sm font-semibold'>
+                {stats.totalChapters}
+              </Text>
             </View>
           </View>
 
-          <View style={styles.actionsContainer}>
-            <Text style={[AppTypo.h3.bold, { marginBottom: 16 }]}>
-              Hành động
-            </Text>
+          <View className='gap-2'>
+            <Text className='mb-4 text-xl font-bold'>Hành động</Text>
 
             <TouchableOpacity
-              style={[
-                styles.actionButton,
-                { backgroundColor: AppPalette.red500 },
-              ]}
+              className='flex-row items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 py-3'
               onPress={handleClearAllCache}
               disabled={loading}>
               <VectorIcon
@@ -94,16 +85,12 @@ const CacheManagement = () => {
                 size={14}
                 color='white'
               />
-              <Text style={[AppTypo.body.medium, { color: 'white' }]}>
+              <Text className='text-sm font-medium text-white'>
                 {loading ? 'Đang xử lý...' : 'Xóa dữ liệu Dịch/Tóm tắt'}
               </Text>
             </TouchableOpacity>
 
-            <Text
-              style={[
-                AppTypo.caption.regular,
-                { color: AppPalette.gray500, marginTop: 8 },
-              ]}>
+            <Text className='mt-2 text-xs font-normal text-gray-500'>
               * Việc này sẽ không xóa sách gốc, chỉ xóa các bản dịch và tóm tắt
               đã lưu để giải phóng bộ nhớ.
             </Text>
@@ -113,36 +100,5 @@ const CacheManagement = () => {
     </Screen.Container>
   )
 }
-
-const styles = StyleSheet.create({
-  content: {
-    padding: 16,
-    gap: 24,
-    flexGrow: 1,
-  },
-  statsCard: {
-    backgroundColor: '#F5F5F5',
-    padding: 16,
-    borderRadius: 12,
-    gap: 12,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  actionsContainer: {
-    gap: 8,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
-    gap: 8,
-  },
-})
 
 export default CacheManagement

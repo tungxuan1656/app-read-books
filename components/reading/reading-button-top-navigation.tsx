@@ -2,7 +2,7 @@ import { router } from 'expo-router'
 import React, { useCallback } from 'react'
 import { StyleSheet, View } from 'react-native'
 
-import { AppPalette } from '@/assets'
+import { AppColors } from '@/assets'
 
 import { VectorIcon } from '../vector-icon'
 
@@ -26,7 +26,7 @@ export default function ReadingButtonTopNavigation({
           font='FontAwesome6'
           size={14}
           buttonStyle={{ width: 28, height: 28 }}
-          color={AppPalette.white}
+          color={AppColors.white}
           onPress={previousChapter}
         />
         <VectorIcon
@@ -34,7 +34,7 @@ export default function ReadingButtonTopNavigation({
           font='FontAwesome6'
           size={14}
           buttonStyle={{ width: 28, height: 28 }}
-          color={AppPalette.white}
+          color={AppColors.white}
           onPress={nextChapter}
         />
       </View>
@@ -45,7 +45,7 @@ export default function ReadingButtonTopNavigation({
         font='FontAwesome6'
         size={14}
         buttonStyle={styles.menuButton}
-        color={AppPalette.gray600}
+        color={AppColors.gray600}
         onPress={handleViewReferences}
       />
     </View>
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   viewNavigate: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: AppPalette.gray300,
+    backgroundColor: AppColors.gray300,
     borderRadius: 40,
   },
   menuButton: {

@@ -1,20 +1,12 @@
 import { router } from 'expo-router'
 import React, { useLayoutEffect, useRef } from 'react'
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 
-import { AppPalette } from '@/assets'
+import { AppColors } from '@/assets'
 import { Divider } from '@/components/divider'
 import { Screen } from '@/components/screen'
 import { VectorIcon } from '@/components/vector-icon'
 import useAppStore, { storeActions } from '@/controllers/store'
-
-import { AppTypo } from '../../constants'
 
 const References = () => {
   const refList = useRef<FlatList | null>(null)
@@ -43,18 +35,16 @@ const References = () => {
 
   return (
     <Screen.Container safe='all'>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View className='flex-row items-center'>
         <VectorIcon
           name='angle-left'
           font='FontAwesome6'
           size={16}
           buttonStyle={{ width: 44, height: 44 }}
-          color={AppPalette.gray600}
+          color={AppColors.gray600}
           onPress={() => router.back()}
         />
-        <Text style={[AppTypo.h3.semiBold, { marginLeft: 4 }]}>
-          {'Mục lục'}
-        </Text>
+        <Text className='ml-1 text-xl font-semibold'>{'Mục lục'}</Text>
       </View>
       <Divider />
       <Screen.Content>
@@ -66,14 +56,11 @@ const References = () => {
           renderItem={({ item, index }) => (
             <TouchableOpacity
               key={item}
-              style={styles.item}
+              className='h-9 px-3'
               onPress={() => setChapter(index + 1)}>
               <Text
                 numberOfLines={1}
-                style={[
-                  AppTypo.body.regular,
-                  currentIndex === index + 1 && AppTypo.body.semiBold,
-                ]}>
+                className={`text-sm ${currentIndex === index + 1 ? 'font-semibold' : 'font-normal'}`}>
                 {item}
               </Text>
             </TouchableOpacity>
@@ -90,11 +77,3 @@ const References = () => {
 }
 
 export default References
-
-const styles = StyleSheet.create({
-  item: {
-    height: 36,
-    paddingHorizontal: 12,
-  },
-  textSelected: {},
-})

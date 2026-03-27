@@ -1,13 +1,5 @@
 import React, { useLayoutEffect, useState } from 'react'
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  type TextStyle,
-  View,
-} from 'react-native'
-
-import { AppTypo } from '@/constants'
+import { ActivityIndicator, Text, type TextStyle, View } from 'react-native'
 
 export type GSpinnerTheme = {
   label?: TextStyle
@@ -46,15 +38,14 @@ export const GSpinnerComponent = ({ theme }: { theme?: GSpinnerTheme }) => {
   }, [])
 
   return visible ? (
-    <View style={styles.container}>
+    <View
+      className='absolute inset-0 items-center justify-center bg-transparent'
+      style={{ gap: 16 }}>
       <ActivityIndicator color={'#222'} />
       {label ? (
         <Text
-          style={[
-            AppTypo.body.medium,
-            { color: '#444', marginHorizontal: 36 },
-            theme?.label,
-          ]}
+          className='mx-9 text-sm font-medium text-gray-700'
+          style={[theme?.label]}
           numberOfLines={2}>
           {label}
         </Text>
@@ -67,17 +58,3 @@ export const GSpinner = {
   show: (props?: GSpinnerShowProps) => GSpinnerRef.current?.show?.(props),
   hide: () => GSpinnerRef.current?.hide?.(),
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-  },
-})

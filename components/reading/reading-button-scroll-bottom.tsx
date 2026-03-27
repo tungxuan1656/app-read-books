@@ -2,7 +2,7 @@ import React from 'react'
 import { StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { AppPalette } from '@/assets'
+import { AppColors } from '@/assets'
 
 import { VectorIcon } from '../vector-icon'
 
@@ -21,7 +21,7 @@ function ReadingButtonScrollBottom({
         ...styles.buttonScrollToBottom,
         bottom: Math.max(10, insets.bottom) - 16,
       }}
-      color={AppPalette.gray300}
+      color={AppColors.gray300}
       onPress={onScrollToBottom}
     />
   )

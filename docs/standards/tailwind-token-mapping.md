@@ -5,7 +5,6 @@
 - `assets/app-colors.ts`
 - `assets/app-font.ts`
 - `constants/app-typo.ts`
-- `assets/tailwindcss.js`
 - `tailwind.config.js`
 - `components/content-display.tsx`
 
@@ -75,28 +74,20 @@ Mapping:
 | `xxx_large` | 24 | `text-2xl` |
 | `xxxx_large` | 32 | `text-3xl` |
 
-## 4) AppTypo -> Tailwind Typography Mapping
+## 4) AppTypo -> Tailwind Typography Mapping (Default Classes Only)
 
-`assets/tailwindcss.js` provides ready-made utility classes.
-
-| AppTypo token | Weight variants | Tailwind utility |
+| AppTypo token | Tailwind size class | Weight mapping |
 | --- | --- | --- |
-| `title` | `700` | `typo-title` |
-| `h1` | `bold / semiBold / medium / regular` | `typo-h1-bold`, `typo-h1-semibold`, `typo-h1-medium`, `typo-h1-regular` |
-| `h2` | `bold / semiBold / medium / regular` | `typo-h2-bold`, `typo-h2-semibold`, `typo-h2-medium`, `typo-h2-regular` |
-| `h3` | `bold / semiBold / medium / regular` | `typo-h3-bold`, `typo-h3-semibold`, `typo-h3-medium`, `typo-h3-regular` |
-| `h4` | `bold / semiBold / medium / regular` | `typo-h4-bold`, `typo-h4-semibold`, `typo-h4-medium`, `typo-h4-regular` |
-| `headline` | `bold / semiBold / medium / regular` | `typo-headline-bold`, `typo-headline-semibold`, `typo-headline-medium`, `typo-headline-regular` |
-| `body` | `bold / semiBold / medium / regular` | `typo-body-bold`, `typo-body-semibold`, `typo-body-medium`, `typo-body-regular` |
-| `footnote` | `bold / semiBold / medium / regular` | `typo-footnote-bold`, `typo-footnote-semibold`, `typo-footnote-medium`, `typo-footnote-regular` |
-| `caption` | `bold / semiBold / medium / regular` | `typo-caption-bold`, `typo-caption-semibold`, `typo-caption-medium`, `typo-caption-regular` |
-| `mini` | `bold / semiBold / medium / regular` | `typo-mini-bold`, `typo-mini-semibold`, `typo-mini-medium`, `typo-mini-regular` |
-
-Weight equivalence:
-- `regular` -> `font-normal`
-- `medium` -> `font-medium`
-- `semiBold` -> `font-semibold`
-- `bold` -> `font-bold`
+| `title` (48px) | `text-5xl` | `font-bold` |
+| `h1` (32px) | `text-3xl` | `bold -> font-bold`, `semiBold -> font-semibold`, `medium -> font-medium`, `regular -> font-normal` |
+| `h2` (24px) | `text-2xl` | same weight mapping as above |
+| `h3` (20px) | `text-xl` | same weight mapping as above |
+| `h4` (18px) | `text-lg` | same weight mapping as above |
+| `headline` (16px) | `text-base` | same weight mapping as above |
+| `body` (14px) | `text-sm` | same weight mapping as above |
+| `footnote` (13px) | `text-ssm` | same weight mapping as above |
+| `caption` (12px) | `text-xs` | same weight mapping as above |
+| `mini` (10px) | `text-xss` | same weight mapping as above |
 
 ## 5) Font Family Setup Mapping (Current + Recommendation)
 

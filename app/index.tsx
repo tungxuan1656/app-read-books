@@ -2,7 +2,7 @@ import { router, useFocusEffect } from 'expo-router'
 import React, { useCallback } from 'react'
 import { FlatList, type ListRenderItem, Text, View } from 'react-native'
 
-import { AppColors, AppPalette } from '@/assets'
+import { AppColors } from '@/assets'
 import { Divider } from '@/components/divider'
 import { GToast } from '@/components/g-toast'
 import HomeBookItem, { useBookActions } from '@/components/home-book-item'
@@ -14,7 +14,6 @@ import {
 import { Screen } from '@/components/screen'
 import { VectorIcon } from '@/components/vector-icon'
 
-import { AppTypo } from '../constants'
 import useAppStore, { storeActions } from '../controllers/store'
 import { readFolderBooks } from '../utils'
 
@@ -29,7 +28,7 @@ const BookItemWithSwipe = React.memo(
             icon='circle-info'
             iconFont='FontAwesome6'
             title='Info'
-            backgroundColor={AppPalette.blue500}
+            backgroundColor={AppColors.blue500}
             onPress={() => {
               cb?.()
               onOpenInfo()
@@ -40,7 +39,7 @@ const BookItemWithSwipe = React.memo(
             icon='delete'
             iconFont='Feather'
             title='Xóa'
-            backgroundColor={AppPalette.red500}
+            backgroundColor={AppColors.red500}
             onPress={() => {
               cb?.()
               onDeleteBook()
@@ -81,23 +80,15 @@ export default function Home() {
 
   return (
     <Screen.Container safe={'all'}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 8,
-          justifyContent: 'space-between',
-        }}>
-        <Text style={[AppTypo.h4.semiBold, { marginLeft: 16 }]}>
-          {'Danh sách truyện'}
-        </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View className='flex-row items-center justify-between gap-2'>
+        <Text className='ml-4 text-lg font-semibold'>{'Danh sách truyện'}</Text>
+        <View className='flex-row items-center'>
           <VectorIcon
             name='settings'
             font='MaterialIcons'
             size={16}
             buttonStyle={{ marginLeft: 8, width: 32, height: 44 }}
-            color={AppPalette.gray600}
+            color={AppColors.gray600}
             onPress={() => router.push('/settings')}
           />
           <VectorIcon
@@ -110,13 +101,13 @@ export default function Home() {
               height: 44,
               marginRight: 12,
             }}
-            color={AppPalette.gray600}
+            color={AppColors.gray600}
             onPress={() => router.push('/add-book')}
           />
         </View>
       </View>
       <Divider />
-      <Screen.Content style={{}} contentContainerStyle={{ paddingVertical: 0 }}>
+      <Screen.Content contentContainerStyle={{ paddingVertical: 0 }}>
         <FlatList
           data={bookIds}
           ItemSeparatorComponent={Divider}
@@ -124,17 +115,8 @@ export default function Home() {
           contentContainerStyle={{ paddingBottom: 80, flexGrow: 1 }}
           keyExtractor={(item) => item}
           ListEmptyComponent={
-            <View
-              style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingTop: 100,
-              }}>
-              <Text
-                style={[
-                  AppTypo.body.regular,
-                  { marginHorizontal: 20, color: AppColors.textExtra },
-                ]}>
+            <View className='items-center justify-center pt-[100px]'>
+              <Text className='mx-5 text-sm font-normal text-gray-700'>
                 {'Nhấn vào dấu + để thêm truyện nhé!'}
               </Text>
             </View>

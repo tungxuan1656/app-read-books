@@ -34,6 +34,7 @@ export {
 } from './string.helpers'
 
 // Content Cache Helpers
+export { cn } from './cn'
 export {
   clearAllCache,
   clearBookCache,

@@ -1,9 +1,6 @@
 import React, { type ErrorInfo } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 
-import { AppColors } from '@/assets'
-import { AppTypo } from '@/constants'
-
 import { Screen } from './screen'
 
 export interface ErrorComponentProps {
@@ -16,39 +13,19 @@ export const ErrorComponent = (props?: ErrorComponentProps) => {
   return (
     <Screen.Container safe='all'>
       <Screen.Content>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 24,
-            paddingHorizontal: 32,
-            paddingVertical: 56,
-          }}>
+        <View className='flex-1 items-center justify-center gap-6 px-8 py-14'>
           {/* Title */}
-          <Text style={[AppTypo.title, { textAlign: 'center' }]}>
+          <Text className='text-center text-5xl font-bold'>
             {'Đã xảy ra lỗi không mong muốn'}
           </Text>
 
           {/* Spacer */}
-          <ScrollView style={{ flex: 1 }}>
-            <View
-              style={{
-                marginTop: 16,
-                width: '100%',
-                gap: 20,
-                borderRadius: 8,
-                backgroundColor: '#E0E0E0',
-                padding: 12,
-              }}>
-              <Text
-                style={{ color: AppColors.textExtra, fontSize: 12 }}
-                selectable>
+          <ScrollView className='flex-1'>
+            <View className='mt-4 w-full gap-5 rounded-lg bg-gray-300 p-3'>
+              <Text className='text-xs text-gray-700' selectable>
                 {JSON.stringify(props?.error, null, 2)}
               </Text>
-              <Text
-                style={{ color: AppColors.textExtra, fontSize: 12 }}
-                selectable>
+              <Text className='text-xs text-gray-700' selectable>
                 {JSON.stringify(props?.errorInfo, null, 2)}
               </Text>
             </View>

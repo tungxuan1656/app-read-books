@@ -2,7 +2,7 @@ import React, { useCallback, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { AppPalette } from '@/assets'
+import { AppColors } from '@/assets'
 import useAppStore from '@/controllers/store'
 
 import SheetBookInfo, { type SheetBookInfoRef } from '../sheet-book-info'
@@ -25,7 +25,7 @@ function ReadingButtonLeftControl() {
           font='FontAwesome6'
           size={14}
           buttonStyle={styles.buttonInfo}
-          color={AppPalette.white}
+          color={AppColors.white}
           onPress={openBook}
         />
       </View>
@@ -47,6 +47,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 40,
-    backgroundColor: AppPalette.gray300,
+    backgroundColor: AppColors.gray300,
   },
 })

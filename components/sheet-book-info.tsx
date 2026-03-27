@@ -13,8 +13,7 @@ import {
 } from 'react-native'
 
 import { type ReadingAIMode } from '@/@types/common'
-import { AppPalette } from '@/assets'
-import { AppStyles, AppTypo } from '@/constants'
+import { AppColors } from '@/assets'
 import useAppStore, { storeActions } from '@/controllers/store'
 import { RELOAD_CONTENT_EVENT } from '@/hooks/use-reading-content'
 import { getAIActions } from '@/services/ai-actions.service'
@@ -89,12 +88,12 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
     const fontSizeControls = useMemo(
       () => (
         <View style={{ flex: 1 }}>
-          <Text style={styles.titleSection}>{'Cỡ chữ'}</Text>
+          <Text className='text-ssm font-medium'>{'Cỡ chữ'}</Text>
           <View style={styles.viewRow}>
             <VectorIcon
               name='circle-minus'
               font='FontAwesome6'
-              color={AppPalette.gray200}
+              color={AppColors.gray200}
               size={20}
               onPress={() =>
                 storeActions.setTypography({ fontSize: fontSize - 1 })
@@ -102,16 +101,14 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
               buttonProps={{ hitSlop: 10 }}
             />
             <Text
-              style={[
-                AppTypo.caption.semiBold,
-                { width: 24, textAlign: 'center' },
-              ]}>
+              style={[{ width: 24, textAlign: 'center' }]}
+              className='text-xs font-semibold'>
               {fontSize}
             </Text>
             <VectorIcon
               name='circle-plus'
               font='FontAwesome6'
-              color={AppPalette.gray200}
+              color={AppColors.gray200}
               size={20}
               onPress={() =>
                 storeActions.setTypography({ fontSize: fontSize + 1 })
@@ -127,12 +124,12 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
     const lineHeightControls = useMemo(
       () => (
         <View style={{ flex: 1 }}>
-          <Text style={styles.titleSection}>{'Chiều cao dòng'}</Text>
+          <Text className='text-ssm font-medium'>{'Chiều cao dòng'}</Text>
           <View style={styles.viewRow}>
             <VectorIcon
               name='circle-minus'
               font='FontAwesome6'
-              color={AppPalette.gray200}
+              color={AppColors.gray200}
               size={20}
               onPress={() =>
                 storeActions.setTypography({
@@ -142,16 +139,14 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
               buttonProps={{ hitSlop: 10 }}
             />
             <Text
-              style={[
-                AppTypo.caption.semiBold,
-                { width: 24, textAlign: 'center' },
-              ]}>
+              style={[{ width: 24, textAlign: 'center' }]}
+              className='text-xs font-semibold'>
               {Math.round(lineHeight * 10) / 10}
             </Text>
             <VectorIcon
               name='circle-plus'
               font='FontAwesome6'
-              color={AppPalette.gray200}
+              color={AppColors.gray200}
               size={20}
               onPress={() =>
                 storeActions.setTypography({
@@ -211,13 +206,17 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
         handleIndicatorStyle={styles.handleIndicator}>
         <BottomSheetView style={styles.titleContainer}>
           <View className='flex-row items-center justify-between'>
-            <Text style={styles.title}>{'Cài đặt'}</Text>
+            <Text className='text-lg font-medium text-gray-900'>
+              {'Cài đặt'}
+            </Text>
           </View>
-          <Text style={styles.titleSection}>{'Font chữ'}</Text>
+          <Text className='mb-2 mt-4 text-ssm font-medium'>{'Font chữ'}</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
             {fontList.map(renderFontItem)}
           </View>
-          <Text style={styles.titleSection}>{'Chế độ đọc AI'}</Text>
+          <Text className='mb-2 mt-4 text-ssm font-medium'>
+            {'Chế độ đọc AI'}
+          </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
             {aiModes.map(renderReadingMode)}
             <TouchableOpacity
@@ -228,8 +227,8 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
                 {
                   backgroundColor:
                     readingAIMode === 'none'
-                      ? AppPalette.gray300
-                      : AppPalette.red400,
+                      ? AppColors.gray300
+                      : AppColors.red400,
                   flexDirection: 'row',
                   gap: 4,
                   opacity: readingAIMode === 'none' ? 0.7 : 1,
@@ -241,7 +240,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
                 size={16}
                 color='white'
               />
-              <Text style={[styles.textItemFont, { color: 'white' }]}>
+              <Text className='text-xs font-normal text-white'>
                 {'Xử lý lại'}
               </Text>
             </TouchableOpacity>
@@ -268,13 +267,17 @@ const renderBackdrop = (props: BottomSheetBackdropProps) => (
 
 const styles = StyleSheet.create({
   bottomSheetBackground: {
-    backgroundColor: AppPalette.white,
+    backgroundColor: AppColors.white,
     borderTopRightRadius: 24,
     borderTopLeftRadius: 24,
-    ...AppStyles.view.shadow3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.53,
+    shadowRadius: 13.97,
+    elevation: 21,
   },
   handleIndicator: {
-    backgroundColor: AppPalette.gray200,
+    backgroundColor: AppColors.gray200,
     width: 40,
   },
   titleContainer: {
@@ -283,29 +286,18 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
     paddingTop: 12,
   },
-  title: {
-    ...AppTypo.h4.medium,
-    color: AppPalette.gray900,
-  },
-  titleSection: {
-    ...AppTypo.footnote.medium,
-    marginTop: 16,
-    marginBottom: 8,
-  },
   viewItemFont: {
     borderRadius: 30,
-    backgroundColor: AppPalette.gray50,
+    backgroundColor: AppColors.gray50,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 6,
   },
   viewItemSelected: {
-    backgroundColor: AppPalette.blue50,
+    backgroundColor: AppColors.blue50,
   },
-  textItemFont: {
-    ...AppTypo.caption.regular,
-  },
+  textItemFont: { fontSize: 12, fontWeight: '400' },
   viewRow: {
     flexDirection: 'row',
     alignItems: 'center',

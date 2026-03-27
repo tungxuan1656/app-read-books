@@ -1,13 +1,3 @@
-const tailwindConfig = require('./assets/tailwindcss')
-
-const withCssVars = (colorMap) => {
-  const result = {}
-  Object.keys(colorMap).forEach((key) => {
-    result[key] = `var(--color-${key})`
-  })
-  return result
-}
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -23,10 +13,6 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
-      colors: {
-        ...withCssVars(tailwindConfig.appColorsClasses),
-        primary: 'var(--color-primary)',
-      },
       fontSize: {
         xss: '0.625rem', // 10px
         ssm: '0.8125rem', // 13px
@@ -51,12 +37,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    function ({ addUtilities }) {
-      const newUtilities = {
-        ...tailwindConfig.typoClasses,
-      }
-      addUtilities(newUtilities, ['responsive', 'hover'])
-    },
-  ],
+  plugins: [],
 }

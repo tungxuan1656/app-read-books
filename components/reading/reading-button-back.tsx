@@ -2,7 +2,7 @@ import { router } from 'expo-router'
 import React from 'react'
 import { StyleSheet } from 'react-native'
 
-import { AppPalette } from '@/assets'
+import { AppColors } from '@/assets'
 
 import { VectorIcon } from '../vector-icon'
 
@@ -13,7 +13,7 @@ function ReadingButtonBack() {
       font='FontAwesome6'
       size={22}
       buttonStyle={{ ...styles.buttonBack }}
-      color={AppPalette.gray300}
+      color={AppColors.gray300}
       onPress={router.back}
     />
   )

@@ -2,12 +2,11 @@ import { router } from 'expo-router'
 import React from 'react'
 import { SectionList, Text, TouchableOpacity, View } from 'react-native'
 
-import { AppColors, AppPalette } from '@/assets'
+import { AppColors } from '@/assets'
 import { Divider } from '@/components/divider'
 import { Screen } from '@/components/screen'
 import { SettingItem } from '@/components/setting-item'
 import { VectorIcon } from '@/components/vector-icon'
-import { AppTypo } from '@/constants'
 import { SETTING_GROUPS } from '@/constants/setting-configs'
 
 export default function Settings() {
@@ -18,15 +17,8 @@ export default function Settings() {
   const renderSectionHeader = React.useCallback(
     ({ section: { title } }: { section: any }) => {
       return (
-        <View
-          style={{
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            backgroundColor: AppColors.bgExtra,
-          }}>
-          <Text style={[AppTypo.body.semiBold, { color: AppPalette.gray600 }]}>
-            {title}
-          </Text>
+        <View className='bg-slate-50 px-4 py-3'>
+          <Text className='text-sm font-semibold text-gray-600'>{title}</Text>
         </View>
       )
     },
@@ -34,31 +26,24 @@ export default function Settings() {
   )
 
   const renderFooter = () => (
-    <View style={{ padding: 16, marginTop: 16 }}>
+    <View className='mt-4 p-4'>
       <TouchableOpacity
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: 'white',
-          padding: 16,
-          borderRadius: 12,
-          justifyContent: 'space-between',
-        }}
+        className='flex-row items-center justify-between rounded-xl bg-white p-4'
         onPress={() => router.push('/settings/cache-manager')}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View className='flex-row items-center gap-3'>
           <VectorIcon
             name='database'
             font='FontAwesome6'
             size={18}
-            color={AppPalette.gray600}
+            color={AppColors.gray600}
           />
-          <Text style={AppTypo.body.semiBold}>Quản lý dữ liệu</Text>
+          <Text className='text-sm font-semibold'>Quản lý dữ liệu</Text>
         </View>
         <VectorIcon
           name='angle-right'
           font='FontAwesome6'
           size={14}
-          color={AppPalette.gray400}
+          color={AppColors.gray400}
         />
       </TouchableOpacity>
     </View>
@@ -68,7 +53,7 @@ export default function Settings() {
     <Screen.Container>
       <Screen.Header title='Cài đặt' />
       <Divider />
-      <Screen.Content style={{ backgroundColor: AppColors.bgExtra }}>
+      <Screen.Content className='bg-slate-50'>
         <SectionList
           sections={SETTING_GROUPS.map((g) => ({
             title: g.title,

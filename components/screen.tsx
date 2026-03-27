@@ -8,7 +8,6 @@ import {
   ScrollView,
   StatusBar,
   type StyleProp,
-  StyleSheet,
   Text,
   type TextStyle,
   TouchableOpacity,
@@ -17,9 +16,6 @@ import {
   type ViewStyle,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-
-import { AppColors } from '@/assets'
-import { AppTypo } from '@/constants'
 
 import { VectorIcon } from './vector-icon'
 
@@ -37,8 +33,8 @@ const Container: React.FC<ContainerProps> = ({
   const insets = useSafeAreaInsets()
 
   return (
-    <View style={[styles.container, style]}>
-      <StatusBar barStyle={'dark-content'} backgroundColor={AppColors.bgMain} />
+    <View className='flex-1 bg-white' style={[style]}>
+      <StatusBar barStyle='dark-content' backgroundColor='#ffffff' />
       <View
         style={{
           flex: 1,
@@ -79,44 +75,42 @@ const Header: React.FC<HeaderProps> = ({
   const insets = useSafeAreaInsets()
 
   return (
-    <View style={[{ backgroundColor: AppColors.bgMain }, style]}>
+    <View className='bg-white' style={[style]}>
       <View
-        style={[styles.headerContainer, safeTop && { marginTop: insets.top }]}>
-        <View style={styles.left}>
+        className='-top-1 h-11 flex-row items-center bg-white'
+        style={[safeTop && { marginTop: insets.top }]}>
+        <View className='h-11 min-w-4 flex-row items-center'>
           {hasBack ? (
             <TouchableOpacity
               onPress={() => router.back()}
-              style={styles.backButton}>
+              className='h-full w-12 items-center justify-center'>
               <VectorIcon
                 font='FontAwesome6'
                 name='angle-left'
-                color={tintColor ?? AppColors.buttonBlur}
+                color={tintColor ?? '#6b7280'}
               />
             </TouchableOpacity>
           ) : null}
           {hasClose ? (
             <TouchableOpacity
               onPress={() => onClose?.()}
-              style={styles.backButton}>
+              className='h-full w-12 items-center justify-center'>
               <VectorIcon
                 font='Ionicons'
                 name='close'
-                color={tintColor ?? AppColors.buttonBlur}
+                color={tintColor ?? '#6b7280'}
               />
             </TouchableOpacity>
           ) : null}
           {ItemLeft}
         </View>
         <Text
-          style={[
-            styles.title,
-            { color: tintColor ?? AppColors.textMain },
-            titleStyle,
-          ]}
+          style={[{ color: tintColor ?? '#111827' }, titleStyle]}
+          className='flex-1 text-base font-semibold'
           numberOfLines={1}>
           {title}
         </Text>
-        <View style={styles.right}>{ItemRight}</View>
+        <View className='h-11 flex-row items-center'>{ItemRight}</View>
       </View>
     </View>
   )
@@ -125,6 +119,7 @@ const Header: React.FC<HeaderProps> = ({
 type ContentProps = {
   children?: React.ReactNode
   style?: StyleProp<ViewStyle>
+  className?: string
   contentContainerStyle?: StyleProp<ViewStyle>
   refreshControl?: JSX.Element
   useKeyboard?: boolean
@@ -135,6 +130,7 @@ type ContentProps = {
 const Content: React.FC<ContentProps> = ({
   children,
   style,
+  className,
   contentContainerStyle,
   useKeyboard = false,
   useScroll = false,
@@ -142,16 +138,17 @@ const Content: React.FC<ContentProps> = ({
   showLoading = false,
 }) => {
   if (showLoading) {
-    return <ActivityIndicator style={[{ flex: 1 }, style]} size={'small'} />
+    return <ActivityIndicator style={[{ flex: 1 }, style]} size='small' />
   }
 
   if (useKeyboard) {
     return (
       <KeyboardAvoidingView
-        style={[{ flex: 1, overflow: 'hidden' }]}
+        className='flex-1 overflow-hidden'
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         {useScroll ? (
           <ScrollView
+            className={className}
             style={[{ flex: 1 }, style]}
             keyboardShouldPersistTaps={'handled'}
             contentContainerStyle={contentContainerStyle}
@@ -160,7 +157,9 @@ const Content: React.FC<ContentProps> = ({
           </ScrollView>
         ) : (
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={[{ flex: 1 }, style]}>{children}</View>
+            <View className={className} style={[{ flex: 1 }, style]}>
+              {children}
+            </View>
           </TouchableWithoutFeedback>
         )}
       </KeyboardAvoidingView>
@@ -170,6 +169,7 @@ const Content: React.FC<ContentProps> = ({
   if (useScroll) {
     return (
       <ScrollView
+        className={className}
         style={[{ flex: 1 }, style]}
         refreshControl={refreshControl}
         contentContainerStyle={contentContainerStyle}>
@@ -178,7 +178,11 @@ const Content: React.FC<ContentProps> = ({
     )
   }
 
-  return <View style={[{ flex: 1 }, style]}>{children}</View>
+  return (
+    <View className={className} style={[{ flex: 1 }, style]}>
+      {children}
+    </View>
+  )
 }
 
 type FooterProps = {
@@ -190,11 +194,8 @@ const Footer: React.FC<FooterProps> = ({ children, style }) => {
   const insets = useSafeAreaInsets()
   return (
     <View
-      style={[
-        { paddingBottom: insets.bottom !== 0 ? 0 : 16 },
-        styles.containerFooter,
-        style,
-      ]}>
+      className='flex-row gap-4 border-t border-slate-200 px-4 pt-4'
+      style={[{ paddingBottom: insets.bottom !== 0 ? 0 : 16 }, style]}>
       {children}
     </View>
   )
@@ -206,47 +207,3 @@ export const Screen = {
   Content,
   Footer,
 }
-
-const headerHeight = 44
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: AppColors.bgMain,
-  },
-  headerContainer: {
-    backgroundColor: AppColors.bgMain,
-    height: headerHeight,
-    // justifyContent: 'center',
-    alignItems: 'center',
-    top: -4,
-    flexDirection: 'row',
-  },
-  left: {
-    height: headerHeight,
-    flexDirection: 'row',
-    alignItems: 'center',
-    minWidth: 16,
-  },
-  right: { height: headerHeight, flexDirection: 'row', alignItems: 'center' },
-  title: {
-    ...AppTypo.headline.semiBold,
-    // marginHorizontal: 70,
-    color: AppColors.textMain,
-    flex: 1,
-  },
-  backButton: {
-    height: '100%',
-    width: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  containerFooter: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    gap: 16,
-    borderTopColor: AppColors.strokeMain,
-    flexDirection: 'row',
-  },
-})

@@ -7,7 +7,6 @@ import { Button } from '@/components/button'
 import { Divider } from '@/components/divider'
 import { GToast } from '@/components/g-toast'
 import { Screen } from '@/components/screen'
-import { AppTypo } from '@/constants'
 import useAppStore, { storeActions } from '@/controllers/store'
 
 export default function SettingEditor() {
@@ -48,15 +47,10 @@ export default function SettingEditor() {
       <Divider />
       <Screen.Content
         useKeyboard
-        style={{
-          backgroundColor: AppColors.bgExtra,
-          padding: 16,
-          gap: 12,
-          paddingVertical: 20,
-        }}>
+        className='bg-slate-50 px-4 py-5'
+        style={{ gap: 12 }}>
         {description ? (
-          <Text
-            style={[AppTypo.caption.regular, { color: AppColors.textBlur }]}>
+          <Text className='text-xs font-normal text-gray-500'>
             {description}
           </Text>
         ) : null}
@@ -77,8 +71,8 @@ export default function SettingEditor() {
           onPress={handleClear}
           style={{ flex: 1 }}
           theme={{
-            button: { backgroundColor: AppColors.bgDisabled },
-            title: { color: AppColors.textMain },
+            button: { backgroundColor: AppColors.gray300 },
+            title: { color: AppColors.gray900 },
           }}
         />
         <Button title='Lưu' onPress={handleSave} style={{ flex: 2 }} />

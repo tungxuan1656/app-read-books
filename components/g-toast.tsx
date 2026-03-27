@@ -8,7 +8,6 @@ import Toast, {
 } from 'react-native-toast-message'
 
 import { AppColors } from '@/assets'
-import { AppStyles, AppTypo } from '@/constants'
 
 import { VectorIcon } from './vector-icon'
 
@@ -20,7 +19,7 @@ const renderLeadingIcon = (name: string, font: string) => {
       font={font}
       style={{ height: 24, marginLeft: 4 }}
       size={24}
-      color={AppColors.bgMain}
+      color={AppColors.white}
     />
   )
 }
@@ -28,11 +27,7 @@ const renderLeadingIcon = (name: string, font: string) => {
 const renderTrailingAction = (action: string) => {
   if (!action) return null
   return (
-    <View
-      style={[
-        AppStyles.view.contentCenter,
-        { maxWidth: '30%', marginHorizontal: 12 },
-      ]}>
+    <View className='mx-3 max-w-[30%] items-center justify-center'>
       <Text
         style={[styles.text2, { maxWidth: 60, textAlign: 'right' }]}
         numberOfLines={4}>
@@ -183,16 +178,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   text1: {
-    ...AppTypo.body.medium,
-    color: AppColors.bgMain,
+    fontSize: 14,
+    fontWeight: '500',
+    color: AppColors.white,
   },
   text2: {
-    ...AppTypo.body.regular,
-    color: AppColors.bgMain,
+    fontSize: 14,
+    fontWeight: '400',
+    color: AppColors.white,
   },
   defaultToast: {
-    borderLeftColor: AppColors.bgGrayOpacity,
-    backgroundColor: AppColors.bgGrayOpacity,
+    borderLeftColor: AppColors.gray600,
+    backgroundColor: AppColors.gray600,
     height: 'auto',
     borderRadius: 24,
     width: Dimensions.get('window').width - 40,
@@ -201,19 +198,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   infoToast: {
-    borderLeftColor: AppColors.buttonFocus,
-    backgroundColor: AppColors.buttonFocus,
+    borderLeftColor: AppColors.blue500,
+    backgroundColor: AppColors.blue500,
   },
   successToast: {
-    borderLeftColor: AppColors.buttonActivate,
-    backgroundColor: AppColors.buttonActivate,
+    borderLeftColor: AppColors.green600,
+    backgroundColor: AppColors.green600,
   },
   warningToast: {
-    borderLeftColor: AppColors.buttonWarning,
-    backgroundColor: AppColors.buttonWarning,
+    borderLeftColor: AppColors.orange500,
+    backgroundColor: AppColors.orange500,
   },
   errorToast: {
-    borderLeftColor: AppColors.buttonValidate,
-    backgroundColor: AppColors.buttonValidate,
+    borderLeftColor: AppColors.red500,
+    backgroundColor: AppColors.red500,
   },
 })
