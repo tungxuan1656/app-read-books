@@ -12,7 +12,12 @@ export const ContentDisplay = React.memo(
     chapterHtml: string
     onLoaded?: () => void
   }) => {
-    const { font, fontSize, lineHeight } = useTypographyStore.use.typography()
+    const {
+      font,
+      fontSize,
+      lineHeight,
+      letterSpacing = 0,
+    } = useTypographyStore.use.typography()
 
     return (
       <RenderHTML
@@ -25,6 +30,7 @@ export const ContentDisplay = React.memo(
             fontFamily: font,
             lineHeight: fontSize * lineHeight,
             fontSize: fontSize,
+            letterSpacing,
           },
           h2: { fontSize: fontSize * 1.5 },
         }}

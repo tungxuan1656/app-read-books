@@ -35,7 +35,12 @@ type SheetBookInfoProps = {
 const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
   ({ onClose }, ref) => {
     const bottomSheetRef = React.useRef<BottomSheet>(null)
-    const { font, fontSize, lineHeight } = useTypographyStore.use.typography()
+    const {
+      font,
+      fontSize,
+      lineHeight,
+      letterSpacing = 0,
+    } = useTypographyStore.use.typography()
     const readingAIMode = useReadingStore.use.readingAIMode()
 
     // Expose methods through ref
@@ -153,6 +158,47 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
       [lineHeight],
     )
 
+    const letterSpacingControls = useMemo(
+      () => (
+        <View className='flex-1'>
+          <Text className='text-sm font-medium'>{'Khoảng cách chữ'}</Text>
+          <View className='flex-row items-center gap-2'>
+            <VectorIcon
+              name='circle-minus'
+              font='FontAwesome6'
+              color={AppColors.gray200}
+              size={20}
+              onPress={() =>
+                typographyActions.setTypography({
+                  letterSpacing: Math.max(
+                    0,
+                    Math.round((letterSpacing - 0.1) * 10) / 10,
+                  ),
+                })
+              }
+              buttonProps={{ hitSlop: 10 }}
+            />
+            <Text className='w-10 text-center text-sm font-semibold'>
+              {Math.round(letterSpacing * 10) / 10}
+            </Text>
+            <VectorIcon
+              name='circle-plus'
+              font='FontAwesome6'
+              color={AppColors.gray200}
+              size={20}
+              onPress={() =>
+                typographyActions.setTypography({
+                  letterSpacing: Math.round((letterSpacing + 0.1) * 10) / 10,
+                })
+              }
+              buttonProps={{ hitSlop: 10 }}
+            />
+          </View>
+        </View>
+      ),
+      [letterSpacing],
+    )
+
     const renderFontItem = useCallback(
       (fontName: string) => (
         <TouchableOpacity
@@ -235,6 +281,9 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
           <View className='mt-2 flex-row justify-between'>
             {fontSizeControls}
             {lineHeightControls}
+          </View>
+          <View className='mt-2 flex-row justify-between'>
+            {letterSpacingControls}
           </View>
         </BottomSheetView>
       </BottomSheet>
