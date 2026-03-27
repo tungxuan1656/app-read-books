@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react'
 
-import useAppStore, { storeActions } from '@/controllers/store'
+import {
+  prefetchActions,
+  useBooksStore,
+  usePrefetchStore,
+  useReadingStore,
+  useSettingsStore,
+} from '@/controllers/stores'
 import { dbService } from '@/services/database.service'
 import { getReadingContent } from '@/services/reading.service'
 
@@ -9,14 +15,14 @@ export const useChapterPrefetch = (
   currentChapter: number,
   isCurrentChapterReady: boolean = true,
 ) => {
-  const PREFETCH_COUNT = useAppStore((s) => s.settings.PREFETCH_COUNT || '3')
-  const readingAIMode = useAppStore((s) => s.readingAIMode)
-  const book = useAppStore((s) => s.id2Book[bookId])
+  const PREFETCH_COUNT = useSettingsStore.use.settings().PREFETCH_COUNT || '3'
+  const readingAIMode = useReadingStore.use.readingAIMode()
+  const book = useBooksStore((s) => s.id2Book[bookId])
   const runIdRef = useRef(0)
 
   useEffect(() => {
     if (!book || readingAIMode === 'none' || !isCurrentChapterReady) {
-      storeActions.updatePrefetchState({ isRunning: false, message: '' })
+      prefetchActions.updatePrefetchState({ isRunning: false, message: '' })
       return
     }
 
@@ -52,7 +58,7 @@ export const useChapterPrefetch = (
 
       if (chaptersToProcess.length === 0) {
         if (!isCancelled && runIdRef.current === runId) {
-          storeActions.updatePrefetchState({
+          prefetchActions.updatePrefetchState({
             isRunning: false,
             message: '',
             errors: [],
@@ -62,7 +68,7 @@ export const useChapterPrefetch = (
       }
 
       // Only update start state if we are actually going to do something
-      storeActions.updatePrefetchState({
+      prefetchActions.updatePrefetchState({
         isRunning: true,
         currentBookId: bookId,
         totalChapters: chaptersToProcess.length,
@@ -75,19 +81,19 @@ export const useChapterPrefetch = (
         if (isCancelled || runIdRef.current !== runId) break
 
         // Check if mode changed externally (double check)
-        if (useAppStore.getState().readingAIMode !== readingAIMode) break
+        if (useReadingStore.getState().readingAIMode !== readingAIMode) break
 
         const chapterNum = chaptersToProcess[i]
 
         try {
-          storeActions.updatePrefetchState({
+          prefetchActions.updatePrefetchState({
             message: `Đang xử lý chương ${chapterNum}...`,
           })
 
           await getReadingContent(bookId, chapterNum, readingAIMode)
 
           if (!isCancelled && runIdRef.current === runId) {
-            storeActions.updatePrefetchState({
+            prefetchActions.updatePrefetchState({
               processedChapters: i + 1,
             })
           }
@@ -96,9 +102,9 @@ export const useChapterPrefetch = (
           const message =
             error instanceof Error ? error.message : `Lỗi chương ${chapterNum}`
           if (!isCancelled && runIdRef.current === runId) {
-            storeActions.updatePrefetchState({
+            prefetchActions.updatePrefetchState({
               errors: [
-                ...useAppStore.getState().prefetchState.errors,
+                ...usePrefetchStore.getState().prefetchState.errors,
                 `Chương ${chapterNum}: ${message}`,
               ],
             })
@@ -107,7 +113,7 @@ export const useChapterPrefetch = (
       }
 
       if (!isCancelled && runIdRef.current === runId) {
-        storeActions.updatePrefetchState({
+        prefetchActions.updatePrefetchState({
           isRunning: false,
           message: 'Hoàn tất tải trước',
         })

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { type ExportedBook } from '@/@types/book-import'
-import useAppStore from '@/controllers/store'
+import { useSettingsStore } from '@/controllers/stores'
 import {
   fetchExportedBooks,
   importBookFromExportUrl,
@@ -22,7 +22,7 @@ export const useAddBook = (): UseAddBookState => {
   const [fetchingBooks, setFetchingBooks] = useState(false)
   const [lastError, setLastError] = useState('')
 
-  const supabaseAnonKey = useAppStore((s) => s.settings.SUPABASE_ANON_KEY)
+  const supabaseAnonKey = useSettingsStore.use.settings().SUPABASE_ANON_KEY
 
   const fetchBooks = useCallback(async () => {
     setFetchingBooks(true)

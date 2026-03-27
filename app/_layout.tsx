@@ -9,20 +9,20 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { GSpinnerComponent } from '@/components/g-spinner'
 import { GToastComponent } from '@/components/g-toast'
-import useAppStore from '@/controllers/store'
+import { useReadingStore } from '@/controllers/stores'
 import { stringifyParams } from '@/hooks/use-typed-local-search-params'
 
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
   useEffect(() => {
-    const onScreenReading = useAppStore.getState().reading.onScreen
+    const onScreenReading = useReadingStore.getState().reading.onScreen
     if (onScreenReading) {
       setTimeout(() => {
         router.push({
           pathname: '/reading',
           params: stringifyParams({
-            bookId: useAppStore.getState().reading.bookId,
+            bookId: useReadingStore.getState().reading.bookId,
           }),
         })
         SplashScreen.hideAsync()

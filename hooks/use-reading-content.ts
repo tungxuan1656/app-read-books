@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 
-import useAppStore from '@/controllers/store'
+import {
+  useBooksStore,
+  useReadingStore,
+  useUIRuntimeStore,
+} from '@/controllers/stores'
 import {
   getLoadingMessage,
   getReadingContent,
@@ -8,10 +12,12 @@ import {
 import { getChapterHtml } from '@/utils'
 
 export default function useReadingContent(bookId: string) {
-  const book = useAppStore((s) => s.id2Book[bookId])
-  const chapterNumber = useAppStore((s) => s.id2BookReadingChapter[bookId] || 1)
-  const readingAIMode = useAppStore((s) => s.readingAIMode)
-  const reloadTrigger = useAppStore((s) => s.contentReloadToken)
+  const book = useBooksStore((s) => s.id2Book[bookId])
+  const chapterNumber = useBooksStore(
+    (s) => s.id2BookReadingChapter[bookId] || 1,
+  )
+  const readingAIMode = useReadingStore.use.readingAIMode()
+  const reloadTrigger = useUIRuntimeStore.use.contentReloadToken()
 
   const [chapter, setChapter] = useState({
     content: '',
@@ -43,7 +49,7 @@ export default function useReadingContent(bookId: string) {
 
         if (isCancelled) return
 
-        const latestRequestId = `${bookId}_${useAppStore.getState().id2BookReadingChapter[bookId] || 1}_${useAppStore.getState().readingAIMode}_${useAppStore.getState().contentReloadToken}`
+        const latestRequestId = `${bookId}_${useBooksStore.getState().id2BookReadingChapter[bookId] || 1}_${useReadingStore.getState().readingAIMode}_${useUIRuntimeStore.getState().contentReloadToken}`
         if (latestRequestId !== requestId) return
 
         setChapter({

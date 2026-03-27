@@ -8,7 +8,7 @@ import { Button } from '@/components/button'
 import { Divider } from '@/components/divider'
 import { GToast } from '@/components/g-toast'
 import { Screen } from '@/components/screen'
-import useAppStore, { storeActions } from '@/controllers/store'
+import { settingsActions, useSettingsStore } from '@/controllers/stores'
 
 export default function SettingEditor() {
   const params = useLocalSearchParams<{
@@ -35,7 +35,7 @@ export default function SettingEditor() {
     )
   }
 
-  const settings = useMemo(() => useAppStore.getState().settings, [])
+  const settings = useMemo(() => useSettingsStore.getState().settings, [])
   const currentSettingValue = settings[settingKey as keyof AppSettings]
   const currentValue =
     typeof currentSettingValue === 'string'
@@ -58,13 +58,13 @@ export default function SettingEditor() {
           return
         }
 
-        storeActions.updateSetting('AI_PROCESS_ACTIONS', parsed)
+        settingsActions.updateSetting('AI_PROCESS_ACTIONS', parsed)
       } catch {
         GToast.error({ message: 'AI Actions phải là JSON hợp lệ.' })
         return
       }
     } else {
-      storeActions.updateSetting(
+      settingsActions.updateSetting(
         settingKey as keyof AppSettings,
         value as never,
       )
@@ -78,9 +78,12 @@ export default function SettingEditor() {
     refTextValue.current = isAIProcessActionsKey ? '[]' : ''
 
     if (isAIProcessActionsKey) {
-      storeActions.updateSetting('AI_PROCESS_ACTIONS', [])
+      settingsActions.updateSetting('AI_PROCESS_ACTIONS', [])
     } else {
-      storeActions.updateSetting(settingKey as keyof AppSettings, '' as never)
+      settingsActions.updateSetting(
+        settingKey as keyof AppSettings,
+        '' as never,
+      )
     }
 
     GToast.success({ message: `Đã xóa ${label}` })

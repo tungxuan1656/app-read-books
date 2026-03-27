@@ -3,7 +3,7 @@ import { View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AppColors } from '@/assets'
-import useAppStore from '@/controllers/store'
+import { useReadingStore } from '@/controllers/stores'
 
 import SheetBookInfo, { type SheetBookInfoRef } from '../sheet-book-info'
 import { VectorIcon } from '../vector-icon'
@@ -11,7 +11,7 @@ import { VectorIcon } from '../vector-icon'
 function ReadingButtonLeftControl() {
   const insets = useSafeAreaInsets()
   const refBookInfoSheet = useRef<SheetBookInfoRef>(null)
-  const bookId = useAppStore((s) => s.reading.bookId)
+  const bookId = useReadingStore.use.reading().bookId
 
   const openBook = useCallback(() => {
     refBookInfoSheet.current?.present(bookId)

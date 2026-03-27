@@ -1,9 +1,9 @@
 import { type AIAction } from '@/@types/settings'
 import { normalizeAIActions } from '@/controllers/settings-schema'
-import useAppStore from '@/controllers/store'
+import { useSettingsStore } from '@/controllers/stores'
 
 export const getAIActions = (): AIAction[] => {
-  const actions = useAppStore.getState().settings.AI_PROCESS_ACTIONS
+  const actions = useSettingsStore.getState().settings.AI_PROCESS_ACTIONS
   return normalizeAIActions(actions)
 }
 

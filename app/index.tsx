@@ -13,8 +13,8 @@ import {
 } from '@/components/item-swipeable'
 import { Screen } from '@/components/screen'
 import { VectorIcon } from '@/components/vector-icon'
+import { booksActions, useBooksStore } from '@/controllers/stores'
 
-import useAppStore, { storeActions } from '../controllers/store'
 import { readFolderBooks } from '../utils'
 
 const BookItemWithSwipe = React.memo(
@@ -60,13 +60,13 @@ const BookItemWithSwipe = React.memo(
 )
 
 export default function Home() {
-  const bookIds = useAppStore((state) => state.bookIds)
+  const bookIds = useBooksStore.use.bookIds()
 
   const refetch = useCallback(() => {
     readFolderBooks()
       .then((output) => {
         output.sort((a, b) => a.name.localeCompare(b.name))
-        storeActions.updateBooks(output)
+        booksActions.updateBooks(output)
       })
       .catch((error) => GToast.error({ message: JSON.stringify(error) }))
   }, [])

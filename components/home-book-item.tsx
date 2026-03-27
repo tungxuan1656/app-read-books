@@ -2,14 +2,14 @@ import { router } from 'expo-router'
 import React from 'react'
 import { Alert, Linking, Text, TouchableOpacity, View } from 'react-native'
 
-import useAppStore from '@/controllers/store'
+import { useBooksStore } from '@/controllers/stores'
 import { deleteBook, getFolderBooks } from '@/utils'
 
 import { GToast } from './g-toast'
 import { VectorIcon } from './vector-icon'
 
 const HomeBookItem = ({ id }: { id: string; onDeleteSuccess: () => void }) => {
-  const book = useAppStore((state) => state.id2Book[id])
+  const book = useBooksStore((state) => state.id2Book[id])
 
   const onSelectBook = () => {
     router.push({
@@ -43,7 +43,7 @@ const HomeBookItem = ({ id }: { id: string; onDeleteSuccess: () => void }) => {
 }
 
 export const useBookActions = (id: string, onDeleteSuccess: () => void) => {
-  const book = useAppStore((state) => state.id2Book[id])
+  const book = useBooksStore((state) => state.id2Book[id])
 
   const onDeleteBook = () => {
     Alert.alert('Xoá truyện', 'Bạn có chắc chắn muốn xoá bộ truyện này?', [

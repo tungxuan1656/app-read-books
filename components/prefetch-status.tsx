@@ -1,10 +1,10 @@
 import React from 'react'
 import { Text } from 'react-native'
 
-import useAppStore from '@/controllers/store'
+import { usePrefetchStore } from '@/controllers/stores'
 
 export const PrefetchStatus = () => {
-  const prefetchState = useAppStore((s) => s.prefetchState)
+  const prefetchState = usePrefetchStore.use.prefetchState()
 
   if (!prefetchState.isRunning) return null
 
