@@ -1,50 +1,117 @@
-# Welcome to your Expo app 👋
+# RN Read Books
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native reading app built with Expo that supports local book libraries, chapter-based reading, and AI-assisted translation/summary workflows.
 
-## Get started
+## Key Features
 
-1. Install dependencies
+- Import books from remote sources and manage local library
+- Read chapter content with resume position support
+- AI reading modes: translation and summary
+- Processed-content caching and chapter prefetch
+- Settings-driven provider/model configuration (no hardcoded secrets)
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+- **Framework**: Expo SDK 54 + Expo Router
+- **Runtime**: React Native 0.81, React 19
+- **Language**: TypeScript 5.9
+- **State**: Zustand + MMKV persistence
+- **Storage/Cache**: Expo File System + Expo SQLite
+- **AI**: `@google/genai` with internal provider abstraction
+- **UI**: NativeWind, Reanimated, Gesture Handler, Bottom Sheet
+- **Quality**: ESLint 9 + TypeScript `noEmit` check
+- **Delivery**: Fastlane (Android/iOS lanes)
 
-   ```bash
-    npx expo start
-   ```
+## Project Structure
 
-In the output, you'll find options to open the app in a
+- `app/`: Expo Router screens and route layouts
+- `components/`: reusable UI primitives and reading controls
+- `controllers/`: app store/actions and MMKV integration
+- `hooks/`: orchestration hooks for reading, prefetch, and flows
+- `services/`: business logic (AI, reading pipeline, downloads, database)
+- `utils/`: helper modules for books, cache, and content
+- `docs/`: architecture and engineering standards
+- `fastlane/`: Android/iOS build and distribution automation
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Prerequisites
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Node.js 20+
+- pnpm 9+
+- Xcode (for iOS local builds)
+- Android Studio + SDK (for Android local builds)
 
-## Get a fresh project
+## Getting Started
 
-When you're ready, run:
+1. Install dependencies:
 
 ```bash
-npm run reset-project
+pnpm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Start the dev server:
 
-## Learn more
+```bash
+pnpm start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3. Run on device/emulator:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+pnpm ios
+pnpm android
+```
 
-## Join the community
+## Available Scripts
 
-Join our community of developers creating universal apps.
+- `pnpm start`: start Expo dev server
+- `pnpm ios`: run iOS app (`expo run:ios`)
+- `pnpm android`: run Android app (`expo run:android`)
+- `pnpm web`: start web target
+- `pnpm lint`: run ESLint
+- `pnpm lint:fix`: run ESLint with autofix
+- `pnpm tsc-check`: run TypeScript type check
+- `pnpm prebuild`: generate native projects
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Architecture Notes
+
+- Routing is file-based via Expo Router (`app/`)
+- Global state is centralized in `controllers/store.ts`
+- Persistent settings/state use MMKV (`controllers/mmkv.ts`)
+- Reading pipeline is handled by `hooks/use-reading-content.ts` and `services/reading.service.ts`
+- AI providers follow abstraction in `services/ai.service.ts` and `services/ai-providers/`
+- Caching/prefetch uses `services/database.service.ts` and `hooks/use-chapter-prefetch.ts`
+
+## Validation
+
+Run these before pushing changes:
+
+```bash
+pnpm lint
+pnpm tsc-check
+```
+
+## Fastlane Delivery
+
+### Android
+
+```bash
+fastlane android build
+fastlane android upload
+fastlane android distribute
+```
+
+### iOS
+
+```bash
+fastlane ios prepare
+fastlane ios build
+fastlane ios upload
+fastlane ios distribute
+```
+
+## Reference Docs
+
+- `docs/PROJECT_DOCS.md`: product and architecture overview
+- `docs/standards/README.md`: engineering standards index
+- `docs/standards/testing-and-validation-pattern.md`: validation workflow
+
