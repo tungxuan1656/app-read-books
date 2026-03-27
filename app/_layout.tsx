@@ -5,18 +5,11 @@ import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import useAppStore from '@/controllers/store'
-import { audioPlayerService } from '../services/audio-player.service'
 import { stringifyParams } from '@/hooks/use-typed-local-search-params'
 import { GSpinnerComponent } from '@/components/g-spinner'
 import { ErrorBoundary } from '@/components/error-boundary'
 
 SplashScreen.preventAutoHideAsync()
-
-try {
-  audioPlayerService.setupPlayer()
-} catch (error) {
-  console.error('Error during splash screen initialization:', error)
-}
 
 export default function RootLayout() {
   useEffect(() => {

@@ -5,25 +5,17 @@ import { Screen } from '@/components/screen'
 import { VectorIcon } from '@/components/vector-icon'
 import { AppTypo } from '@/constants'
 import { dbService } from '@/services/database.service'
-import { clearTTSFolder } from '@/services/tts.service'
-import { formatBytes, getDirectorySize } from '@/utils/file-system.helpers'
-import { Directory, Paths } from 'expo-file-system'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const CacheManagement = () => {
   const [stats, setStats] = useState<{ totalChapters: number }>({ totalChapters: 0 })
-  const [ttsCacheSize, setTtsCacheSize] = useState<number>(0)
   const [loading, setLoading] = useState(false)
 
   const loadStats = useCallback(async () => {
     try {
       const data = await dbService.getCacheStats()
       setStats(data)
-
-      const ttsDir = new Directory(Paths.document, 'tts_audio')
-      const size = await getDirectorySize(ttsDir.uri)
-      setTtsCacheSize(size)
     } catch (error) {
       console.error('Error loading stats:', error)
     }
@@ -59,32 +51,6 @@ const CacheManagement = () => {
     )
   }, [loadStats])
 
-  const handleClearTTSCache = useCallback(() => {
-    Alert.alert(
-      'Xóa cache Audio?',
-      'Hành động này sẽ xóa tất cả các file audio TTS đã tải về. Bạn sẽ cần tải lại khi nghe.',
-      [
-        { text: 'Hủy', style: 'cancel' },
-        {
-          text: 'Xóa',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true)
-            try {
-              await clearTTSFolder()
-              GToast.success({ message: 'Đã xóa cache Audio TTS' })
-              loadStats()
-            } catch (error) {
-              GToast.error({ message: 'Có lỗi xảy ra khi xóa cache Audio' })
-            } finally {
-              setLoading(false)
-            }
-          },
-        },
-      ],
-    )
-  }, [loadStats])
-
   return (
     <Screen.Container>
       <Screen.Header title="Quản lý dữ liệu" />
@@ -97,10 +63,6 @@ const CacheManagement = () => {
             <View style={styles.statRow}>
               <Text style={AppTypo.body.regular}>Số chương đã xử lý (AI):</Text>
               <Text style={AppTypo.body.semiBold}>{stats.totalChapters}</Text>
-            </View>
-            <View style={styles.statRow}>
-              <Text style={AppTypo.body.regular}>Dung lượng Audio TTS:</Text>
-              <Text style={AppTypo.body.semiBold}>{formatBytes(ttsCacheSize)}</Text>
             </View>
           </View>
 
@@ -117,19 +79,9 @@ const CacheManagement = () => {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: AppPalette.orange500 }]}
-              onPress={handleClearTTSCache}
-              disabled={loading}>
-              <VectorIcon name="music" font="FontAwesome6" size={14} color="white" />
-              <Text style={[AppTypo.body.medium, { color: 'white' }]}>
-                {loading ? 'Đang xử lý...' : 'Xóa cache Audio TTS'}
-              </Text>
-            </TouchableOpacity>
-
             <Text style={[AppTypo.caption.regular, { color: AppPalette.gray500, marginTop: 8 }]}>
-              * Việc này sẽ không xóa sách gốc, chỉ xóa các bản dịch, tóm tắt và audio đã lưu để
-              giải phóng bộ nhớ.
+              * Việc này sẽ không xóa sách gốc, chỉ xóa các bản dịch và tóm tắt đã lưu để giải
+              phóng bộ nhớ.
             </Text>
           </View>
         </ScrollView>

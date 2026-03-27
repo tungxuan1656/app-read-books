@@ -4,14 +4,12 @@ import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import SheetBookInfo, { SheetBookInfoRef } from '../sheet-book-info'
 import useAppStore from '@/controllers/store'
-import useReadingContent from '@/hooks/use-reading-content'
 import { VectorIcon } from '../vector-icon'
 
 function ReadingButtonLeftControl() {
   const insets = useSafeAreaInsets()
   const refBookInfoSheet = useRef<SheetBookInfoRef>(null)
   const bookId = useAppStore((s) => s.reading.bookId)
-  const chapter = useReadingContent(bookId)
 
   const openBook = useCallback(() => {
     refBookInfoSheet.current?.present(bookId)
@@ -20,12 +18,6 @@ function ReadingButtonLeftControl() {
   return (
     <>
       <View style={[styles.container, { bottom: 12 + insets.bottom }]}>
-        {/* <TTSControl 
-          content={chapter.content} 
-          bookId={bookId} 
-          chapterIndex={chapter.index} 
-        /> */}
-        
         <VectorIcon
           name="book-open-reader"
           font="FontAwesome6"
