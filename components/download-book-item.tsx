@@ -1,31 +1,10 @@
 import React, { memo } from 'react'
 import { Alert, Text, TouchableOpacity, View } from 'react-native'
 
+import { type ExportedBook } from '@/@types/book-import'
 import { cn, formatBytes } from '@/utils'
 
 import { VectorIcon } from './vector-icon'
-
-type BookMeta = {
-  id: number
-  name: string
-  slug: string
-  author: string | null
-  chapterCount: number | null
-  status: string | null
-  synopsis: string | null
-  lastUpdated: string | null
-}
-
-export type ExportedBook = {
-  id: number
-  bookId: number
-  exportUrl: string
-  fileSize: number
-  exportFormat: string
-  exportedAt: string
-  updatedAt: string
-  book: BookMeta
-}
 
 type DownloadBookItemProps = {
   item: ExportedBook

@@ -1,6 +1,7 @@
 import { Directory, File, Paths } from 'expo-file-system'
 
 import { GToast } from '@/components/g-toast'
+import { logger } from '@/utils/logger'
 
 /**
  * Book Helpers
@@ -20,7 +21,7 @@ export const readFolderBooks = async (): Promise<Book[]> => {
   try {
     entries = directory.list()
   } catch (error) {
-    console.error('❌ Error reading books folder:', error)
+    logger.error('BookHelpers', 'Error reading books folder', error)
     return []
   }
 
@@ -38,10 +39,10 @@ export const readFolderBooks = async (): Promise<Book[]> => {
       } else {
         const errorDir = new Directory(path)
         errorDir.delete()
-        console.log('🗑️ Deleted invalid book directory at path:', path)
+        logger.warn('BookHelpers', 'Deleted invalid book directory', path)
       }
     } catch (error) {
-      console.error('❌ Error reading book at path:', path, error)
+      logger.error('BookHelpers', 'Error reading book', path, error)
     }
   }
 
@@ -62,7 +63,7 @@ export const getBook = async (bookPath: string): Promise<Book | null> => {
   try {
     entries = bookDirectory.list()
   } catch (error) {
-    console.error('❌ Error listing book directory:', error)
+    logger.error('BookHelpers', 'Error listing book directory', error)
     return null
   }
 
@@ -72,7 +73,7 @@ export const getBook = async (bookPath: string): Promise<Book | null> => {
   )
 
   if (!bookJson) {
-    console.error('❌ book.json not found in:', bookPath)
+    logger.error('BookHelpers', 'book.json not found', bookPath)
     return null
   }
 
@@ -81,7 +82,7 @@ export const getBook = async (bookPath: string): Promise<Book | null> => {
     const info: Book = JSON.parse(infoString)
     return info
   } catch (error) {
-    console.error('❌ Error parsing book.json:', error)
+    logger.error('BookHelpers', 'Error parsing book.json', error)
     return null
   }
 }
@@ -90,12 +91,12 @@ export const getBook = async (bookPath: string): Promise<Book | null> => {
  * Xóa một book
  */
 export const deleteBook = async (bookPath: string): Promise<void> => {
-  console.log('🗑️ Deleting book:', bookPath)
+  logger.info('BookHelpers', 'Deleting book', bookPath)
   try {
     new Directory(bookPath).delete()
     GToast.success({ message: 'Xoá thành công!' })
   } catch (error) {
-    console.error('❌ Error deleting book:', error)
+    logger.error('BookHelpers', 'Error deleting book', error)
     GToast.error({ message: 'Không thể xóa sách' })
     throw error
   }
@@ -115,8 +116,9 @@ export const getBookChapterContent = async (
     )
     return await chapterFile.text()
   } catch (error) {
-    console.error(
-      `❌ Error reading chapter ${chapter} of book ${bookId}:`,
+    logger.error(
+      'BookHelpers',
+      `Error reading chapter ${chapter} of book ${bookId}`,
       error,
     )
     throw error

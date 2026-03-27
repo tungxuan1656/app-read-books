@@ -49,6 +49,12 @@
 - `hooks/`: Custom hooks cho logic đọc sách, navigation, v.v.
 - `utils/`: Các hàm tiện ích hỗ trợ.
 
+### 3.3. Ownership sau Refactor
+- `app/*`: chỉ xử lý routing + composition UI.
+- `hooks/*`: orchestration lifecycle và trạng thái cho màn hình.
+- `services/*`: business logic, network/file/database I/O và provider integration.
+- `controllers/*`: schema state, persistence, migration.
+
 ## 4. Luồng Hoạt động (Operational Flows)
 
 ### 4.1. Khởi động Ứng dụng
@@ -60,7 +66,7 @@
 
 ### 4.2. Luồng Tải Sách
 1. Người dùng vào màn hình "Tải truyện" (`app/add-book/index.tsx`).
-2. Ứng dụng gọi API Supabase (`GET_EXPORTED_BOOKS_URL`) để lấy danh sách sách khả dụng.
+2. Hook orchestration `useAddBook` gọi service import (`services/book-import.service.ts`) để lấy danh sách sách khả dụng.
 3. Người dùng chọn tải sách:
    - File `.zip` được tải về qua `downloadFile`.
    - File được giải nén vào thư mục sách của ứng dụng qua `unzip`.

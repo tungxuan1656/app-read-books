@@ -130,4 +130,17 @@ export default defineConfig([
       'import/no-named-as-default-member': 'off',
     },
   },
+  {
+    files: ['app/**/*.ts', 'app/**/*.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.name='fetch']",
+          message:
+            'Do not call fetch directly in app routes. Move network I/O to services.',
+        },
+      ],
+    },
+  },
 ])

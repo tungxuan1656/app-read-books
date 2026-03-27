@@ -1,4 +1,5 @@
 import { getBookChapterContent } from '@/utils'
+import { logger } from '@/utils/logger'
 import { simpleMdToHtml } from '@/utils/string.helpers'
 
 import { type AIProviderType, getAIProviderByType } from './ai.service'
@@ -24,7 +25,7 @@ export const processChapterContent = async ({
   const requestKey = `${bookId}_ch${chapterNumber}_${actionKey}`
 
   if (pendingRequests.has(requestKey)) {
-    console.log(`⏳ [${actionKey}] Awaiting pending request: ${requestKey}`)
+    logger.info(actionKey, `Awaiting pending request: ${requestKey}`)
     return pendingRequests.get(requestKey)!
   }
 
@@ -37,7 +38,7 @@ export const processChapterContent = async ({
         actionKey,
       )
       if (cached) {
-        console.log(`✅ [${actionKey}] Cache hit: ${bookId}_ch${chapterNumber}`)
+        logger.info(actionKey, `Cache hit: ${bookId}_ch${chapterNumber}`)
         return cached.content
       }
 
@@ -49,8 +50,9 @@ export const processChapterContent = async ({
 
       // 3. Get Provider
       const provider = getAIProviderByType(aiType || 'copilot')
-      console.log(
-        `🌐 [${actionKey}] Using ${provider.name}: ${bookId}_ch${chapterNumber}`,
+      logger.info(
+        actionKey,
+        `Using ${provider.name}: ${bookId}_ch${chapterNumber}`,
       )
 
       // 4. Process with AI
@@ -64,14 +66,11 @@ export const processChapterContent = async ({
         actionKey,
         htmlContent,
       )
-      console.log(`💾 [${actionKey}] Saved: ${bookId}_ch${chapterNumber}`)
+      logger.info(actionKey, `Saved: ${bookId}_ch${chapterNumber}`)
 
       return htmlContent
     } catch (error) {
-      console.error(
-        `❌ [${actionKey}] Error: ${bookId}_ch${chapterNumber}`,
-        error,
-      )
+      logger.error(actionKey, `Error: ${bookId}_ch${chapterNumber}`, error)
       throw error
     } finally {
       pendingRequests.delete(requestKey)
@@ -89,8 +88,8 @@ export const clearProcessedChapter = async (
 ) => {
   try {
     await dbService.deleteProcessedChapter(bookId, chapterNumber, actionKey)
-    console.log(`🗑️ [${actionKey}] Cache cleared: ${bookId}_ch${chapterNumber}`)
+    logger.info(actionKey, `Cache cleared: ${bookId}_ch${chapterNumber}`)
   } catch (error) {
-    console.error(`❌ [${actionKey}] Error clearing cache:`, error)
+    logger.error(actionKey, 'Error clearing cache', error)
   }
 }

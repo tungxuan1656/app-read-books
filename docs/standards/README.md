@@ -28,6 +28,8 @@ All standards are aligned to the current stack:
 - `typography-guide.md`
 - `testing-and-validation-pattern.md`
 - `code-review-guide.md`
+- `architecture-ownership-map.md`
+- `refactor-baseline-checklist.md`
 
 ## Usage Rule
 
@@ -36,5 +38,5 @@ project patterns before introducing new abstractions or dependencies.
 
 ## Notes
 
-- This project currently has no enforced ESLint setup in CI.
-- Use `pnpm run tsc-check` as the baseline quality gate.
+- Use `pnpm run lint` and `pnpm run tsc-check` as baseline quality gates.
+- Route layer guardrail: direct `fetch` in `app/*` is disallowed by lint.

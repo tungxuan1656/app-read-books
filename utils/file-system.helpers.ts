@@ -1,6 +1,8 @@
 import { Directory, File, Paths } from 'expo-file-system'
 
 import { GToast } from '@/components/g-toast'
+import { toErrorMessage } from '@/services/error-mapper.service'
+import { logger } from '@/utils/logger'
 
 /**
  * File System Helpers
@@ -11,9 +13,9 @@ import { GToast } from '@/components/g-toast'
  * Hiển thị toast error
  */
 export const showToastError = (error: any): void => {
-  const message = typeof error === 'string' ? error : JSON.stringify(error)
+  const message = toErrorMessage(error, 'Có lỗi xảy ra')
   GToast.error({ message })
-  console.error(message)
+  logger.error('FileSystemHelpers', message, error)
 }
 
 /**
@@ -47,9 +49,13 @@ export const createFolderBooks = async (): Promise<void> => {
   if (!downloadDirectory.exists) {
     try {
       downloadDirectory.create({ intermediates: true, idempotent: true })
-      console.log('✅ Created download_books folder')
+      logger.info('FileSystemHelpers', 'Created download_books folder')
     } catch (error) {
-      console.error('❌ Error creating download_books folder:', error)
+      logger.error(
+        'FileSystemHelpers',
+        'Error creating download_books folder',
+        error,
+      )
       throw error
     }
   }
@@ -59,9 +65,9 @@ export const createFolderBooks = async (): Promise<void> => {
   if (!booksDirectory.exists) {
     try {
       booksDirectory.create({ intermediates: true, idempotent: true })
-      console.log('✅ Created books folder')
+      logger.info('FileSystemHelpers', 'Created books folder')
     } catch (error) {
-      console.error('❌ Error creating books folder:', error)
+      logger.error('FileSystemHelpers', 'Error creating books folder', error)
       throw error
     }
   }
@@ -97,7 +103,7 @@ export async function readCacheDirectory(): Promise<string[]> {
   try {
     return directory.list().map((entry) => entry.name)
   } catch (error) {
-    console.error('❌ Error reading cache directory:', error)
+    logger.error('FileSystemHelpers', 'Error reading cache directory', error)
     return []
   }
 }
@@ -111,7 +117,7 @@ export async function getDirectorySize(directoryPath: string): Promise<number> {
     if (!directory.exists) return 0
     return directory.size ?? 0
   } catch (error) {
-    console.error('❌ Error calculating directory size:', error)
+    logger.error('FileSystemHelpers', 'Error calculating directory size', error)
     return 0
   }
 }

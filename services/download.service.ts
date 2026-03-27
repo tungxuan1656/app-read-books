@@ -1,5 +1,7 @@
 import { File } from 'expo-file-system'
 
+import { logger } from '@/utils/logger'
+
 import { isFileAsync } from '../utils'
 
 export const getFilenameOfUrl = (url: string) => {
@@ -18,7 +20,10 @@ export const downloadFile = (url: string, fileUri: string) => {
       const destination = new File(fileUri)
 
       if (await isFileAsync(fileUri)) {
-        console.log('ZIP file already downloaded => Delete file!')
+        logger.info(
+          'DownloadService',
+          'ZIP file already downloaded => Delete file',
+        )
         if (destination.exists) {
           destination.delete()
         }
@@ -39,6 +44,6 @@ export const deleteDownloadFile = (uri: string) => {
       file.delete()
     }
   } catch (error) {
-    console.log(error)
+    logger.error('DownloadService', 'Delete download file error', error)
   }
 }

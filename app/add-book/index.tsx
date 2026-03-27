@@ -1,5 +1,5 @@
 import { router } from 'expo-router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import {
   ActivityIndicator,
   FlatList,
@@ -7,114 +7,47 @@ import {
   Text,
   View,
 } from 'react-native'
-import { unzip } from 'react-native-zip-archive'
 
+import { type ExportedBook } from '@/@types/book-import'
 import { Divider } from '@/components/divider'
-import DownloadBookItem, {
-  type ExportedBook,
-} from '@/components/download-book-item'
+import DownloadBookItem from '@/components/download-book-item'
 import { GToast } from '@/components/g-toast'
 import { Screen } from '@/components/screen'
 import { VectorIcon } from '@/components/vector-icon'
-import useAppStore from '@/controllers/store'
+import { useAddBook } from '@/hooks/use-add-book'
 
 import { AppColors } from '../../assets'
-import {
-  deleteDownloadFile,
-  downloadFile,
-  getFilenameOfUrl,
-} from '../../services/download.service'
-import {
-  createFolderBooks,
-  getFolderBooks,
-  getPathSaveZipBook,
-  showToastError,
-} from '../../utils'
-
-const GET_EXPORTED_BOOKS_URL =
-  'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books'
-
-type ExportedBooksResponse = {
-  success: boolean
-  data: ExportedBook[]
-  message?: string
-}
 
 const AddBook = () => {
-  const [processing, setProcessing] = useState('')
-  const [exportedBooks, setExportedBooks] = useState<ExportedBook[]>([])
-  const [fetchingBooks, setFetchingBooks] = useState(false)
-  const supabaseAnonKey = useAppStore((s) => s.settings.SUPABASE_ANON_KEY)
-
-  const fetchExportedBooks = useCallback(async () => {
-    if (!supabaseAnonKey) {
-      GToast.error({ message: 'Chưa cấu hình SUPABASE_ANON_KEY' })
-      return
-    }
-
-    setFetchingBooks(true)
-    try {
-      const response = await fetch(GET_EXPORTED_BOOKS_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${supabaseAnonKey}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      const result: ExportedBooksResponse = await response.json()
-
-      if (!response.ok || !result.success) {
-        throw new Error(
-          result.message || 'Không thể tải danh sách truyện có sẵn.',
-        )
-      }
-
-      setExportedBooks(result.data ?? [])
-    } catch (error) {
-      showToastError(error)
-    } finally {
-      setFetchingBooks(false)
-    }
-  }, [supabaseAnonKey])
+  const {
+    processing,
+    exportedBooks,
+    fetchingBooks,
+    fetchBooks,
+    handleDownloadExport: startDownloadExport,
+    lastError,
+  } = useAddBook()
 
   useEffect(() => {
-    createFolderBooks()
-    fetchExportedBooks()
-  }, [fetchExportedBooks])
-
-  const unzipBook = useCallback((uri: string) => {
-    const target = getFolderBooks()
-    setProcessing('Đang giải nén...')
-    return unzip(uri, target, 'UTF-8')
-      .then((path) => {
-        console.log(`unzip completed at ${path}`)
-        deleteDownloadFile(uri)
-        GToast.success({ message: 'Tải truyện thành công!' })
-        router.canGoBack() && router.back()
-      })
-      .catch(showToastError)
-      .finally(() => setProcessing(''))
-  }, [])
-
-  const downloadBook = useCallback(
-    (url: string) => {
-      setProcessing('Đang tải...')
-      const filename = getFilenameOfUrl(url)
-      const fileUri = getPathSaveZipBook(filename)
-      downloadFile(url, fileUri)
-        .then(unzipBook)
-        .catch(showToastError)
-        .finally(() => setProcessing(''))
-    },
-    [unzipBook],
-  )
+    if (!lastError) return
+    GToast.error({ message: lastError })
+  }, [lastError])
 
   const handleDownloadExport = useCallback(
-    (item: ExportedBook) => {
-      downloadBook(item.exportUrl)
+    async (item: ExportedBook) => {
+      const success = await startDownloadExport(item)
+
+      if (success) {
+        GToast.success({ message: 'Tải truyện thành công!' })
+        router.canGoBack() && router.back()
+        return
+      }
+
+      if (!lastError) {
+        GToast.error({ message: 'Có lỗi xảy ra khi tải truyện.' })
+      }
     },
-    [downloadBook],
+    [lastError, startDownloadExport],
   )
 
   const renderExportedBook: ListRenderItem<ExportedBook> = ({ item }) => (
@@ -160,7 +93,7 @@ const AddBook = () => {
           renderItem={renderExportedBook}
           ItemSeparatorComponent={Divider}
           refreshing={fetchingBooks}
-          onRefresh={fetchExportedBooks}
+          onRefresh={fetchBooks}
           ListEmptyComponent={renderEmptyList}
           contentContainerStyle={{ paddingBottom: 32 }}
           keyboardShouldPersistTaps='handled'

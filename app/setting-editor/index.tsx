@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router'
 import React, { useMemo } from 'react'
 import { Text, TextInput } from 'react-native'
 
+import { type AIAction, type AppSettings } from '@/@types/settings'
 import { AppColors } from '@/assets'
 import { Button } from '@/components/button'
 import { Divider } from '@/components/divider'
@@ -22,22 +23,66 @@ export default function SettingEditor() {
   const placeholder = params.placeholder
   const description = params.description
 
-  // Lấy giá trị hiện tại từ store
+  const isAIProcessActionsKey = settingKey === 'AI_PROCESS_ACTIONS'
+
+  const isValidAIAction = (value: unknown): value is AIAction => {
+    if (!value || typeof value !== 'object') return false
+    const target = value as Record<string, unknown>
+    return (
+      typeof target.key === 'string' &&
+      typeof target.name === 'string' &&
+      typeof target.prompt === 'string'
+    )
+  }
+
   const settings = useMemo(() => useAppStore.getState().settings, [])
+  const currentSettingValue = settings[settingKey as keyof AppSettings]
   const currentValue =
-    (settings[settingKey as keyof typeof settings] as string) || ''
+    typeof currentSettingValue === 'string'
+      ? currentSettingValue
+      : JSON.stringify(currentSettingValue, null, 2)
   const refTextValue = React.useRef<string>(currentValue)
 
   const handleSave = () => {
-    const value = refTextValue.current
-    storeActions.updateSetting(settingKey as any, value)
+    const value = refTextValue.current.trim()
+
+    if (isAIProcessActionsKey) {
+      try {
+        const parsed = JSON.parse(value)
+
+        if (!Array.isArray(parsed) || !parsed.every(isValidAIAction)) {
+          GToast.error({
+            message:
+              'Định dạng AI Actions không hợp lệ. Mỗi phần tử cần có key, name, prompt.',
+          })
+          return
+        }
+
+        storeActions.updateSetting('AI_PROCESS_ACTIONS', parsed)
+      } catch {
+        GToast.error({ message: 'AI Actions phải là JSON hợp lệ.' })
+        return
+      }
+    } else {
+      storeActions.updateSetting(
+        settingKey as keyof AppSettings,
+        value as never,
+      )
+    }
+
     GToast.success({ message: `Đã lưu ${label}` })
     router.canGoBack() && router.back()
   }
 
   const handleClear = () => {
-    refTextValue.current = ''
-    storeActions.updateSetting(settingKey as any, '')
+    refTextValue.current = isAIProcessActionsKey ? '[]' : ''
+
+    if (isAIProcessActionsKey) {
+      storeActions.updateSetting('AI_PROCESS_ACTIONS', [])
+    } else {
+      storeActions.updateSetting(settingKey as keyof AppSettings, '' as never)
+    }
+
     GToast.success({ message: `Đã xóa ${label}` })
   }
 
