@@ -1,7 +1,7 @@
 import React from 'react'
 import RenderHTML from 'react-native-render-html'
 
-import { AppConst } from '@/constants'
+import { AppConst, READING_FONT_FAMILIES } from '@/constants'
 import { useTypographyStore } from '@/controllers/stores'
 
 export const ContentDisplay = React.memo(
@@ -19,27 +19,7 @@ export const ContentDisplay = React.memo(
         source={{ html: chapterHtml, baseUrl: '' }}
         baseStyle={{ flex: 1, marginHorizontal: 16, marginBottom: 80 }}
         contentWidth={AppConst.windowWidth() - 32}
-        systemFonts={[
-          'Arial',
-          'Georgia',
-          'Inter',
-          'Lato',
-          'Lora',
-          'Merriweather',
-          'Montserrat',
-          'MontserratAlternates',
-          'NotoSans',
-          'NotoSerif',
-          'OpenSans',
-          'PTSans',
-          'PTSerif',
-          'Raleway',
-          'Roboto',
-          'SpaceMono',
-          'TimesNewRoman',
-          'Verdana',
-          'WorkSans',
-        ]}
+        systemFonts={[...READING_FONT_FAMILIES]}
         tagsStyles={{
           body: {
             fontFamily: font,

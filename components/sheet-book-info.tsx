@@ -8,6 +8,7 @@ import { Text, TouchableOpacity, View } from 'react-native'
 
 import { type ReadingAIMode } from '@/@types/common'
 import { AppColors } from '@/assets'
+import { READING_FONT_FAMILIES } from '@/constants'
 import {
   readingActions,
   typographyActions,
@@ -18,7 +19,7 @@ import {
 } from '@/controllers/stores'
 import { getAIActions } from '@/services/ai-actions.service'
 import { clearProcessedChapter } from '@/services/content-processor'
-import { cn, getListFonts } from '@/utils'
+import { cn } from '@/utils'
 
 import { VectorIcon } from './vector-icon'
 
@@ -70,9 +71,6 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
         console.error('Error reprocessing:', error)
       }
     }, [readingAIMode])
-
-    // Memoize font list for better performance
-    const fontList = useMemo(() => getListFonts(), [])
 
     const aiModes = useMemo(() => {
       const actions = getAIActions()
@@ -206,7 +204,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
           </View>
           <Text className='mb-2 mt-4 text-sm font-medium'>{'Font chữ'}</Text>
           <View className='flex-row flex-wrap gap-2'>
-            {fontList.map(renderFontItem)}
+            {READING_FONT_FAMILIES.map(renderFontItem)}
           </View>
           <Text className='mb-2 mt-4 text-sm font-medium'>
             {'Chế độ đọc AI'}

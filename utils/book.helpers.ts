@@ -137,30 +137,3 @@ export const getChapterHtml = (html: string): string => {
     </html>
   `
 }
-
-/**
- * Lấy danh sách fonts có sẵn
- */
-export const getListFonts = (): string[] => {
-  return [
-    'Arial',
-    'Georgia',
-    'Inter',
-    'Lato',
-    'Lora',
-    'Merriweather',
-    'Montserrat',
-    'MontserratAlternates',
-    'NotoSans',
-    'NotoSerif',
-    'OpenSans',
-    'PTSans',
-    'PTSerif',
-    'Raleway',
-    'Roboto',
-    'SpaceMono',
-    'TimesNewRoman',
-    'Verdana',
-    'WorkSans',
-  ]
-}
