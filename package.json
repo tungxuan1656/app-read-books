@@ -1,7 +1,7 @@
 {
   "name": "rn-read-books",
   "main": "expo-router/entry",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "scripts": {
     "start": "npx expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -14,7 +14,9 @@
     "xcode": "open ios/*.xcworkspace",
     "studio": "open -a /Applications/Android\\ Studio.app ./android/",
     "prebuild": "npx expo prebuild",
-    "tsc-check": "tsc --noEmit"
+    "tsc-check": "tsc --noEmit",
+    "distribute:ios": "bundle exec fastlane ios distribute",
+    "distribute:android": "bundle exec fastlane android distribute"
   },
   "jest": {
     "preset": "jest-expo"
