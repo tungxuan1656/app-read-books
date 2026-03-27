@@ -27,7 +27,7 @@ const DownloadBookItem = ({ item, onDownload }: DownloadBookItemProps) => {
 
   return (
     <TouchableOpacity
-      className='h-16 flex-row items-center justify-between gap-1.5 px-4'
+      className='min-h-16 flex-row items-center justify-between gap-1.5 px-4 py-3'
       onPress={onConfirmDownload}>
       <View className='flex-1 gap-1'>
         <Text

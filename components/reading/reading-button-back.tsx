@@ -11,7 +11,7 @@ function ReadingButtonBack() {
       name='circle-chevron-left'
       font='FontAwesome6'
       size={22}
-      buttonClassName='absolute left-1 top-3 size-11 rounded-full'
+      buttonClassName='absolute left-1 top-3 size-12 rounded-full'
       color={AppColors.gray300}
       onPress={router.back}
     />
