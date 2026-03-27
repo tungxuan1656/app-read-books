@@ -20,13 +20,14 @@ interface SettingItemProps {
 
 export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
   const settings = useAppStore().settings
-  const currentValue =
-    (settings[config.key as keyof typeof settings] as string) || ''
+  const currentValue = settings[config.key as keyof typeof settings]
+  const currentValueAsString =
+    typeof currentValue === 'string'
+      ? currentValue
+      : JSON.stringify(currentValue)
 
   const hasValue =
-    !!currentValue &&
-    typeof currentValue === 'string' &&
-    currentValue.trim().length > 0
+    !!currentValueAsString && currentValueAsString.trim().length > 0
 
   const handlePress = () => {
     // Nếu là picker, hiển thị ActionSheet
@@ -63,7 +64,7 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
             const selectedOption = config.options![buttonIndex]
             storeActions.updateSetting(
               config.key as keyof typeof settings,
-              selectedOption.value,
+              selectedOption.value as never,
             )
           }
         },
@@ -80,7 +81,7 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
             onPress: () =>
               storeActions.updateSetting(
                 config.key as keyof typeof settings,
-                opt.value,
+                opt.value as never,
               ),
           })),
           { text: 'Hủy', style: 'cancel' },
@@ -97,11 +98,11 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
     // Nếu là picker, tìm label tương ứng
     if (config.inputType === 'picker' && config.options) {
       const option = config.options.find((opt) => opt.value === currentValue)
-      return option?.label || currentValue
+      return option?.label || currentValueAsString
     }
 
-    return currentValue
-  }, [currentValue, hasValue, config])
+    return currentValueAsString
+  }, [config, currentValue, currentValueAsString, hasValue])
 
   return (
     <TouchableOpacity

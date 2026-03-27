@@ -2,54 +2,42 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
 import { type ReadingAIMode } from '@/@types/common'
+import {
+  type AppSettings,
+  type ReadingState,
+  type Typography,
+} from '@/@types/settings'
 
 import { MMKVStorage } from './mmkv'
+import {
+  APP_STORE_VERSION,
+  DEFAULT_SETTINGS,
+  migratePersistedSettings,
+} from './settings-schema'
+import { createSelectors } from './types'
 
-interface Typography {
-  font: string
-  fontSize: number
-  lineHeight: number
+interface PrefetchState {
+  isRunning: boolean
+  currentBookId: string | null
+  totalChapters: number
+  processedChapters: number
+  message: string
+  errors: string[]
 }
 
-interface Settings {
-  COPILOT_API_URL: string
-  COPILOT_MODEL: string
-  SUPABASE_ANON_KEY: string
-  PREFETCH_COUNT: string
-  AI_PROVIDER: 'copilot'
-  AI_PROCESS_ACTIONS: string // JSON string of AIAction[]
-  COPILOT_MIN_CHUNK_SIZE: string
-}
-
-interface Reading {
-  bookId: string
-  onScreen: boolean
-  offset: number
-}
-
-interface AppState {
-  //typography
+interface TypographySlice {
   typography: Typography
   setTypography: (typography: Partial<Typography>) => void
-  // Reading mode
+}
+
+interface ReadingSlice {
   readingAIMode: ReadingAIMode
   setReadingAIMode: (mode: ReadingAIMode) => void
+  reading: ReadingState
+  updateReading: (newReading: Partial<ReadingState>) => void
+}
 
-  // Prefetch status
-  prefetchState: {
-    isRunning: boolean
-    currentBookId: string | null
-    totalChapters: number
-    processedChapters: number
-    message: string
-    errors: string[]
-  }
-  updatePrefetchState: (state: Partial<AppState['prefetchState']>) => void
-
-  // reading
-  reading: Reading
-  updateReading: (newReading: Partial<Reading>) => void
-  // books
+interface BooksSlice {
   bookIds: string[]
   id2Book: Record<string, Book>
   id2BookReadingChapter: Record<string, number>
@@ -57,23 +45,85 @@ interface AppState {
   updateReadingChapter: (bookId: string, chapter: number) => void
   nextReadingChapter: (bookId: string) => void
   previousReadingChapter: (bookId: string) => void
-
-  // Settings (persisted via MMKV)
-  settings: Settings
-  updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void
-  updateSettings: (partialSettings: Partial<Settings>) => void
 }
 
-const useAppStore = create<AppState>()(
+interface PrefetchSlice {
+  prefetchState: PrefetchState
+  updatePrefetchState: (state: Partial<PrefetchState>) => void
+}
+
+interface SettingsSlice {
+  settings: AppSettings
+  updateSetting: <K extends keyof AppSettings>(
+    key: K,
+    value: AppSettings[K],
+  ) => void
+  updateSettings: (partialSettings: Partial<AppSettings>) => void
+}
+
+interface UIRuntimeSlice {
+  contentReloadToken: number
+  triggerContentReload: () => void
+}
+
+export type AppState = TypographySlice &
+  ReadingSlice &
+  BooksSlice &
+  PrefetchSlice &
+  SettingsSlice &
+  UIRuntimeSlice
+
+const defaultTypography: Typography = {
+  font: 'Inter',
+  fontSize: 24,
+  lineHeight: 1.5,
+}
+
+const defaultReading: ReadingState = {
+  bookId: '',
+  onScreen: false,
+  offset: 0,
+}
+
+const defaultPrefetchState: PrefetchState = {
+  isRunning: false,
+  currentBookId: null,
+  totalChapters: 0,
+  processedChapters: 0,
+  message: '',
+  errors: [],
+}
+
+const initialState: Omit<
+  AppState,
+  | 'setTypography'
+  | 'setReadingAIMode'
+  | 'updateReading'
+  | 'updateBooks'
+  | 'updateReadingChapter'
+  | 'nextReadingChapter'
+  | 'previousReadingChapter'
+  | 'updatePrefetchState'
+  | 'updateSetting'
+  | 'updateSettings'
+  | 'triggerContentReload'
+> = {
+  typography: defaultTypography,
+  readingAIMode: 'none',
+  reading: defaultReading,
+  bookIds: [],
+  id2Book: {},
+  id2BookReadingChapter: {},
+  prefetchState: defaultPrefetchState,
+  settings: DEFAULT_SETTINGS,
+  contentReloadToken: 0,
+}
+
+const _useAppStore = create<AppState>()(
   devtools(
     persist(
       (set, get) => ({
-        // typo
-        typography: {
-          font: 'Inter',
-          fontSize: 24,
-          lineHeight: 1.5,
-        },
+        ...initialState,
         setTypography: (typography: Partial<Typography>) =>
           set((state) => ({
             typography: {
@@ -81,34 +131,10 @@ const useAppStore = create<AppState>()(
               ...typography,
             },
           })),
-        // Reading mode
-        readingAIMode: 'none',
+
         setReadingAIMode: (mode: ReadingAIMode) => set({ readingAIMode: mode }),
 
-        // Prefetch
-        prefetchState: {
-          isRunning: false,
-          currentBookId: null,
-          totalChapters: 0,
-          processedChapters: 0,
-          message: '',
-          errors: [],
-        },
-        updatePrefetchState: (newState: Partial<AppState['prefetchState']>) =>
-          set((state) => ({
-            prefetchState: {
-              ...state.prefetchState,
-              ...newState,
-            },
-          })),
-
-        // reading
-        reading: {
-          bookId: '',
-          onScreen: false,
-          offset: 0,
-        },
-        updateReading: (newReading: Partial<Reading>) =>
+        updateReading: (newReading: Partial<ReadingState>) =>
           set((state) => ({
             reading: {
               ...state.reading,
@@ -116,10 +142,6 @@ const useAppStore = create<AppState>()(
             },
           })),
 
-        // books
-        bookIds: [],
-        id2Book: {},
-        id2BookReadingChapter: {},
         updateBooks: (books: Book[]) => {
           const state = get()
           const bookIds = books.map((book) => book.id)
@@ -159,81 +181,59 @@ const useAppStore = create<AppState>()(
             },
           })),
 
-        // Settings (persisted via MMKV)
-        settings: {
-          COPILOT_API_URL: 'http://localhost:8317/v1/chat/completions',
-          COPILOT_MODEL: 'gpt-4.1',
-          SUPABASE_ANON_KEY: '',
-          PREFETCH_COUNT: '3',
-          AI_PROVIDER: 'copilot',
-          AI_PROCESS_ACTIONS: JSON.stringify([
-            {
-              key: 'translate',
-              name: 'Dịch AI',
-              prompt: `Bạn là chuyên gia dịch thuật văn học tiếng Việt. Nhiệm vụ: chuyển đổi văn bản từ văn phong dịch máy (Trung-Việt) sang văn phong tiếng Việt tự nhiên, trôi chảy.
-
-Bạn hãy đọc văn bản trong file original_content.txt và dịch theo các bước sau:
-- Nội dung trong file là định dạng html, có thể có các thẻ phân đoạn như <p>, <br>, <div>, hãy tách nội dung thành từng đoạn dựa trên các thẻ này.
-- Đọc theo từng đoạn để giữ cấu trúc đoạn và dịch đoạn theo 5 nguyên tắc sau:
-1. Giữ nguyên 100% các từ xưng hô như: ta, ngươi, hắn, nàng, ngài, huynh, đệ, tỷ, muội lão, bạn, tôi, thầy, sư phụ, sư tổ, cha mẹ, ba mẹ, ông, bà, vợ chồng, v.v.."TA" không thể dịch thành "EM" hoặc "ANH", "NGƯƠI" không thể dịch thành "BẠN", v.v.. (RẤT QUAN TRỌNG, bạn phải giữ nguyên các từ này, không thể lẫn lộn xưng hô khác với nội dung gốc)
-2. Thay cấu trúc Hán Việt bằng cấu trúc ngữ pháp tiếng Việt với các thành phần như chủ ngữ, vị ngữ, trạng ngữ,…. (RẤT QUAN TRỌNG, bạn hãy tập trung vào phần này)
-3. Giữ nguyên 100% ý nghĩa, chi tiết, cảm xúc
-4. Giữ nguyên: tên nhân vật, địa danh, thuật ngữ võ công
-5. Không tự ý sáng tạo thêm hoặc cắt bớt nội dung
-- Ghép lại các đoạn thành nội dung hoàn chỉnh, theo định dạng html, giữ nguyên các thẻ phân đoạn như trong nội dung gốc.
-- Chỉ trả về nội dung truyện, không thêm ý kiến, bình luận của bạn
-
-Bắt đầu dịch file và trả về kết quả`,
+        updatePrefetchState: (newState: Partial<PrefetchState>) =>
+          set((state) => ({
+            prefetchState: {
+              ...state.prefetchState,
+              ...newState,
             },
-            {
-              key: 'summary',
-              name: 'Tóm tắt AI',
-              prompt: `Bạn là dịch thuật truyện chữ Trung Quốc sang tiếng Việt.
+          })),
 
-Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_content.txt theo các yêu cầu sau:
-
-1. Mức độ rút gọn:
-   - Rút ngắn nội dung xuống khoảng 50–60% độ dài bản gốc.
-   - Chỉ lược bỏ chi tiết thừa, không làm mất mạch truyện và ý chính.
-
-2. Giữ nguyên cốt truyện:
-   - Bảo toàn trình tự sự kiện, bối cảnh và diễn biến chính.
-   - Giữ lại các tình tiết quan trọng, cao trào, nút thắt, mở nút.
-   - Giữ các đoạn hội thoại quan trọng giữa nhân vật (có thể rút ngắn nhưng không làm thay đổi ý).
-
-3. Văn phong & xưng hô:
-   - Giữ văn phong truyện dịch Việt Nam, tự nhiên, dễ đọc.
-   - Có thể chỉnh câu cho mượt hơn, nhưng không thay đổi nghĩa.
-   - Giữ nguyên xưng hô quen thuộc như: Hắn, Nó, Ta, Ngươi, v.v.
-
-4. Lược bỏ:
-   - Cắt giảm mô tả cảnh vật dài dòng, cảm xúc lặp lại, thông tin nền không ảnh hưởng trực tiếp đến cốt truyện.
-   - Không thêm nội dung mới, không suy diễn thêm ngoài những gì có trong bản gốc.
-
-5. Định dạng đầu ra:
-   - Viết lại thành một bản tóm tắt hoàn chỉnh, mạch lạc, theo dạng văn xuôi bình thường.
-   - Không giải thích quy trình, chỉ trả về nội dung chương đã được tóm tắt.`,
-            },
-          ]),
-          COPILOT_MIN_CHUNK_SIZE: '1300',
-        },
-        updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) =>
+        updateSetting: <K extends keyof AppSettings>(
+          key: K,
+          value: AppSettings[K],
+        ) =>
           set((state) => ({
             settings: {
               ...state.settings,
               [key]: value,
             },
           })),
-        updateSettings: (partialSettings: Partial<Settings>) =>
+        updateSettings: (partialSettings: Partial<AppSettings>) =>
           set((state) => ({
             settings: {
               ...state.settings,
               ...partialSettings,
             },
           })),
+
+        triggerContentReload: () =>
+          set((state) => ({
+            contentReloadToken: state.contentReloadToken + 1,
+          })),
       }),
       {
         name: 'appstore',
+        version: APP_STORE_VERSION,
+        migrate: (persistedState) => {
+          const incoming = (persistedState || {}) as Partial<AppState>
+
+          return {
+            ...incoming,
+            settings: migratePersistedSettings(incoming.settings),
+            prefetchState: defaultPrefetchState,
+            contentReloadToken: 0,
+          }
+        },
+        partialize: (state): Partial<AppState> => ({
+          typography: state.typography,
+          readingAIMode: state.readingAIMode,
+          reading: state.reading,
+          bookIds: state.bookIds,
+          id2Book: state.id2Book,
+          id2BookReadingChapter: state.id2BookReadingChapter,
+          settings: state.settings,
+        }),
         storage: {
           getItem: (name) => MMKVStorage.get(name),
           setItem: (name, value) => MMKVStorage.set(name, value),
@@ -241,8 +241,11 @@ Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_
         },
       },
     ),
+    { name: 'app-store' },
   ),
 )
+
+const useAppStore = createSelectors(_useAppStore)
 
 const {
   updateReadingChapter,
@@ -255,7 +258,8 @@ const {
   updateSetting,
   updateSettings,
   setTypography,
-} = useAppStore.getState()
+  triggerContentReload,
+} = _useAppStore.getState()
 
 export const storeActions = {
   updateReadingChapter,
@@ -268,6 +272,7 @@ export const storeActions = {
   updateSetting,
   updateSettings,
   setTypography,
+  triggerContentReload,
 }
 
 export default useAppStore

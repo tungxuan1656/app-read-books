@@ -1,5 +1,7 @@
 import * as SQLite from 'expo-sqlite'
 
+import { logger } from '@/utils/logger'
+
 type ReadingMode = string
 
 interface ProcessedChapter {
@@ -23,14 +25,14 @@ class DatabaseService {
     }
 
     try {
-      console.log('📦 Initializing database...')
+      logger.info('DatabaseService', 'Initializing database')
       this.db = await SQLite.openDatabaseAsync('reading_app.db')
       await this.createTables()
       this.initialized = true
-      console.log('✅ Database initialized successfully')
+      logger.info('DatabaseService', 'Database initialized successfully')
       return this.db
     } catch (error) {
-      console.error('❌ Database initialization failed:', error)
+      logger.error('DatabaseService', 'Database initialization failed', error)
       throw error
     }
   }
@@ -76,7 +78,7 @@ class DatabaseService {
       )
       return result || null
     } catch (error) {
-      console.error('Error getting processed chapter:', error)
+      logger.error('DatabaseService', 'Error getting processed chapter', error)
       return null
     }
   }
@@ -98,7 +100,11 @@ class DatabaseService {
       )
       return new Set(results.map((r) => r.chapter_number))
     } catch (error) {
-      console.error('Error getting chapters cache status:', error)
+      logger.error(
+        'DatabaseService',
+        'Error getting chapters cache status',
+        error,
+      )
       return new Set()
     }
   }
@@ -134,7 +140,7 @@ class DatabaseService {
         ],
       )
     } catch (error) {
-      console.error('Error saving processed chapter:', error)
+      logger.error('DatabaseService', 'Error saving processed chapter', error)
       throw error
     }
   }
@@ -159,7 +165,7 @@ class DatabaseService {
         )
       }
     } catch (error) {
-      console.error('Error deleting processed chapter:', error)
+      logger.error('DatabaseService', 'Error deleting processed chapter', error)
       throw error
     }
   }
@@ -176,7 +182,11 @@ class DatabaseService {
       )
       return results
     } catch (error) {
-      console.error('Error getting processed chapters for book:', error)
+      logger.error(
+        'DatabaseService',
+        'Error getting processed chapters for book',
+        error,
+      )
       return []
     }
   }
@@ -197,7 +207,7 @@ class DatabaseService {
         )
       }
     } catch (error) {
-      console.error('Error clearing book cache:', error)
+      logger.error('DatabaseService', 'Error clearing book cache', error)
       throw error
     }
   }
@@ -218,7 +228,7 @@ class DatabaseService {
         totalChapters: chapters?.count || 0,
       }
     } catch (error) {
-      console.error('Error getting cache stats:', error)
+      logger.error('DatabaseService', 'Error getting cache stats', error)
       return { totalChapters: 0 }
     }
   }
@@ -246,7 +256,7 @@ class DatabaseService {
         chapters: chapterStats,
       }
     } catch (error) {
-      console.error('Error getting book cache stats:', error)
+      logger.error('DatabaseService', 'Error getting book cache stats', error)
       return { chapters: {} }
     }
   }
@@ -256,9 +266,9 @@ class DatabaseService {
 
     try {
       await this.db!.runAsync('DELETE FROM processed_chapters')
-      console.log('✅ All database cache cleared')
+      logger.info('DatabaseService', 'All database cache cleared')
     } catch (error) {
-      console.error('Error clearing all cache:', error)
+      logger.error('DatabaseService', 'Error clearing all cache', error)
       throw error
     }
   }

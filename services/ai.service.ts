@@ -1,3 +1,8 @@
+import {
+  getProvider,
+  hasProvider,
+  registerProvider,
+} from './ai-provider-registry'
 import { createCopilotProvider } from './ai-providers/copilot.provider'
 
 /**
@@ -13,8 +18,12 @@ export type AIProviderType = 'copilot'
 /**
  * Lấy AI Provider theo type cụ thể
  */
-export const getAIProviderByType = (_type: AIProviderType): AIProvider => {
-  return createCopilotProvider()
+export const getAIProviderByType = (type: AIProviderType): AIProvider => {
+  if (!hasProvider(type)) {
+    registerProvider('copilot', createCopilotProvider)
+  }
+
+  return getProvider(type)
 }
 
 // ============ Re-exports for convenience ============

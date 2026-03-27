@@ -1,4 +1,5 @@
 import useAppStore from '@/controllers/store'
+import { logger } from '@/utils/logger'
 
 import type { AIProvider } from '../ai.service'
 
@@ -32,7 +33,8 @@ export const createCopilotProvider = (): AIProvider => {
 
       // Xử lý song song nhiều chunks
       const promises = chunks.map(async (chunk, index) => {
-        console.log(
+        logger.info(
+          'CopilotProvider',
           `Copilot: Processing chunk ${index + 1}/${chunks.length}: ${chunk.length} characters`,
         )
         const messages: CopilotMessage[] = [
@@ -48,7 +50,10 @@ export const createCopilotProvider = (): AIProvider => {
 
       // Đợi tất cả promises hoàn thành và join kết quả
       const results = await Promise.all(promises)
-      console.log('Copilot: All chunks processed, joining results')
+      logger.info(
+        'CopilotProvider',
+        'Copilot: All chunks processed, joining results',
+      )
 
       const output = cleanCopilotResponse(results.join('<br><br>'))
 
@@ -143,7 +148,10 @@ const callCopilotAPI = async (
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      console.log(`Copilot: Calling API (attempt ${attempt + 1}/${maxRetries})`)
+      logger.info(
+        'CopilotProvider',
+        `Copilot: Calling API (attempt ${attempt + 1}/${maxRetries})`,
+      )
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -162,12 +170,18 @@ const callCopilotAPI = async (
         throw new Error('Không nhận được response từ Copilot')
       }
 
-      console.log('Copilot: API call successful')
+      logger.info('CopilotProvider', 'Copilot: API call successful')
       return data.choices[0].message.content
-    } catch (e: any) {
-      console.error(`Copilot error (attempt ${attempt + 1}):`, e.message)
+    } catch (error) {
+      logger.error(
+        'CopilotProvider',
+        `Copilot error (attempt ${attempt + 1})`,
+        error,
+      )
       lastError =
-        e instanceof Error ? e : new Error('Có lỗi xảy ra khi gọi Copilot API')
+        error instanceof Error
+          ? error
+          : new Error('Có lỗi xảy ra khi gọi Copilot API')
 
       if (attempt < maxRetries - 1) {
         const waitTime = Math.pow(2, attempt) * 1000

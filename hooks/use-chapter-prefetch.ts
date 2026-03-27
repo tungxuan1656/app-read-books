@@ -12,13 +12,7 @@ export const useChapterPrefetch = (
   const PREFETCH_COUNT = useAppStore((s) => s.settings.PREFETCH_COUNT || '3')
   const readingAIMode = useAppStore((s) => s.readingAIMode)
   const book = useAppStore((s) => s.id2Book[bookId])
-
-  // Use a ref to track the latest requested chapter to avoid race conditions in UI updates
-  const latestChapterRef = useRef(currentChapter)
-
-  useEffect(() => {
-    latestChapterRef.current = currentChapter
-  }, [currentChapter])
+  const runIdRef = useRef(0)
 
   useEffect(() => {
     if (!book || readingAIMode === 'none' || !isCurrentChapterReady) {
@@ -27,6 +21,8 @@ export const useChapterPrefetch = (
     }
 
     let isCancelled = false
+    runIdRef.current += 1
+    const runId = runIdRef.current
 
     const runPrefetch = async () => {
       const totalChapters = book.references?.length || 0
@@ -55,7 +51,13 @@ export const useChapterPrefetch = (
       )
 
       if (chaptersToProcess.length === 0) {
-        console.log('✅ [Prefetch] All chapters already cached')
+        if (!isCancelled && runIdRef.current === runId) {
+          storeActions.updatePrefetchState({
+            isRunning: false,
+            message: '',
+            errors: [],
+          })
+        }
         return
       }
 
@@ -66,10 +68,11 @@ export const useChapterPrefetch = (
         totalChapters: chaptersToProcess.length,
         processedChapters: 0,
         message: `Đang chuẩn bị tải trước ${chaptersToProcess.length} chương...`,
+        errors: [],
       })
 
       for (let i = 0; i < chaptersToProcess.length; i++) {
-        if (isCancelled) break
+        if (isCancelled || runIdRef.current !== runId) break
 
         // Check if mode changed externally (double check)
         if (useAppStore.getState().readingAIMode !== readingAIMode) break
@@ -83,17 +86,27 @@ export const useChapterPrefetch = (
 
           await getReadingContent(bookId, chapterNum, readingAIMode)
 
-          if (!isCancelled) {
+          if (!isCancelled && runIdRef.current === runId) {
             storeActions.updatePrefetchState({
               processedChapters: i + 1,
             })
           }
         } catch (error) {
           console.error(`❌ [Prefetch] Error at chapter ${chapterNum}:`, error)
+          const message =
+            error instanceof Error ? error.message : `Lỗi chương ${chapterNum}`
+          if (!isCancelled && runIdRef.current === runId) {
+            storeActions.updatePrefetchState({
+              errors: [
+                ...useAppStore.getState().prefetchState.errors,
+                `Chương ${chapterNum}: ${message}`,
+              ],
+            })
+          }
         }
       }
 
-      if (!isCancelled) {
+      if (!isCancelled && runIdRef.current === runId) {
         storeActions.updatePrefetchState({
           isRunning: false,
           message: 'Hoàn tất tải trước',

@@ -1,4 +1,7 @@
 import { MMKV } from 'react-native-mmkv'
+import { type StateStorage } from 'zustand/middleware'
+
+import { logger } from '@/utils/logger'
 
 const storage = new MMKV()
 
@@ -32,7 +35,7 @@ const set = (key: string, value: any) => {
 
 const get = (key: string) => {
   if (!key || typeof key !== 'string' || !storage.contains(`MMKV-${key}`)) {
-    console.log('Key is invalid!', key)
+    logger.warn('MMKVStorage', 'Key is invalid', key)
     return null
   }
   try {
@@ -40,13 +43,13 @@ const get = (key: string) => {
     const value = JSON.parse(jsonValue ?? '')
     return value
   } catch (error) {
-    console.log(`Reading error: ${JSON.stringify(error)}`)
+    logger.error('MMKVStorage', 'Reading error', error)
     return null
   }
 }
 
 const remove = (key: string) => {
-  if (storage.contains(key)) {
+  if (storage.contains(`MMKV-${key}`)) {
     storage.delete(`MMKV-${key}`)
   }
 }
@@ -55,4 +58,16 @@ export const MMKVStorage = {
   set,
   get,
   remove,
+}
+
+export const MMKVStateStorage: StateStorage = {
+  getItem: (name: string) => {
+    return storage.getString(`MMKV-${name}`) ?? null
+  },
+  setItem: (name: string, value: string) => {
+    storage.set(`MMKV-${name}`, value)
+  },
+  removeItem: (name: string) => {
+    storage.delete(`MMKV-${name}`)
+  },
 }

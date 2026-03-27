@@ -4,12 +4,11 @@ import BottomSheet, {
   BottomSheetView,
 } from '@gorhom/bottom-sheet'
 import React, { forwardRef, useCallback, useMemo } from 'react'
-import { DeviceEventEmitter, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 
 import { type ReadingAIMode } from '@/@types/common'
 import { AppColors } from '@/assets'
 import useAppStore, { storeActions } from '@/controllers/store'
-import { RELOAD_CONTENT_EVENT } from '@/hooks/use-reading-content'
 import { getAIActions } from '@/services/ai-actions.service'
 import { clearProcessedChapter } from '@/services/content-processor'
 import { cn, getListFonts } from '@/utils'
@@ -57,8 +56,8 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
         // Xóa cache của chương hiện tại theo mode (actionKey)
         await clearProcessedChapter(bookId, chapterNumber, readingAIMode)
 
-        // Gọi callback để trigger reload nội dung
-        DeviceEventEmitter.emit(RELOAD_CONTENT_EVENT)
+        // Trigger reload nội dung
+        storeActions.triggerContentReload()
 
         // Đóng bottom sheet
         bottomSheetRef.current?.close()

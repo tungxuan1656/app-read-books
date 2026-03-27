@@ -1,3 +1,5 @@
+import { type AppSettings } from '@/@types/settings'
+
 export type SettingInputType = 'single' | 'multiline' | 'picker'
 
 export interface SettingOption {
@@ -6,7 +8,7 @@ export interface SettingOption {
 }
 
 export interface SettingConfig {
-  key: string
+  key: keyof AppSettings
   label: string
   placeholder: string
   description?: string
