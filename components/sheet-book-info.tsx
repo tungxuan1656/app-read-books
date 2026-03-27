@@ -8,6 +8,7 @@ import { Text, TouchableOpacity, View } from 'react-native'
 
 import { type ReadingAIMode } from '@/@types/common'
 import { AppColors } from '@/assets'
+import { READING_FONT_FAMILIES } from '@/constants'
 import {
   readingActions,
   typographyActions,
@@ -18,7 +19,7 @@ import {
 } from '@/controllers/stores'
 import { getAIActions } from '@/services/ai-actions.service'
 import { clearProcessedChapter } from '@/services/content-processor'
-import { cn, getListFonts } from '@/utils'
+import { cn } from '@/utils'
 
 import { VectorIcon } from './vector-icon'
 
@@ -34,7 +35,12 @@ type SheetBookInfoProps = {
 const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
   ({ onClose }, ref) => {
     const bottomSheetRef = React.useRef<BottomSheet>(null)
-    const { font, fontSize, lineHeight } = useTypographyStore.use.typography()
+    const {
+      font,
+      fontSize,
+      lineHeight,
+      letterSpacing = 0,
+    } = useTypographyStore.use.typography()
     const readingAIMode = useReadingStore.use.readingAIMode()
 
     // Expose methods through ref
@@ -70,9 +76,6 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
         console.error('Error reprocessing:', error)
       }
     }, [readingAIMode])
-
-    // Memoize font list for better performance
-    const fontList = useMemo(() => getListFonts(), [])
 
     const aiModes = useMemo(() => {
       const actions = getAIActions()
@@ -155,6 +158,47 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
       [lineHeight],
     )
 
+    const letterSpacingControls = useMemo(
+      () => (
+        <View className='flex-1'>
+          <Text className='text-sm font-medium'>{'Khoảng cách chữ'}</Text>
+          <View className='flex-row items-center gap-2'>
+            <VectorIcon
+              name='circle-minus'
+              font='FontAwesome6'
+              color={AppColors.gray200}
+              size={20}
+              onPress={() =>
+                typographyActions.setTypography({
+                  letterSpacing: Math.max(
+                    0,
+                    Math.round((letterSpacing - 0.1) * 10) / 10,
+                  ),
+                })
+              }
+              buttonProps={{ hitSlop: 10 }}
+            />
+            <Text className='w-10 text-center text-sm font-semibold'>
+              {Math.round(letterSpacing * 10) / 10}
+            </Text>
+            <VectorIcon
+              name='circle-plus'
+              font='FontAwesome6'
+              color={AppColors.gray200}
+              size={20}
+              onPress={() =>
+                typographyActions.setTypography({
+                  letterSpacing: Math.round((letterSpacing + 0.1) * 10) / 10,
+                })
+              }
+              buttonProps={{ hitSlop: 10 }}
+            />
+          </View>
+        </View>
+      ),
+      [letterSpacing],
+    )
+
     const renderFontItem = useCallback(
       (fontName: string) => (
         <TouchableOpacity
@@ -206,7 +250,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
           </View>
           <Text className='mb-2 mt-4 text-sm font-medium'>{'Font chữ'}</Text>
           <View className='flex-row flex-wrap gap-2'>
-            {fontList.map(renderFontItem)}
+            {READING_FONT_FAMILIES.map(renderFontItem)}
           </View>
           <Text className='mb-2 mt-4 text-sm font-medium'>
             {'Chế độ đọc AI'}
@@ -237,6 +281,9 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
           <View className='mt-2 flex-row justify-between'>
             {fontSizeControls}
             {lineHeightControls}
+          </View>
+          <View className='mt-2 flex-row justify-between'>
+            {letterSpacingControls}
           </View>
         </BottomSheetView>
       </BottomSheet>

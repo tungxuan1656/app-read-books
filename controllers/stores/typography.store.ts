@@ -11,6 +11,7 @@ const defaultTypography: Typography = {
   font: 'Inter',
   fontSize: 24,
   lineHeight: 1.5,
+  letterSpacing: 0,
 }
 
 const initialState: TypographyStoreState = {
@@ -22,6 +23,18 @@ const _useTypographyStore = create<TypographyStoreState>()(
     persist(() => initialState, {
       name: 'typography-storage',
       storage: MMKVStateStorage,
+      version: 1,
+      migrate: (persistedState) => {
+        const state = persistedState as Partial<TypographyStoreState>
+        return {
+          ...initialState,
+          ...state,
+          typography: {
+            ...defaultTypography,
+            ...(state.typography || {}),
+          },
+        }
+      },
       partialize: (state) => ({
         typography: state.typography,
       }),

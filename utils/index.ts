@@ -22,7 +22,6 @@ export {
   getBook,
   getBookChapterContent,
   getChapterHtml,
-  getListFonts,
   readFolderBooks,
 } from './book.helpers'
 

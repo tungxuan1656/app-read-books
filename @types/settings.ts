@@ -18,6 +18,7 @@ export interface Typography {
   font: string
   fontSize: number
   lineHeight: number
+  letterSpacing: number
 }
 
 export interface ReadingState {
