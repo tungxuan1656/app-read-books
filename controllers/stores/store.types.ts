@@ -35,6 +35,7 @@ export interface PrefetchStoreState {
 
 export interface SettingsStoreState {
   settings: AppSettings
+  networkLoggerEnabled: boolean
 }
 
 export interface UIRuntimeStoreState {

@@ -14,6 +14,7 @@ import { type SettingsStoreState } from './store.types'
 
 const initialState: SettingsStoreState = {
   settings: DEFAULT_SETTINGS,
+  networkLoggerEnabled: false,
 }
 
 const _useSettingsStore = create<SettingsStoreState>()(
@@ -32,6 +33,7 @@ const _useSettingsStore = create<SettingsStoreState>()(
       },
       partialize: (state) => ({
         settings: state.settings,
+        networkLoggerEnabled: state.networkLoggerEnabled,
       }),
     }),
     { name: 'settings-store' },
@@ -55,6 +57,16 @@ export const settingsActions = {
         ...state.settings,
         ...partialSettings,
       },
+    })),
+
+  setNetworkLoggerEnabled: (enabled: boolean) =>
+    _useSettingsStore.setState({
+      networkLoggerEnabled: enabled,
+    }),
+
+  toggleNetworkLogger: () =>
+    _useSettingsStore.setState((state) => ({
+      networkLoggerEnabled: !state.networkLoggerEnabled,
     })),
 
   resetSettings: () => _useSettingsStore.setState(initialState),

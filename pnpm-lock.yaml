@@ -77,6 +77,9 @@ importers:
       react-native-mmkv:
         specifier: ^3.3.0
         version: 3.3.0(react-native@0.81.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.1.16)(react@19.1.0))(react@19.1.0)
+      react-native-network-logger:
+        specifier: ^2.0.1
+        version: 2.0.1(react-native@0.81.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.1.16)(react@19.1.0))(react@19.1.0)
       react-native-reanimated:
         specifier: ^4.1.2
         version: 4.1.2(@babel/core@7.28.0)(react-native-worklets@0.5.1(@babel/core@7.28.0)(react-native@0.81.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.1.16)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.1.16)(react@19.1.0))(react@19.1.0)
@@ -4756,6 +4759,12 @@ packages:
 
   react-native-mmkv@3.3.0:
     resolution: {integrity: sha512-2iPjIJ+IAODXN35wm53EN6nv+hR/0NXLLiLWOdPA/0gXDB2dYVrr6MqvoiFpxhLhdj0B8fkf5ARNVavJaSvuuQ==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+
+  react-native-network-logger@2.0.1:
+    resolution: {integrity: sha512-qR03Uvk2ihmII0hX128UOu+ykl7QH2XOqbj3YEcV4pMxj2JA7CvfuasAoLl8FZe0C8JQFHCHX0zo00/RcJdk0g==}
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -11661,6 +11670,11 @@ snapshots:
       react-native: 0.81.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.1.16)(react@19.1.0)
 
   react-native-mmkv@3.3.0(react-native@0.81.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.1.16)(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-native: 0.81.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.1.16)(react@19.1.0)
+
+  react-native-network-logger@2.0.1(react-native@0.81.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.1.16)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.1.16)(react@19.1.0)

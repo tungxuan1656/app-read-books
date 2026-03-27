@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { GSpinnerComponent } from '@/components/g-spinner'
 import { GToastComponent } from '@/components/g-toast'
+import { NetworkLoggerBubble } from '@/components/network-logger'
 import { useReadingStore } from '@/controllers/stores'
 import { stringifyParams } from '@/hooks/use-typed-local-search-params'
 
@@ -44,6 +45,7 @@ export default function RootLayout() {
           </Stack>
           <GToastComponent />
           <GSpinnerComponent />
+          <NetworkLoggerBubble />
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
     </ErrorBoundary>
