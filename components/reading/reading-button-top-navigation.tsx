@@ -18,14 +18,14 @@ export default function ReadingButtonTopNavigation({
   }, [])
 
   return (
-    <View className='absolute right-2.5 top-4 h-7 flex-row items-center justify-center gap-2.5 px-0.5'>
+    <View className='absolute right-2.5 top-4 h-8 flex-row items-center justify-center gap-2.5 px-0.5'>
       {/* Navigation */}
       <View className='flex-row items-center rounded-full bg-gray-300'>
         <VectorIcon
           name='arrow-left'
           font='FontAwesome6'
           size={14}
-          buttonClassName='size-7'
+          buttonClassName='size-8'
           color={AppColors.white}
           onPress={previousChapter}
         />
@@ -33,7 +33,7 @@ export default function ReadingButtonTopNavigation({
           name='arrow-right'
           font='FontAwesome6'
           size={14}
-          buttonClassName='size-7'
+          buttonClassName='size-8'
           color={AppColors.white}
           onPress={nextChapter}
         />
@@ -44,7 +44,7 @@ export default function ReadingButtonTopNavigation({
         name='bars'
         font='FontAwesome6'
         size={14}
-        buttonClassName='size-7 rounded-full bg-white'
+        buttonClassName='size-8 rounded-full bg-white'
         color={AppColors.gray600}
         onPress={handleViewReferences}
       />

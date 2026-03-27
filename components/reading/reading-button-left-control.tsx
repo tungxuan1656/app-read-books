@@ -26,7 +26,7 @@ function ReadingButtonLeftControl() {
           name='book-open-reader'
           font='FontAwesome6'
           size={14}
-          buttonClassName='size-8 rounded-full bg-gray-300'
+          buttonClassName='size-9 rounded-full bg-gray-300'
           color={AppColors.white}
           onPress={openBook}
         />
