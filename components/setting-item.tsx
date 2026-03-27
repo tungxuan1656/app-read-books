@@ -109,12 +109,12 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
       onPress={handlePress}
       activeOpacity={0.7}>
       <View className='flex-1 gap-1'>
-        <Text className='text-sm font-medium text-gray-900'>
+        <Text className='text-base font-medium text-gray-900'>
           {config.label}
         </Text>
         <Text
           className={cn(
-            'text-xs font-normal',
+            'text-ssm font-normal',
             hasValue ? 'text-gray-500' : 'text-gray-400',
           )}
           numberOfLines={1}>

@@ -52,7 +52,7 @@ export const Button = ({
     <TouchableOpacity
       disabled={disabled || isLoading}
       className={cn(
-        'h-10 flex-row items-center justify-around rounded-2xl bg-blue-500',
+        'h-12 flex-row items-center justify-around rounded-2xl bg-blue-500',
         className,
       )}
       style={[theme?.button, style]}

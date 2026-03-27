@@ -47,7 +47,7 @@ export default function SettingEditor() {
       <Divider />
       <Screen.Content useKeyboard className='gap-3 bg-slate-50 px-4 py-5'>
         {description ? (
-          <Text className='text-xs font-normal text-gray-500'>
+          <Text className='text-ssm font-normal text-gray-500'>
             {description}
           </Text>
         ) : null}
