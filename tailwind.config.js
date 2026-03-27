@@ -18,6 +18,9 @@ module.exports = {
         ...withCssVars(tailwindConfig.appColorsClasses),
         primary: 'var(--color-primary)',
       },
+      fontSize: {
+        xss: '0.625rem', // 10px
+      },
       margin: {
         'inset-bottom-if-none-safe-area':
           'var(--inset-bottom-if-none-safe-area)',

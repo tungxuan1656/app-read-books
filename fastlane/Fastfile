@@ -7,6 +7,9 @@ require 'shellwords'
 DIAWI_UPLOAD_ENDPOINT = 'https://upload.diawi.com/'
 DIAWI_STATUS_ENDPOINT = 'https://upload.diawi.com/status'
 DIAWI_TOKEN = 'wVnisACCEttCi4DNYuduFw8hasO44t51dlNObVxStY'
+PROJECT_ROOT = File.expand_path('..', __dir__)
+IOS_ROOT = File.join(PROJECT_ROOT, 'ios')
+ANDROID_ROOT = File.join(PROJECT_ROOT, 'android')
 
 # Poll interval = 2s, max retries = 120 (~4 minutes)
 def poll_diawi_status(token:, job:, interval_seconds: 2, max_retries: 120)
@@ -81,13 +84,13 @@ platform :android do
     gradle(
       task: 'assemble',
       build_type: 'Release',
-      project_dir: 'android/'
+      project_dir: ANDROID_ROOT
     )
   end
 
   desc 'Upload Android artifact to Diawi'
   lane :upload do |options|
-    file_path = options[:path] || './android/app/build/outputs/apk/release/app-release.apk'
+    file_path = options[:path] || File.join(ANDROID_ROOT, 'app/build/outputs/apk/release/app-release.apk')
     upload_to_diawi!(file_path: file_path)
   end
 
@@ -104,13 +107,13 @@ platform :ios do
     commit = last_git_commit
     UI.message("BRANCH: #{branch} | COMMIT: #{commit[:message]}")
 
-    xcodeproj_files = Dir.glob('./ios/*.xcodeproj')
+    xcodeproj_files = Dir.glob(File.join(IOS_ROOT, '*.xcodeproj')).reject { |path| path.include?('/Pods/') }
     UI.user_error!('No .xcodeproj found in ios folder. Please run prebuild first!') if xcodeproj_files.empty?
 
     project_name = File.basename(xcodeproj_files.first, '.xcodeproj')
 
-    @xcodeproj_path = "./ios/#{project_name}.xcodeproj"
-    @workspace_path = "./ios/#{project_name}.xcworkspace"
+    @xcodeproj_path = File.join(IOS_ROOT, "#{project_name}.xcodeproj")
+    @workspace_path = File.join(IOS_ROOT, "#{project_name}.xcworkspace")
     @scheme_name = project_name
 
     UI.message("iOS project: #{project_name}")
@@ -133,9 +136,9 @@ platform :ios do
       scheme: @scheme_name,
       workspace: @workspace_path,
       configuration: 'Release',
-      buildlog_path: './ios/build',
-      output_directory: './ios/build',
-      archive_path: './ios/archive/',
+      buildlog_path: File.join(IOS_ROOT, 'build'),
+      output_directory: File.join(IOS_ROOT, 'build'),
+      archive_path: File.join(IOS_ROOT, 'archive'),
       output_name: output_name,
       xcargs: '-allowProvisioningUpdates',
       export_method: options[:export_method] || 'development',
@@ -147,7 +150,7 @@ platform :ios do
 
   desc 'Upload iOS artifact to Diawi'
   lane :upload do |options|
-    file_path = options[:path] || './ios/build/app-release.ipa'
+    file_path = options[:path] || File.join(IOS_ROOT, 'build/app-release.ipa')
     upload_to_diawi!(file_path: file_path)
   end
 
