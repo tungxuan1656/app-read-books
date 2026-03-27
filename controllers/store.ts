@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
+
+import { type ReadingAIMode } from '@/@types/common'
+
 import { MMKVStorage } from './mmkv'
-import { ReadingAIMode } from '@/@types/common'
 
 interface Typography {
   font: string
@@ -124,9 +126,14 @@ const useAppStore = create<AppState>()(
         updateBooks: (books: Book[]) => {
           const state = get()
           const bookIds = books.map((book) => book.id)
-          const id2Book = Object.fromEntries(books.map((book) => [book.id, book]))
+          const id2Book = Object.fromEntries(
+            books.map((book) => [book.id, book]),
+          )
           const id2BookReadingChapter = Object.fromEntries(
-            books.map((book) => [book.id, state.id2BookReadingChapter[book.id] || 1]),
+            books.map((book) => [
+              book.id,
+              state.id2BookReadingChapter[book.id] || 1,
+            ]),
           )
           set({ bookIds, id2Book, id2BookReadingChapter })
         },
@@ -148,7 +155,10 @@ const useAppStore = create<AppState>()(
           set((state) => ({
             id2BookReadingChapter: {
               ...state.id2BookReadingChapter,
-              [bookId]: Math.max((state.id2BookReadingChapter[bookId] || 1) - 1, 1),
+              [bookId]: Math.max(
+                (state.id2BookReadingChapter[bookId] || 1) - 1,
+                1,
+              ),
             },
           })),
 

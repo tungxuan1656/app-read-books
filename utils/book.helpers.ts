@@ -1,5 +1,6 @@
-import { GToast } from '@/components/g-toast'
 import { Directory, File, Paths } from 'expo-file-system'
+
+import { GToast } from '@/components/g-toast'
 
 /**
  * Book Helpers
@@ -66,7 +67,8 @@ export const getBook = async (bookPath: string): Promise<Book | null> => {
   }
 
   const bookJson = entries.find(
-    (entry): entry is File => entry instanceof File && entry.name === 'book.json',
+    (entry): entry is File =>
+      entry instanceof File && entry.name === 'book.json',
   )
 
   if (!bookJson) {
@@ -102,7 +104,10 @@ export const deleteBook = async (bookPath: string): Promise<void> => {
 /**
  * Lấy nội dung HTML của một chapter
  */
-export const getBookChapterContent = async (bookId: string, chapter: number): Promise<string> => {
+export const getBookChapterContent = async (
+  bookId: string,
+  chapter: number,
+): Promise<string> => {
   try {
     const chapterFile = new File(
       new Directory(Paths.document, 'books'),
@@ -110,7 +115,10 @@ export const getBookChapterContent = async (bookId: string, chapter: number): Pr
     )
     return await chapterFile.text()
   } catch (error) {
-    console.error(`❌ Error reading chapter ${chapter} of book ${bookId}:`, error)
+    console.error(
+      `❌ Error reading chapter ${chapter} of book ${bookId}:`,
+      error,
+    )
     throw error
   }
 }

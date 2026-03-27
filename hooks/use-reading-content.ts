@@ -1,8 +1,12 @@
-import useAppStore from '@/controllers/store'
-import { getLoadingMessage, getReadingContent } from '@/services/reading.service'
-import { getChapterHtml } from '@/utils'
 import { useEffect, useState } from 'react'
 import { DeviceEventEmitter } from 'react-native'
+
+import useAppStore from '@/controllers/store'
+import {
+  getLoadingMessage,
+  getReadingContent,
+} from '@/services/reading.service'
+import { getChapterHtml } from '@/utils'
 
 // Event name để trigger reload content
 export const RELOAD_CONTENT_EVENT = 'RELOAD_READING_CONTENT'
@@ -15,9 +19,12 @@ export default function useReadingContent(bookId: string) {
 
   // Lắng nghe event reload content
   useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener(RELOAD_CONTENT_EVENT, () => {
-      setReloadTrigger((prev) => prev + 1)
-    })
+    const subscription = DeviceEventEmitter.addListener(
+      RELOAD_CONTENT_EVENT,
+      () => {
+        setReloadTrigger((prev) => prev + 1)
+      },
+    )
     return () => subscription.remove()
   }, [])
 
@@ -40,7 +47,11 @@ export default function useReadingContent(bookId: string) {
       setMessage(getLoadingMessage(readingAIMode, chapterNumber))
 
       try {
-        const finalContent = await getReadingContent(bookId, chapterNumber, readingAIMode)
+        const finalContent = await getReadingContent(
+          bookId,
+          chapterNumber,
+          readingAIMode,
+        )
 
         setChapter({
           content: finalContent ? getChapterHtml(finalContent) : '',

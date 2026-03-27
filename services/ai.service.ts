@@ -1,5 +1,5 @@
-import { createGeminiProvider } from './ai-providers/gemini.provider'
 import { createCopilotProvider } from './ai-providers/copilot.provider'
+import { createGeminiProvider } from './ai-providers/gemini.provider'
 
 /**
  * AI Provider Interface
@@ -29,12 +29,12 @@ export const getAIProviderByType = (type: AIProviderType): AIProvider => {
 // Gemini exports
 export {
   createGeminiProvider,
-  parseGeminiApiKeys,
   getGeminiClient,
   getGeminiModel,
+  getKeyInfo,
+  parseGeminiApiKeys,
   rotateToNextKey,
   validateGeminiApiKey,
-  getKeyInfo,
 } from './ai-providers/gemini.provider'
 
 // Copilot exports
@@ -46,12 +46,18 @@ export {
 
 // ============ Legacy exports for backward compatibility ============
 
-export const geminiProcessFile = async (prompt: string, content: string): Promise<string> => {
+export const geminiProcessFile = async (
+  prompt: string,
+  content: string,
+): Promise<string> => {
   const provider = createGeminiProvider()
   return provider.processContent(prompt, content)
 }
 
-export const copilotProcessContent = async (prompt: string, content: string): Promise<string> => {
+export const copilotProcessContent = async (
+  prompt: string,
+  content: string,
+): Promise<string> => {
   const provider = createCopilotProvider()
   return provider.processContent(prompt, content)
 }

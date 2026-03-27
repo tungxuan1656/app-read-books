@@ -1,10 +1,19 @@
 import React, { useRef } from 'react'
-import { StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from 'react-native'
-import Swipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable'
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
+} from 'react-native'
+import Swipeable, {
+  type SwipeableMethods,
+} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import Reanimated, {
   type SharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated'
+
 import { VectorIcon } from './vector-icon'
 
 type IconFont =
@@ -37,7 +46,9 @@ export const ItemSwipeable = React.memo(
     return (
       <Swipeable
         containerStyle={undefined}
-        renderRightActions={() => renderActions?.(item, () => refSwipeable.current?.close?.())}
+        renderRightActions={() =>
+          renderActions?.(item, () => refSwipeable.current?.close?.())
+        }
         ref={refSwipeable}>
         <View style={[styles.container, style]}>{children}</View>
       </Swipeable>

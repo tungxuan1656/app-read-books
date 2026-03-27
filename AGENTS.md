@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **app-read-books** (346 symbols, 776 relationships, 25 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **rn-read-books** (471 symbols, 858 relationships, 30 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -17,7 +17,7 @@ This project is indexed by GitNexus as **app-read-books** (346 symbols, 776 rela
 
 1. `gitnexus_query({query: "<error or symptom>"})` — find execution flows related to the issue
 2. `gitnexus_context({name: "<suspect function>"})` — see all callers, callees, and process participation
-3. `READ gitnexus://repo/app-read-books/process/{processName}` — trace the full execution flow step by step
+3. `READ gitnexus://repo/rn-read-books/process/{processName}` — trace the full execution flow step by step
 4. For regressions: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — see what your branch changed
 
 ## When Refactoring
@@ -56,10 +56,10 @@ This project is indexed by GitNexus as **app-read-books** (346 symbols, 776 rela
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/app-read-books/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/app-read-books/clusters` | All functional areas |
-| `gitnexus://repo/app-read-books/processes` | All execution flows |
-| `gitnexus://repo/app-read-books/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/rn-read-books/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/rn-read-books/clusters` | All functional areas |
+| `gitnexus://repo/rn-read-books/processes` | All execution flows |
+| `gitnexus://repo/rn-read-books/process/{name}` | Step-by-step execution trace |
 
 ## Self-Check Before Finishing
 
@@ -91,16 +91,12 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 
 | Task | Read this skill file |
 |------|---------------------|
-| Understand architecture / "How does X work?" | `.agents/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.agents/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.agents/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.agents/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.agents/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.agents/skills/gitnexus/gitnexus-cli/SKILL.md` |
-| Work in the Services area (42 symbols) | `.agents/skills/generated/services/SKILL.md` |
-| Work in the Components area (16 symbols) | `.agents/skills/generated/components/SKILL.md` |
-| Work in the Hooks area (12 symbols) | `.agents/skills/generated/hooks/SKILL.md` |
-| Work in the Ai-providers area (5 symbols) | `.agents/skills/generated/ai-providers/SKILL.md` |
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
 

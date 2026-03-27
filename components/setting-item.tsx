@@ -1,11 +1,20 @@
-import { AppColors, AppPalette } from '@/assets'
-import { VectorIcon } from './vector-icon'
-import { AppTypo } from '@/constants'
-import { SettingConfig } from '@/constants/setting-configs'
-import useAppStore, { storeActions } from '@/controllers/store'
 import { router } from 'expo-router'
 import React from 'react'
-import { ActionSheetIOS, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import {
+  ActionSheetIOS,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+
+import { AppColors, AppPalette } from '@/assets'
+import { AppTypo } from '@/constants'
+import { type SettingConfig } from '@/constants/setting-configs'
+import useAppStore, { storeActions } from '@/controllers/store'
+
+import { VectorIcon } from './vector-icon'
 
 interface SettingItemProps {
   config: SettingConfig
@@ -13,10 +22,13 @@ interface SettingItemProps {
 
 export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
   const settings = useAppStore().settings
-  const currentValue = (settings[config.key as keyof typeof settings] as string) || ''
+  const currentValue =
+    (settings[config.key as keyof typeof settings] as string) || ''
 
   const hasValue =
-    !!currentValue && typeof currentValue === 'string' && currentValue.trim().length > 0
+    !!currentValue &&
+    typeof currentValue === 'string' &&
+    currentValue.trim().length > 0
 
   const handlePress = () => {
     // Nếu là picker, hiển thị ActionSheet
@@ -51,7 +63,10 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
         (buttonIndex) => {
           if (buttonIndex < config.options!.length) {
             const selectedOption = config.options![buttonIndex]
-            storeActions.updateSetting(config.key as keyof typeof settings, selectedOption.value)
+            storeActions.updateSetting(
+              config.key as keyof typeof settings,
+              selectedOption.value,
+            )
           }
         },
       )
@@ -65,7 +80,10 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
           ...config.options.map((opt) => ({
             text: opt.label,
             onPress: () =>
-              storeActions.updateSetting(config.key as keyof typeof settings, opt.value),
+              storeActions.updateSetting(
+                config.key as keyof typeof settings,
+                opt.value,
+              ),
           })),
           { text: 'Hủy', style: 'cancel' },
         ],
@@ -88,7 +106,10 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
   }, [currentValue, hasValue, config])
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={handlePress}
+      activeOpacity={0.7}>
       <View style={styles.leftContent}>
         <Text style={[AppTypo.body.medium, styles.label]}>{config.label}</Text>
         <Text
@@ -101,7 +122,12 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
           {displayValue}
         </Text>
       </View>
-      <VectorIcon name="chevron-right" font="FontAwesome5" size={12} color={AppPalette.gray400} />
+      <VectorIcon
+        name='chevron-right'
+        font='FontAwesome5'
+        size={12}
+        color={AppPalette.gray400}
+      />
     </TouchableOpacity>
   )
 }

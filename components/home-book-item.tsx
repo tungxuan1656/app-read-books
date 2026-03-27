@@ -1,14 +1,23 @@
+import { router } from 'expo-router'
+import React from 'react'
+import {
+  Alert,
+  Linking,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+
 import { AppPalette } from '@/assets'
 import { AppTypo } from '@/constants'
 import useAppStore from '@/controllers/store'
 import { deleteBook, getFolderBooks } from '@/utils'
-import { router } from 'expo-router'
-import React from 'react'
-import { Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+
 import { GToast } from './g-toast'
 import { VectorIcon } from './vector-icon'
 
-const HomeBookItem = ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: () => void }) => {
+const HomeBookItem = ({ id }: { id: string; onDeleteSuccess: () => void }) => {
   const book = useAppStore((state) => state.id2Book[id])
 
   const onSelectBook = () => {
@@ -18,29 +27,15 @@ const HomeBookItem = ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: ()
     })
   }
 
-  const onDeleteBook = () => {
-    Alert.alert('Xoá truyện', 'Bạn có chắc chắn muốn xoá bộ truyện này?', [
-      {
-        text: 'Đồng ý',
-        style: 'destructive',
-        onPress: () => {
-          deleteBook(getFolderBooks() + book.id)
-          GToast.success({ message: 'Đã xóa truyện' })
-          onDeleteSuccess()
-        },
-      },
-      { text: 'Huỷ', style: 'cancel' },
-    ])
-  }
-
-  const onOpenInfo = () => {
-    Linking.openURL(`https://metruyencv.com/truyen/${book.id}`)
-  }
-
   return (
-    <TouchableOpacity style={styles.item} key={book.name} onPress={onSelectBook}>
+    <TouchableOpacity
+      style={styles.item}
+      key={book.name}
+      onPress={onSelectBook}>
       <View style={{ gap: 4, flex: 1 }}>
-        <Text style={[AppTypo.body.medium, { color: AppPalette.gray900 }]} numberOfLines={2}>
+        <Text
+          style={[AppTypo.body.medium, { color: AppPalette.gray900 }]}
+          numberOfLines={2}>
           {book.name}
         </Text>
         <Text style={[AppTypo.caption.regular, { color: AppPalette.gray500 }]}>
@@ -48,7 +43,12 @@ const HomeBookItem = ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: ()
         </Text>
       </View>
 
-      <VectorIcon name="chevron-right" font="FontAwesome5" size={12} color={AppPalette.gray400} />
+      <VectorIcon
+        name='chevron-right'
+        font='FontAwesome5'
+        size={12}
+        color={AppPalette.gray400}
+      />
     </TouchableOpacity>
   )
 }

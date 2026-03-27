@@ -1,17 +1,37 @@
-import DownloadBookItem, { ExportedBook } from '@/components/download-book-item'
-import { GToast } from '@/components/g-toast'
-import { Screen } from '@/components/screen'
 import { router } from 'expo-router'
 import React, { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, FlatList, ListRenderItem, StyleSheet, Text, View } from 'react-native'
+import {
+  ActivityIndicator,
+  FlatList,
+  type ListRenderItem,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { unzip } from 'react-native-zip-archive'
+
+import { Divider } from '@/components/divider'
+import DownloadBookItem, {
+  type ExportedBook,
+} from '@/components/download-book-item'
+import { GToast } from '@/components/g-toast'
+import { Screen } from '@/components/screen'
+import { VectorIcon } from '@/components/vector-icon'
+import useAppStore from '@/controllers/store'
+
 import { AppPalette } from '../../assets'
 import { AppStyles, AppTypo } from '../../constants'
-import { deleteDownloadFile, downloadFile, getFilenameOfUrl } from '../../services/download.service'
-import { createFolderBooks, getFolderBooks, getPathSaveZipBook, showToastError } from '../../utils'
-import useAppStore from '@/controllers/store'
-import { VectorIcon } from '@/components/vector-icon'
-import { Divider } from '@/components/divider'
+import {
+  deleteDownloadFile,
+  downloadFile,
+  getFilenameOfUrl,
+} from '../../services/download.service'
+import {
+  createFolderBooks,
+  getFolderBooks,
+  getPathSaveZipBook,
+  showToastError,
+} from '../../utils'
 
 const GET_EXPORTED_BOOKS_URL =
   'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books'
@@ -22,7 +42,7 @@ type ExportedBooksResponse = {
   message?: string
 }
 
-const AddBook = (props: any) => {
+const AddBook = () => {
   const [processing, setProcessing] = useState('')
   const [exportedBooks, setExportedBooks] = useState<ExportedBook[]>([])
   const [fetchingBooks, setFetchingBooks] = useState(false)
@@ -47,7 +67,9 @@ const AddBook = (props: any) => {
       const result: ExportedBooksResponse = await response.json()
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Không thể tải danh sách truyện có sẵn.')
+        throw new Error(
+          result.message || 'Không thể tải danh sách truyện có sẵn.',
+        )
       }
 
       setExportedBooks(result.data ?? [])
@@ -112,7 +134,11 @@ const AddBook = (props: any) => {
 
     return (
       <View style={styles.emptyContainer}>
-        <Text style={[AppTypo.caption.regular, { color: AppPalette.gray400, textAlign: 'center' }]}>
+        <Text
+          style={[
+            AppTypo.caption.regular,
+            { color: AppPalette.gray400, textAlign: 'center' },
+          ]}>
           {'Chưa có truyện khả dụng.'}
         </Text>
       </View>
@@ -120,17 +146,19 @@ const AddBook = (props: any) => {
   }
 
   return (
-    <Screen.Container safe="all">
+    <Screen.Container safe='all'>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <VectorIcon
-          name="angle-left"
-          font="FontAwesome6"
+          name='angle-left'
+          font='FontAwesome6'
           size={16}
           buttonStyle={{ width: 44, height: 44 }}
           color={AppPalette.gray600}
           onPress={() => router.back()}
         />
-        <Text style={[AppTypo.h3.semiBold, { marginLeft: 4 }]}>{'Tải truyện'}</Text>
+        <Text style={[AppTypo.h3.semiBold, { marginLeft: 4 }]}>
+          {'Tải truyện'}
+        </Text>
       </View>
       <Divider />
       <Screen.Content style={{ flex: 1 }}>
@@ -144,7 +172,7 @@ const AddBook = (props: any) => {
           onRefresh={fetchExportedBooks}
           ListEmptyComponent={renderEmptyList}
           contentContainerStyle={{ paddingBottom: 32 }}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps='handled'
           showsVerticalScrollIndicator={false}
         />
       </Screen.Content>

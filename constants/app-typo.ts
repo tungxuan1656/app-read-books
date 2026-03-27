@@ -1,5 +1,6 @@
+import { StyleSheet, type TextStyle } from 'react-native'
+
 import { AppColors, AppFontSize } from '@/assets'
-import { StyleSheet, TextStyle } from 'react-native'
 
 type FontWeightType = TextStyle['fontWeight']
 

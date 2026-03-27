@@ -1,17 +1,18 @@
-import {
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Text,
-  StyleProp,
-  ViewStyle,
-  TextStyle,
-  TouchableOpacityProps,
-} from 'react-native'
+import { Image, type ImageSource, type ImageStyle } from 'expo-image'
 import React from 'react'
+import {
+  ActivityIndicator,
+  type StyleProp,
+  StyleSheet,
+  Text,
+  type TextStyle,
+  TouchableOpacity,
+  type TouchableOpacityProps,
+  type ViewStyle,
+} from 'react-native'
+
 import { AppColors } from '@/assets'
 import { AppTypo } from '@/constants'
-import { Image, ImageSource, ImageStyle } from 'expo-image'
 
 export type ButtonTheme = {
   button?: StyleProp<ViewStyle>
@@ -50,14 +51,18 @@ export const Button = ({
       style={[styles.button, theme?.button, style]}
       {...props}>
       {isLoading ? (
-        <ActivityIndicator color={colorLoading ? colorLoading : AppColors.bgMain} />
+        <ActivityIndicator
+          color={colorLoading ? colorLoading : AppColors.bgMain}
+        />
       ) : (
         <>
           {iconLeft ? (
             <Image
               style={[styles.iconLeft, theme?.iconLeft]}
               // @ts-ignore
-              tintColor={theme?.iconLeft?.tintColor ?? styles.iconLeft.tintColor}
+              tintColor={
+                theme?.iconLeft?.tintColor ?? styles.iconLeft.tintColor
+              }
               source={iconLeft}
             />
           ) : null}
@@ -66,7 +71,9 @@ export const Button = ({
             <Image
               style={[styles.iconRight, theme?.iconRight]}
               // @ts-ignore
-              tintColor={theme?.iconRight?.tintColor ?? styles.iconRight.tintColor}
+              tintColor={
+                theme?.iconRight?.tintColor ?? styles.iconRight.tintColor
+              }
               source={iconRight}
             />
           ) : null}

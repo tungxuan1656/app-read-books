@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, ViewStyle } from 'react-native'
+import { View, type ViewStyle } from 'react-native'
+
 import { AppColors } from '@/assets'
 
 type Props = {
@@ -10,7 +11,12 @@ type Props = {
 }
 
 export const Divider: React.FC<Props> = React.memo(
-  ({ color = AppColors.strokeMain, width = 1, style, direction = 'vertical' }) => {
+  ({
+    color = AppColors.strokeMain,
+    width = 1,
+    style,
+    direction = 'vertical',
+  }) => {
     return (
       <View
         style={[

@@ -1,12 +1,20 @@
-import { Screen } from '@/components/screen'
 import { router } from 'expo-router'
 import React, { useLayoutEffect, useRef } from 'react'
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { AppTypo } from '../../constants'
-import useAppStore, { storeActions } from '@/controllers/store'
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+
 import { AppPalette } from '@/assets'
-import { VectorIcon } from '@/components/vector-icon'
 import { Divider } from '@/components/divider'
+import { Screen } from '@/components/screen'
+import { VectorIcon } from '@/components/vector-icon'
+import useAppStore, { storeActions } from '@/controllers/store'
+
+import { AppTypo } from '../../constants'
 
 const References = () => {
   const refList = useRef<FlatList | null>(null)
@@ -21,7 +29,10 @@ const References = () => {
       references.length > 0 &&
       currentIndex - 1 < references.length - 1
     ) {
-      refList.current?.scrollToIndex({ animated: false, index: currentIndex - 1 })
+      refList.current?.scrollToIndex({
+        animated: false,
+        index: currentIndex - 1,
+      })
     }
   }, [book, currentIndex])
 
@@ -31,17 +42,19 @@ const References = () => {
   }
 
   return (
-    <Screen.Container safe="all">
+    <Screen.Container safe='all'>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <VectorIcon
-          name="angle-left"
-          font="FontAwesome6"
+          name='angle-left'
+          font='FontAwesome6'
           size={16}
           buttonStyle={{ width: 44, height: 44 }}
           color={AppPalette.gray600}
           onPress={() => router.back()}
         />
-        <Text style={[AppTypo.h3.semiBold, { marginLeft: 4 }]}>{'Mục lục'}</Text>
+        <Text style={[AppTypo.h3.semiBold, { marginLeft: 4 }]}>
+          {'Mục lục'}
+        </Text>
       </View>
       <Divider />
       <Screen.Content>
@@ -51,10 +64,16 @@ const References = () => {
           contentContainerStyle={{ paddingVertical: 20 }}
           initialScrollIndex={currentIndex - 1}
           renderItem={({ item, index }) => (
-            <TouchableOpacity key={item} style={styles.item} onPress={() => setChapter(index + 1)}>
+            <TouchableOpacity
+              key={item}
+              style={styles.item}
+              onPress={() => setChapter(index + 1)}>
               <Text
                 numberOfLines={1}
-                style={[AppTypo.body.regular, currentIndex === index + 1 && AppTypo.body.semiBold]}>
+                style={[
+                  AppTypo.body.regular,
+                  currentIndex === index + 1 && AppTypo.body.semiBold,
+                ]}>
                 {item}
               </Text>
             </TouchableOpacity>

@@ -1,11 +1,20 @@
-import { AppConst } from '@/constants'
-import useAppStore from '@/controllers/store'
 import React from 'react'
 import RenderHTML from 'react-native-render-html'
 
+import { AppConst } from '@/constants'
+import useAppStore from '@/controllers/store'
+
 export const ContentDisplay = React.memo(
-  ({ chapterHtml, onLoaded }: { chapterHtml: string; onLoaded?: () => void }) => {
-    const { font, fontSize, lineHeight } = useAppStore((state) => state.typography)
+  ({
+    chapterHtml,
+    onLoaded,
+  }: {
+    chapterHtml: string
+    onLoaded?: () => void
+  }) => {
+    const { font, fontSize, lineHeight } = useAppStore(
+      (state) => state.typography,
+    )
 
     return (
       <RenderHTML
@@ -34,7 +43,11 @@ export const ContentDisplay = React.memo(
           'WorkSans',
         ]}
         tagsStyles={{
-          body: { fontFamily: font, lineHeight: fontSize * lineHeight, fontSize: fontSize },
+          body: {
+            fontFamily: font,
+            lineHeight: fontSize * lineHeight,
+            fontSize: fontSize,
+          },
           h2: { fontSize: fontSize * 1.5 },
         }}
         onHTMLLoaded={onLoaded}

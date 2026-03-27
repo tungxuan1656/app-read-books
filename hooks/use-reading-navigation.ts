@@ -1,5 +1,6 @@
-import useAppStore, { storeActions } from '@/controllers/store'
 import React, { useCallback, useEffect, useRef } from 'react'
+
+import useAppStore, { storeActions } from '@/controllers/store'
 
 /**
  * Hook để quản lý navigation và state của reading screen
@@ -69,7 +70,8 @@ export default function useReadingNavigation(bookId: string) {
 
   const handleScroll = useCallback(
     (event: any) => {
-      const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent
+      const { contentOffset, layoutMeasurement, contentSize } =
+        event.nativeEvent
       const offset = Math.round(contentOffset.y + layoutMeasurement.height)
       const contentHeight = Math.round(contentSize.height)
 

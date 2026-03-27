@@ -1,6 +1,13 @@
-import { AppTypo } from '@/constants'
 import React, { useLayoutEffect, useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, TextStyle, View } from 'react-native'
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  type TextStyle,
+  View,
+} from 'react-native'
+
+import { AppTypo } from '@/constants'
 
 export type GSpinnerTheme = {
   label?: TextStyle
@@ -43,7 +50,11 @@ export const GSpinnerComponent = ({ theme }: { theme?: GSpinnerTheme }) => {
       <ActivityIndicator color={'#222'} />
       {label ? (
         <Text
-          style={[AppTypo.body.medium, { color: '#444', marginHorizontal: 36 }, theme?.label]}
+          style={[
+            AppTypo.body.medium,
+            { color: '#444', marginHorizontal: 36 },
+            theme?.label,
+          ]}
           numberOfLines={2}>
           {label}
         </Text>

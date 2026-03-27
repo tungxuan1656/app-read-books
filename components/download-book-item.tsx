@@ -1,8 +1,10 @@
 import React, { memo } from 'react'
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+
 import { AppPalette } from '@/assets'
 import { AppTypo } from '@/constants'
 import { formatBytes } from '@/utils'
+
 import { VectorIcon } from './vector-icon'
 
 type BookMeta = {
@@ -49,16 +51,22 @@ const DownloadBookItem = ({ item, onDownload }: DownloadBookItemProps) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onConfirmDownload}>
       <View style={styles.details}>
-        <Text style={[AppTypo.body.medium, { color: AppPalette.gray900 }]} numberOfLines={1}>
+        <Text
+          style={[AppTypo.body.medium, { color: AppPalette.gray900 }]}
+          numberOfLines={1}>
           {book?.name ?? 'Truyện không tên'}
         </Text>
-        <Text style={[AppTypo.caption.regular, { color: AppPalette.gray500 }]} numberOfLines={1}>
-          {(book?.author || 'Không rõ tác giả') + ' • ' + formatBytes(item.fileSize)}
+        <Text
+          style={[AppTypo.caption.regular, { color: AppPalette.gray500 }]}
+          numberOfLines={1}>
+          {(book?.author || 'Không rõ tác giả') +
+            ' • ' +
+            formatBytes(item.fileSize)}
         </Text>
       </View>
       <VectorIcon
-        name="download"
-        font="Feather"
+        name='download'
+        font='Feather'
         size={16}
         color={AppPalette.blue500}
         onPress={onConfirmDownload}

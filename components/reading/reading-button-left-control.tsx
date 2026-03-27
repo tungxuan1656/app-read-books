@@ -1,9 +1,11 @@
-import { AppPalette } from '@/assets'
 import React, { useCallback, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import SheetBookInfo, { SheetBookInfoRef } from '../sheet-book-info'
+
+import { AppPalette } from '@/assets'
 import useAppStore from '@/controllers/store'
+
+import SheetBookInfo, { type SheetBookInfoRef } from '../sheet-book-info'
 import { VectorIcon } from '../vector-icon'
 
 function ReadingButtonLeftControl() {
@@ -19,8 +21,8 @@ function ReadingButtonLeftControl() {
     <>
       <View style={[styles.container, { bottom: 12 + insets.bottom }]}>
         <VectorIcon
-          name="book-open-reader"
-          font="FontAwesome6"
+          name='book-open-reader'
+          font='FontAwesome6'
           size={14}
           buttonStyle={styles.buttonInfo}
           color={AppPalette.white}

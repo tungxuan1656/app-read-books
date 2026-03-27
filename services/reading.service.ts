@@ -1,9 +1,13 @@
-import { getBookChapterContent } from '@/utils'
-import { processChapterContent } from './content-processor'
-import { getActionByKey } from './ai-actions.service'
 import useAppStore from '@/controllers/store'
+import { getBookChapterContent } from '@/utils'
 
-export const getLoadingMessage = (actionKey: string, chapterNumber: number): string => {
+import { getActionByKey } from './ai-actions.service'
+import { processChapterContent } from './content-processor'
+
+export const getLoadingMessage = (
+  actionKey: string,
+  chapterNumber: number,
+): string => {
   if (actionKey === 'none') return 'Đang tải nội dung gốc...'
 
   const action = getActionByKey(actionKey)
