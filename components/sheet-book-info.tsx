@@ -174,8 +174,8 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
             storeActions.setReadingAIMode(mode.value as ReadingAIMode)
           }
           className={cn(
-            'items-center justify-center rounded-full bg-gray-50 px-2 py-1.5',
-            readingAIMode === mode.value && 'bg-blue-50',
+            'items-center justify-center rounded-full bg-gray-100 px-2.5 py-1.5',
+            readingAIMode === mode.value && 'bg-blue-100',
           )}>
           <Text className='text-sm font-normal'>{mode.label}</Text>
         </TouchableOpacity>

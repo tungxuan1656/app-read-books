@@ -34,7 +34,7 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary catchErrors='always'>
-      <GestureHandlerRootView className='flex-1'>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen
