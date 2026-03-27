@@ -1,0 +1,160 @@
+ENV['FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT'] = '180'
+ENV['FASTLANE_XCODE_LIST_TIMEOUT'] = '180'
+
+require 'json'
+require 'shellwords'
+
+DIAWI_UPLOAD_ENDPOINT = 'https://upload.diawi.com/'
+DIAWI_STATUS_ENDPOINT = 'https://upload.diawi.com/status'
+DIAWI_TOKEN = 'wVnisACCEttCi4DNYuduFw8hasO44t51dlNObVxStY'
+
+# Poll interval = 2s, max retries = 120 (~4 minutes)
+def poll_diawi_status(token:, job:, interval_seconds: 2, max_retries: 120)
+  retries = 0
+
+  loop do
+    status_raw = sh(
+      "curl -sS --get #{DIAWI_STATUS_ENDPOINT.shellescape} " \
+      "--data-urlencode token=#{token.shellescape} " \
+      "--data-urlencode job=#{job.shellescape}",
+      log: false
+    )
+
+    status_json = JSON.parse(status_raw)
+    status_code = status_json['status'].to_i
+
+    if status_code == 2000
+      UI.success("Diawi link: #{status_json['link']}")
+      UI.message("Diawi QR: #{status_json['qrcode']}") if status_json['qrcode']
+      UI.message("Diawi extra links: #{status_json['links'].join(', ')}") if status_json['links'].is_a?(Array)
+      return status_json
+    end
+
+    if status_code == 4000
+      UI.user_error!("Diawi processing failed: #{status_json['message']}")
+    end
+
+    retries += 1
+    if retries >= max_retries
+      UI.user_error!(
+        "Diawi status timeout after #{max_retries} retries. Last response: #{status_json}"
+      )
+    end
+
+    sleep(interval_seconds)
+  end
+end
+
+def upload_to_diawi!(file_path:)
+  UI.user_error!('Diawi token is required') if DIAWI_TOKEN.to_s.strip.empty?
+  UI.user_error!("File does not exist: #{file_path}") unless File.exist?(file_path)
+
+  command = [
+    'curl',
+    '-sS',
+    DIAWI_UPLOAD_ENDPOINT,
+    '-F',
+    "token=#{DIAWI_TOKEN}",
+    '-F',
+    "file=@#{file_path}"
+  ]
+
+  upload_raw = sh(command.shelljoin, log: false)
+  upload_json = JSON.parse(upload_raw)
+  job = upload_json['job']
+
+  UI.user_error!("Diawi upload failed: #{upload_raw}") if job.to_s.strip.empty?
+  UI.message("Diawi job id: #{job}")
+
+  poll_diawi_status(token: DIAWI_TOKEN, job: job)
+end
+
+platform :android do
+  before_all do
+    branch = git_branch
+    commit = last_git_commit
+    UI.message("BRANCH: #{branch} | COMMIT: #{commit[:message]}")
+  end
+
+  desc 'Build Android release APK'
+  lane :build do
+    gradle(
+      task: 'assemble',
+      build_type: 'Release',
+      project_dir: 'android/'
+    )
+  end
+
+  desc 'Upload Android artifact to Diawi'
+  lane :upload do |options|
+    file_path = options[:path] || './android/app/build/outputs/apk/release/app-release.apk'
+    upload_to_diawi!(file_path: file_path)
+  end
+
+  desc 'Build Android release APK then upload to Diawi'
+  lane :distribute do |options|
+    build
+    upload(options)
+  end
+end
+
+platform :ios do
+  before_all do
+    branch = git_branch
+    commit = last_git_commit
+    UI.message("BRANCH: #{branch} | COMMIT: #{commit[:message]}")
+
+    xcodeproj_files = Dir.glob('./ios/*.xcodeproj')
+    UI.user_error!('No .xcodeproj found in ios folder. Please run prebuild first!') if xcodeproj_files.empty?
+
+    project_name = File.basename(xcodeproj_files.first, '.xcodeproj')
+
+    @xcodeproj_path = "./ios/#{project_name}.xcodeproj"
+    @workspace_path = "./ios/#{project_name}.xcworkspace"
+    @scheme_name = project_name
+
+    UI.message("iOS project: #{project_name}")
+  end
+
+  desc 'Prepare iOS signing with automatic signing'
+  lane :prepare do
+    update_code_signing_settings(
+      path: @xcodeproj_path,
+      use_automatic_signing: true,
+      targets: @scheme_name
+    )
+  end
+
+  desc 'Build iOS IPA (development export by default)'
+  lane :build do |options|
+    output_name = options[:output_name] || 'app-release.ipa'
+
+    gym(
+      scheme: @scheme_name,
+      workspace: @workspace_path,
+      configuration: 'Release',
+      buildlog_path: './ios/build',
+      output_directory: './ios/build',
+      archive_path: './ios/archive/',
+      output_name: output_name,
+      xcargs: '-allowProvisioningUpdates',
+      export_method: options[:export_method] || 'development',
+      include_bitcode: false,
+      clean: false,
+      verbose: true
+    )
+  end
+
+  desc 'Upload iOS artifact to Diawi'
+  lane :upload do |options|
+    file_path = options[:path] || './ios/build/app-release.ipa'
+    upload_to_diawi!(file_path: file_path)
+  end
+
+  desc 'Prepare + build + upload iOS IPA to Diawi'
+  lane :distribute do |options|
+    prepare
+    build(output_name: options[:output_name] || 'app-release.ipa', export_method: options[:export_method] || 'development')
+    upload(options)
+  end
+end
