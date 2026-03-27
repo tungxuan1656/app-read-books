@@ -17,7 +17,7 @@ A React Native reading app built with Expo that supports local book libraries, c
 - **Language**: TypeScript 5.9
 - **State**: Zustand + MMKV persistence
 - **Storage/Cache**: Expo File System + Expo SQLite
-- **AI**: `@google/genai` with internal provider abstraction
+- **AI**: Copilot-compatible chat completion API via internal provider abstraction
 - **UI**: NativeWind, Reanimated, Gesture Handler, Bottom Sheet
 - **Quality**: ESLint 9 + TypeScript `noEmit` check
 - **Delivery**: Fastlane (Android/iOS lanes)
@@ -114,4 +114,3 @@ fastlane ios distribute
 - `docs/PROJECT_DOCS.md`: product and architecture overview
 - `docs/standards/README.md`: engineering standards index
 - `docs/standards/testing-and-validation-pattern.md`: validation workflow
-

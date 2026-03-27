@@ -2,7 +2,7 @@ import { dbService } from '@/services/database.service'
 
 /**
  * Content Cache Helpers
- * Helpers để thao tác với SQLite database cache cho nội dung đã xử lý (Gemini)
+ * Helpers để thao tác với SQLite database cache cho nội dung đã xử lý bởi AI
  */
 
 /**

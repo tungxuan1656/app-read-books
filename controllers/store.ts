@@ -12,14 +12,11 @@ interface Typography {
 }
 
 interface Settings {
-  GEMINI_API_KEY: string
-  GEMINI_API_KEY_INDEX: number
-  GEMINI_MODEL: string
   COPILOT_API_URL: string
   COPILOT_MODEL: string
   SUPABASE_ANON_KEY: string
   PREFETCH_COUNT: string
-  AI_PROVIDER: 'gemini' | 'copilot'
+  AI_PROVIDER: 'copilot'
   AI_PROCESS_ACTIONS: string // JSON string of AIAction[]
   COPILOT_MIN_CHUNK_SIZE: string
 }
@@ -164,14 +161,11 @@ const useAppStore = create<AppState>()(
 
         // Settings (persisted via MMKV)
         settings: {
-          GEMINI_API_KEY: '',
-          GEMINI_API_KEY_INDEX: 0,
-          GEMINI_MODEL: 'gemini-2.0-flash-exp',
           COPILOT_API_URL: 'http://localhost:8317/v1/chat/completions',
           COPILOT_MODEL: 'gpt-4.1',
           SUPABASE_ANON_KEY: '',
           PREFETCH_COUNT: '3',
-          AI_PROVIDER: 'gemini',
+          AI_PROVIDER: 'copilot',
           AI_PROCESS_ACTIONS: JSON.stringify([
             {
               key: 'translate',

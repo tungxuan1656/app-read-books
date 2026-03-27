@@ -21,26 +21,6 @@ export interface SettingGroup {
 
 export const SETTING_GROUPS: SettingGroup[] = [
   {
-    title: 'Gemini Config',
-    configs: [
-      {
-        key: 'GEMINI_API_KEY',
-        label: 'Gemini API Key',
-        placeholder: 'Nhập Gemini API Key của bạn',
-        description:
-          'API key để sử dụng Google Gemini AI. Hỗ trợ nhập nhiều key (mỗi key một dòng) để xoay vòng tự động khi gặp lỗi rate limit hoặc quota.',
-        inputType: 'multiline',
-      },
-      {
-        key: 'GEMINI_MODEL',
-        label: 'Gemini Model',
-        placeholder: 'gemini-2.0-flash-exp',
-        description:
-          'Tên model Gemini sử dụng (ví dụ: gemini-2.0-flash-exp, gemini-1.5-flash, gemini-1.5-pro). Để trống sẽ dùng gemini-2.0-flash-exp',
-      },
-    ],
-  },
-  {
     title: 'Copilot Config',
     configs: [
       {
@@ -80,17 +60,6 @@ export const SETTING_GROUPS: SettingGroup[] = [
         label: 'Số chương tải trước',
         placeholder: '3',
         description: 'Số chương sẽ được tự động tải trước khi đọc (mặc định 3)',
-      },
-      {
-        key: 'AI_PROVIDER',
-        label: 'AI Provider',
-        placeholder: 'gemini',
-        description: 'Chọn AI Provider mặc định cho các tác vụ xử lý nội dung.',
-        inputType: 'picker',
-        options: [
-          { label: 'Google Gemini', value: 'gemini' },
-          { label: 'GitHub Copilot', value: 'copilot' },
-        ],
       },
     ],
   },

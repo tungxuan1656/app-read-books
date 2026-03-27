@@ -1,7 +1,7 @@
 # Tài liệu Mô tả Ứng dụng App Read Books
 
 ## 1. Giới thiệu
-**App Read Books** là một ứng dụng di động được xây dựng bằng React Native (Expo), cho phép người dùng đọc truyện, sách với các tính năng nâng cao như dịch thuật và tóm tắt nội dung bằng AI (Google Gemini).
+**App Read Books** là một ứng dụng di động được xây dựng bằng React Native (Expo), cho phép người dùng đọc truyện, sách với các tính năng nâng cao như dịch thuật và tóm tắt nội dung bằng AI (Copilot API).
 
 ## 2. Các Tính năng Chính
 
@@ -21,12 +21,12 @@
   - Nút cuộn nhanh xuống cuối trang.
 - **Chế độ đọc AI (AI Reading Modes):**
   - **Mặc định (None):** Hiển thị nội dung gốc của sách.
-  - **Dịch thuật (Translate):** Sử dụng Google Gemini để dịch nội dung chương sang ngôn ngữ đích (cấu hình trong Settings).
-  - **Tóm tắt (Summary):** Sử dụng Google Gemini để tóm tắt nội dung chương.
+  - **Dịch thuật (Translate):** Sử dụng Copilot API để dịch nội dung chương sang ngôn ngữ đích (cấu hình trong Settings).
+  - **Tóm tắt (Summary):** Sử dụng Copilot API để tóm tắt nội dung chương.
 
 ### 2.3. Cài đặt (Settings)
 - Quản lý các cấu hình quan trọng:
-  - **Gemini API:** API Key, Model, Prompts cho dịch và tóm tắt.
+  - **Copilot API:** API URL, Model, Prompts cho dịch và tóm tắt.
   - **Supabase:** Anon Key để tải sách.
 - Cấu hình giao diện đọc (Typography): Font chữ, kích thước, chiều cao dòng.
 
@@ -38,14 +38,14 @@
 - **State Management:** Zustand (kết hợp với MMKV để persist data).
 - **Navigation:** Expo Router.
 - **Storage:** MMKV (cho settings/state), Expo File System (cho file sách).
-- **AI Integration:** Google GenAI SDK (`@google/genai`).
+- **AI Integration:** Copilot-compatible chat completion API thông qua provider nội bộ.
 - **UI Components:** React Native Gesture Handler, Bottom Sheet.
 
 ### 3.2. Cấu trúc Thư mục Chính
 - `app/`: Chứa các màn hình và cấu hình routing (Expo Router).
 - `components/`: Các UI component tái sử dụng.
 - `controllers/`: Quản lý state (Store) và storage.
-- `services/`: Các service xử lý logic nghiệp vụ (Download, Gemini, AI actions, Database).
+- `services/`: Các service xử lý logic nghiệp vụ (Download, AI providers, AI actions, Database).
 - `hooks/`: Custom hooks cho logic đọc sách, navigation, v.v.
 - `utils/`: Các hàm tiện ích hỗ trợ.
 
@@ -73,12 +73,12 @@
    - Kiểm tra `readingAIMode` từ Store.
    - **Mode None:** Đọc nội dung file chương từ bộ nhớ máy.
    - **Mode Translate/Summary:**
-     - Gửi nội dung chương lên Google Gemini (upload file text).
-     - Gửi prompt tương ứng (Dịch/Tóm tắt) để Gemini xử lý.
+     - Gửi nội dung chương đến Copilot API.
+     - Gửi prompt tương ứng (Dịch/Tóm tắt) để AI xử lý.
      - Nhận về văn bản đã xử lý.
 3. Nội dung (Gốc hoặc AI) được hiển thị lên màn hình.
 
 ## 5. Yêu cầu Cấu hình
 Để ứng dụng hoạt động đầy đủ, người dùng cần cấu hình các thông số sau trong phần Settings:
 - **Supabase Anon Key:** Để tải sách.
-- **Gemini API Key:** Để sử dụng tính năng Dịch và Tóm tắt.
+- **Copilot API URL/Model:** Để sử dụng tính năng Dịch và Tóm tắt.
