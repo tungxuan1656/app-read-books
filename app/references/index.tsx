@@ -60,7 +60,7 @@ const References = () => {
               onPress={() => setChapter(index + 1)}>
               <Text
                 numberOfLines={1}
-                className={`text-sm ${currentIndex === index + 1 ? 'font-semibold' : 'font-normal'}`}>
+                className={`text-base ${currentIndex === index + 1 ? 'font-semibold' : 'font-normal'}`}>
                 {item}
               </Text>
             </TouchableOpacity>

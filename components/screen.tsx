@@ -112,7 +112,7 @@ const Header: React.FC<HeaderProps> = ({
         </View>
         <Text
           style={[tintColor ? { color: tintColor } : undefined, titleStyle]}
-          className='flex-1 text-base font-semibold'
+          className='flex-1 text-lg font-semibold'
           numberOfLines={1}>
           {title}
         </Text>

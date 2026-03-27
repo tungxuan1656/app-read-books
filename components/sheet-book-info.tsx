@@ -82,7 +82,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
     const fontSizeControls = useMemo(
       () => (
         <View className='flex-1'>
-          <Text className='text-ssm font-medium'>{'Cỡ chữ'}</Text>
+          <Text className='text-sm font-medium'>{'Cỡ chữ'}</Text>
           <View className='flex-row items-center gap-2'>
             <VectorIcon
               name='circle-minus'
@@ -94,7 +94,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
               }
               buttonProps={{ hitSlop: 10 }}
             />
-            <Text className='w-6 text-center text-xs font-semibold'>
+            <Text className='w-6 text-center text-sm font-semibold'>
               {fontSize}
             </Text>
             <VectorIcon
@@ -116,7 +116,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
     const lineHeightControls = useMemo(
       () => (
         <View className='flex-1'>
-          <Text className='text-ssm font-medium'>{'Chiều cao dòng'}</Text>
+          <Text className='text-sm font-medium'>{'Chiều cao dòng'}</Text>
           <View className='flex-row items-center gap-2'>
             <VectorIcon
               name='circle-minus'
@@ -130,7 +130,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
               }
               buttonProps={{ hitSlop: 10 }}
             />
-            <Text className='w-6 text-center text-xs font-semibold'>
+            <Text className='w-6 text-center text-sm font-semibold'>
               {Math.round(lineHeight * 10) / 10}
             </Text>
             <VectorIcon
@@ -157,10 +157,10 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
           key={fontName}
           onPress={() => storeActions.setTypography({ font: fontName })}
           className={cn(
-            'items-center justify-center rounded-full bg-gray-50 px-2 py-1.5',
-            font === fontName && 'bg-blue-50',
+            'items-center justify-center rounded-full bg-gray-100 px-2.5 py-1.5',
+            font === fontName && 'bg-blue-100',
           )}>
-          <Text className='text-xs font-normal'>{fontName}</Text>
+          <Text className='text-sm font-normal'>{fontName}</Text>
         </TouchableOpacity>
       ),
       [font],
@@ -177,7 +177,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
             'items-center justify-center rounded-full bg-gray-50 px-2 py-1.5',
             readingAIMode === mode.value && 'bg-blue-50',
           )}>
-          <Text className='text-xs font-normal'>{mode.label}</Text>
+          <Text className='text-sm font-normal'>{mode.label}</Text>
         </TouchableOpacity>
       ),
       [readingAIMode],
@@ -194,20 +194,20 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
         backdropComponent={renderBackdrop}
         backgroundStyle={BOTTOM_SHEET_BACKGROUND}
         handleIndicatorStyle={HANDLE_INDICATOR}>
-        <BottomSheetView className='flex-1 px-4 pb-[60px] pt-3'>
+        <BottomSheetView className='flex-1 px-4 pb-16 pt-3'>
           <View className='flex-row items-center justify-between'>
             <Text className='text-lg font-medium text-gray-900'>
               {'Cài đặt'}
             </Text>
           </View>
-          <Text className='mb-2 mt-4 text-ssm font-medium'>{'Font chữ'}</Text>
-          <View className='flex-row flex-wrap gap-1.5'>
+          <Text className='mb-2 mt-4 text-sm font-medium'>{'Font chữ'}</Text>
+          <View className='flex-row flex-wrap gap-2'>
             {fontList.map(renderFontItem)}
           </View>
-          <Text className='mb-2 mt-4 text-ssm font-medium'>
+          <Text className='mb-2 mt-4 text-sm font-medium'>
             {'Chế độ đọc AI'}
           </Text>
-          <View className='flex-row flex-wrap gap-1.5'>
+          <View className='flex-row flex-wrap gap-2'>
             {aiModes.map(renderReadingMode)}
             <TouchableOpacity
               onPress={handleReprocess}
@@ -224,13 +224,13 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
                 size={16}
                 color='white'
               />
-              <Text className='text-xs font-normal text-white'>
+              <Text className='text-sm font-normal text-white'>
                 {'Xử lý lại'}
               </Text>
             </TouchableOpacity>
           </View>
 
-          <View className='flex-row justify-between'>
+          <View className='mt-2 flex-row justify-between'>
             {fontSizeControls}
             {lineHeightControls}
           </View>

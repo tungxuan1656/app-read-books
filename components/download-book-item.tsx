@@ -48,15 +48,15 @@ const DownloadBookItem = ({ item, onDownload }: DownloadBookItemProps) => {
 
   return (
     <TouchableOpacity
-      className='h-20 flex-row items-center justify-between gap-1.5 px-4'
+      className='h-16 flex-row items-center justify-between gap-1.5 px-4'
       onPress={onConfirmDownload}>
       <View className='flex-1 gap-1'>
         <Text
-          className={cn('text-sm font-medium text-gray-900')}
+          className={cn('text-base font-medium text-gray-900')}
           numberOfLines={1}>
           {book?.name ?? 'Truyện không tên'}
         </Text>
-        <Text className='text-xs font-normal text-gray-500' numberOfLines={1}>
+        <Text className='text-sm font-normal text-gray-500' numberOfLines={1}>
           {(book?.author || 'Không rõ tác giả') +
             ' • ' +
             formatBytes(item.fileSize)}

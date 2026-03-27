@@ -20,14 +20,14 @@ const HomeBookItem = ({ id }: { id: string; onDeleteSuccess: () => void }) => {
 
   return (
     <TouchableOpacity
-      className='h-[72px] flex-row items-center justify-between gap-1.5 px-4'
+      className='h-16 flex-row items-center justify-between gap-1.5 px-4'
       key={book.name}
       onPress={onSelectBook}>
       <View className='flex-1 gap-1'>
-        <Text className='text-sm font-medium text-gray-900' numberOfLines={2}>
+        <Text className='text-base font-medium text-gray-900' numberOfLines={2}>
           {book.name}
         </Text>
-        <Text className='text-xs font-normal text-gray-500'>
+        <Text className='text-sm font-normal text-gray-500'>
           {`${book.author || '#'} - ${book.count} chương`}
         </Text>
       </View>

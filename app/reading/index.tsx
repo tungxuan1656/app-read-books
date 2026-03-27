@@ -48,7 +48,7 @@ const Reading = () => {
     <View className='flex-1'>
       <Screen.Container safe={'top'} className='bg-[#F5F1E5]'>
         <View className='mx-4 flex-row items-center gap-2'>
-          <Text className='flex-1 text-xss font-normal' numberOfLines={1}>
+          <Text className='flex-1 text-xs font-normal' numberOfLines={1}>
             【{chapter.index}】{chapter.name || 'Chương không có tên'}
           </Text>
           <PrefetchStatus />
@@ -68,7 +68,7 @@ const Reading = () => {
           {chapter.isLoading ? (
             <View className='absolute inset-0 items-center justify-center bg-[#F5F1E5] pb-10'>
               <ActivityIndicator size={'small'} />
-              <Text className='mx-5 mt-2 text-ssm font-normal'>
+              <Text className='mx-5 mt-2 text-sm font-normal'>
                 {chapter.message}
               </Text>
             </View>

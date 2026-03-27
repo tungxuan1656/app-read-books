@@ -63,7 +63,7 @@ const CacheManagement = () => {
           <View className='gap-3 rounded-xl bg-gray-100 p-4'>
             <Text className='text-xl font-bold'>Tổng quan</Text>
             <View className='flex-row items-center justify-between'>
-              <Text className='text-sm font-normal'>
+              <Text className='text-base font-normal'>
                 Số chương đã xử lý (AI):
               </Text>
               <Text className='text-sm font-semibold'>
@@ -85,12 +85,12 @@ const CacheManagement = () => {
                 size={14}
                 color='white'
               />
-              <Text className='text-sm font-medium text-white'>
+              <Text className='text-base font-medium text-white'>
                 {loading ? 'Đang xử lý...' : 'Xóa dữ liệu Dịch/Tóm tắt'}
               </Text>
             </TouchableOpacity>
 
-            <Text className='mt-2 text-xs font-normal text-gray-500'>
+            <Text className='mt-2 text-ssm font-normal text-gray-500'>
               * Việc này sẽ không xóa sách gốc, chỉ xóa các bản dịch và tóm tắt
               đã lưu để giải phóng bộ nhớ.
             </Text>
