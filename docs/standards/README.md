@@ -25,6 +25,7 @@ All standards are aligned to the current stack:
 - `cache-and-storage-pattern.md`
 - `tts-audio-pattern.md`
 - `color-guide.md`
+- `typography-guide.md`
 - `testing-and-validation-pattern.md`
 - `code-review-guide.md`
 
