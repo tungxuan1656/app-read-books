@@ -18,8 +18,6 @@
       "bundleIdentifier": "com.tungxuan.rnreadbooks",
       "buildNumber": "0",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"],
-        "NSMicrophoneUsageDescription": "This app needs access to microphone for audio playback",
         "NSCameraUsageDescription": "This app does not use camera"
       }
     },

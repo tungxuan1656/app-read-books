@@ -66,25 +66,6 @@ export const SETTING_GROUPS: SettingGroup[] = [
     ],
   },
   {
-    title: 'TTS Config',
-    configs: [
-      {
-        key: 'CAPCUT_TOKEN',
-        label: 'Capcut TTS Token',
-        placeholder: 'Nhập Capcut TTS Token',
-        description:
-          'Token để sử dụng dịch vụ Text-to-Speech của Capcut. Token này cần được làm mới định kỳ. Lấy từ DevTools khi sử dụng Capcut web.',
-      },
-      {
-        key: 'CAPCUT_WS_URL',
-        label: 'Capcut WebSocket URL',
-        placeholder: 'wss://sami-normal-sg.capcutapi.com/internal/api/v1/ws?device_id=...&iid=...',
-        description:
-          'WebSocket URL đầy đủ cho Capcut TTS. Lấy từ DevTools khi sử dụng Capcut web. Để trống sẽ dùng URL mặc định.',
-      },
-    ],
-  },
-  {
     title: 'App Config',
     configs: [
       {

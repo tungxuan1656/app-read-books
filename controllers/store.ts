@@ -15,8 +15,6 @@ interface Settings {
   GEMINI_MODEL: string
   COPILOT_API_URL: string
   COPILOT_MODEL: string
-  CAPCUT_TOKEN: string
-  CAPCUT_WS_URL: string
   SUPABASE_ANON_KEY: string
   PREFETCH_COUNT: string
   AI_PROVIDER: 'gemini' | 'copilot'
@@ -161,8 +159,6 @@ const useAppStore = create<AppState>()(
           GEMINI_MODEL: 'gemini-2.0-flash-exp',
           COPILOT_API_URL: 'http://localhost:8317/v1/chat/completions',
           COPILOT_MODEL: 'gpt-4.1',
-          CAPCUT_TOKEN: '',
-          CAPCUT_WS_URL: '',
           SUPABASE_ANON_KEY: '',
           PREFETCH_COUNT: '3',
           AI_PROVIDER: 'gemini',
