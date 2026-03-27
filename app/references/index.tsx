@@ -6,13 +6,19 @@ import { AppColors } from '@/assets'
 import { Divider } from '@/components/divider'
 import { Screen } from '@/components/screen'
 import { VectorIcon } from '@/components/vector-icon'
-import useAppStore, { storeActions } from '@/controllers/store'
+import {
+  booksActions,
+  useBooksStore,
+  useReadingStore,
+} from '@/controllers/stores'
 
 const References = () => {
   const refList = useRef<FlatList | null>(null)
-  const bookId = useAppStore((s) => s.reading.bookId)
-  const book = useAppStore((s) => s.id2Book[bookId])
-  const currentIndex = useAppStore((s) => s.id2BookReadingChapter[bookId] ?? 0)
+  const bookId = useReadingStore.use.reading().bookId
+  const book = useBooksStore((s) => s.id2Book[bookId])
+  const currentIndex = useBooksStore(
+    (s) => s.id2BookReadingChapter[bookId] ?? 0,
+  )
 
   useLayoutEffect(() => {
     const references = book?.references ?? []
@@ -29,7 +35,7 @@ const References = () => {
   }, [book, currentIndex])
 
   const setChapter = (chapter: number) => {
-    storeActions.updateReadingChapter(bookId, chapter)
+    booksActions.updateReadingChapter(bookId, chapter)
     router.back()
   }
 

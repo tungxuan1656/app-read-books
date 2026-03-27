@@ -8,7 +8,7 @@ import ReadingButtonLeftControl from '@/components/reading/reading-button-left-c
 import ReadingButtonScrollBottom from '@/components/reading/reading-button-scroll-bottom'
 import ReadingButtonTopNavigation from '@/components/reading/reading-button-top-navigation'
 import { Screen } from '@/components/screen'
-import useAppStore from '@/controllers/store'
+import { useReadingStore } from '@/controllers/stores'
 import { useChapterPrefetch } from '@/hooks/use-chapter-prefetch'
 import useReadingContent from '@/hooks/use-reading-content'
 import useReadingNavigation from '@/hooks/use-reading-navigation'
@@ -29,7 +29,7 @@ const Reading = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const offset = useAppStore.getState().reading.offset
+      const offset = useReadingStore.getState().reading.offset
       if (offset) refScroll.current?.scrollTo({ y: offset, animated: false })
     }, 200)
     return () => clearTimeout(timer)

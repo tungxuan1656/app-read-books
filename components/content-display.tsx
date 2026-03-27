@@ -2,7 +2,7 @@ import React from 'react'
 import RenderHTML from 'react-native-render-html'
 
 import { AppConst } from '@/constants'
-import useAppStore from '@/controllers/store'
+import { useTypographyStore } from '@/controllers/stores'
 
 export const ContentDisplay = React.memo(
   ({
@@ -12,9 +12,7 @@ export const ContentDisplay = React.memo(
     chapterHtml: string
     onLoaded?: () => void
   }) => {
-    const { font, fontSize, lineHeight } = useAppStore(
-      (state) => state.typography,
-    )
+    const { font, fontSize, lineHeight } = useTypographyStore.use.typography()
 
     return (
       <RenderHTML

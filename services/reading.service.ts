@@ -1,4 +1,4 @@
-import useAppStore from '@/controllers/store'
+import { useSettingsStore } from '@/controllers/stores'
 import { getBookChapterContent } from '@/utils'
 
 import { getActionByKey } from './ai-actions.service'
@@ -33,7 +33,7 @@ export const getReadingContent = async (
     throw new Error(`Không tìm thấy hành động AI: ${actionKey}`)
   }
 
-  const aiProvider = useAppStore.getState().settings.AI_PROVIDER
+  const aiProvider = useSettingsStore.getState().settings.AI_PROVIDER
 
   return await processChapterContent({
     bookId,

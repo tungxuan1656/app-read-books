@@ -1,4 +1,4 @@
-import useAppStore from '@/controllers/store'
+import { useSettingsStore } from '@/controllers/stores'
 import { logger } from '@/utils/logger'
 
 import type { AIProvider } from '../ai.service'
@@ -122,17 +122,19 @@ const splitContentIntoChunks = (
 
 export const getCopilotApiUrl = (): string => {
   return (
-    useAppStore.getState().settings.COPILOT_API_URL?.trim() ||
+    useSettingsStore.getState().settings.COPILOT_API_URL?.trim() ||
     'http://localhost:8317/v1/chat/completions'
   )
 }
 
 export const getCopilotModel = (): string => {
-  return useAppStore.getState().settings.COPILOT_MODEL?.trim() || 'gpt-4.1'
+  return useSettingsStore.getState().settings.COPILOT_MODEL?.trim() || 'gpt-4.1'
 }
 
 export const getCopilotMinChunkSize = (): number => {
-  const value = useAppStore.getState().settings.COPILOT_MIN_CHUNK_SIZE?.trim()
+  const value = useSettingsStore
+    .getState()
+    .settings.COPILOT_MIN_CHUNK_SIZE?.trim()
   const parsed = value ? parseInt(value, 10) : NaN
   return !isNaN(parsed) && parsed > 0 ? parsed : 1300
 }

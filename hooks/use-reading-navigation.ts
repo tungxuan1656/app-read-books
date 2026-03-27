@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useRef } from 'react'
 
-import useAppStore, { storeActions } from '@/controllers/store'
+import {
+  booksActions,
+  readingActions,
+  useBooksStore,
+} from '@/controllers/stores'
 
 /**
  * Hook để quản lý navigation và state của reading screen
@@ -16,15 +20,15 @@ export default function useReadingNavigation(bookId: string) {
 
   // Initialize reading state on mount
   useEffect(() => {
-    const currentIndex = useAppStore.getState().id2BookReadingChapter[bookId]
+    const currentIndex = useBooksStore.getState().id2BookReadingChapter[bookId]
     if (!currentIndex) {
-      storeActions.updateReadingChapter(bookId, 1)
+      booksActions.updateReadingChapter(bookId, 1)
     }
-    storeActions.updateReading({ onScreen: true, bookId })
+    readingActions.updateReading({ onScreen: true, bookId })
 
     return () => {
       setTimeout(() => {
-        storeActions.updateReading({ onScreen: false })
+        readingActions.updateReading({ onScreen: false })
       }, 100)
       clearTimeout(refTimeout.current)
       clearTimeout(refTimeoutSave.current)
@@ -36,7 +40,7 @@ export default function useReadingNavigation(bookId: string) {
       if (!refCanChangeChapter.current) return
       clearTimeout(refTimeout.current)
       refTimeout.current = setTimeout(() => {
-        storeActions.nextReadingChapter(bookId)
+        booksActions.nextReadingChapter(bookId)
         refCanChangeChapter.current = false
         setTimeout(() => {
           refCanChangeChapter.current = true
@@ -51,7 +55,7 @@ export default function useReadingNavigation(bookId: string) {
       if (!refCanChangeChapter.current) return
       clearTimeout(refTimeout.current)
       refTimeout.current = setTimeout(() => {
-        storeActions.previousReadingChapter(bookId)
+        booksActions.previousReadingChapter(bookId)
         refCanChangeChapter.current = false
         setTimeout(() => {
           refCanChangeChapter.current = true
@@ -64,7 +68,7 @@ export default function useReadingNavigation(bookId: string) {
   const saveOffset = useCallback((offset: number) => {
     clearTimeout(refTimeoutSave.current)
     refTimeoutSave.current = setTimeout(() => {
-      storeActions.updateReading({ offset })
+      readingActions.updateReading({ offset })
     }, 500)
   }, [])
 

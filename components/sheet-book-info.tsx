@@ -8,7 +8,14 @@ import { Text, TouchableOpacity, View } from 'react-native'
 
 import { type ReadingAIMode } from '@/@types/common'
 import { AppColors } from '@/assets'
-import useAppStore, { storeActions } from '@/controllers/store'
+import {
+  readingActions,
+  typographyActions,
+  uiRuntimeActions,
+  useBooksStore,
+  useReadingStore,
+  useTypographyStore,
+} from '@/controllers/stores'
 import { getAIActions } from '@/services/ai-actions.service'
 import { clearProcessedChapter } from '@/services/content-processor'
 import { cn, getListFonts } from '@/utils'
@@ -27,10 +34,8 @@ type SheetBookInfoProps = {
 const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
   ({ onClose }, ref) => {
     const bottomSheetRef = React.useRef<BottomSheet>(null)
-    const { font, fontSize, lineHeight } = useAppStore(
-      (state) => state.typography,
-    )
-    const readingAIMode = useAppStore((state) => state.readingAIMode)
+    const { font, fontSize, lineHeight } = useTypographyStore.use.typography()
+    const readingAIMode = useReadingStore.use.readingAIMode()
 
     // Expose methods through ref
     React.useImperativeHandle(ref, () => ({
@@ -48,16 +53,16 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
 
     // Handler cho nút Xử lý lại
     const handleReprocess = useCallback(async () => {
-      const bookId = useAppStore.getState().reading.bookId
+      const bookId = useReadingStore.getState().reading.bookId
       const chapterNumber =
-        useAppStore.getState().id2BookReadingChapter[bookId] || 1
+        useBooksStore.getState().id2BookReadingChapter[bookId] || 1
       if (readingAIMode === 'none' || !bookId || !chapterNumber) return
       try {
         // Xóa cache của chương hiện tại theo mode (actionKey)
         await clearProcessedChapter(bookId, chapterNumber, readingAIMode)
 
         // Trigger reload nội dung
-        storeActions.triggerContentReload()
+        uiRuntimeActions.triggerContentReload()
 
         // Đóng bottom sheet
         bottomSheetRef.current?.close()
@@ -89,7 +94,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
               color={AppColors.gray200}
               size={20}
               onPress={() =>
-                storeActions.setTypography({ fontSize: fontSize - 1 })
+                typographyActions.setTypography({ fontSize: fontSize - 1 })
               }
               buttonProps={{ hitSlop: 10 }}
             />
@@ -102,7 +107,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
               color={AppColors.gray200}
               size={20}
               onPress={() =>
-                storeActions.setTypography({ fontSize: fontSize + 1 })
+                typographyActions.setTypography({ fontSize: fontSize + 1 })
               }
               buttonProps={{ hitSlop: 10 }}
             />
@@ -123,7 +128,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
               color={AppColors.gray200}
               size={20}
               onPress={() =>
-                storeActions.setTypography({
+                typographyActions.setTypography({
                   lineHeight: (lineHeight * 10 - 1) / 10,
                 })
               }
@@ -138,7 +143,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
               color={AppColors.gray200}
               size={20}
               onPress={() =>
-                storeActions.setTypography({
+                typographyActions.setTypography({
                   lineHeight: (lineHeight * 10 + 1) / 10,
                 })
               }
@@ -154,7 +159,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
       (fontName: string) => (
         <TouchableOpacity
           key={fontName}
-          onPress={() => storeActions.setTypography({ font: fontName })}
+          onPress={() => typographyActions.setTypography({ font: fontName })}
           className={cn(
             'items-center justify-center rounded-full bg-gray-100 px-2.5 py-1.5',
             font === fontName && 'bg-blue-100',
@@ -170,7 +175,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
         <TouchableOpacity
           key={mode.value}
           onPress={() =>
-            storeActions.setReadingAIMode(mode.value as ReadingAIMode)
+            readingActions.setReadingAIMode(mode.value as ReadingAIMode)
           }
           className={cn(
             'items-center justify-center rounded-full bg-gray-100 px-2.5 py-1.5',

@@ -1,5 +1,4 @@
 import { MMKV } from 'react-native-mmkv'
-import { type StateStorage } from 'zustand/middleware'
 
 import { logger } from '@/utils/logger'
 
@@ -60,14 +59,8 @@ export const MMKVStorage = {
   remove,
 }
 
-export const MMKVStateStorage: StateStorage = {
-  getItem: (name: string) => {
-    return storage.getString(`MMKV-${name}`) ?? null
-  },
-  setItem: (name: string, value: string) => {
-    storage.set(`MMKV-${name}`, value)
-  },
-  removeItem: (name: string) => {
-    storage.delete(`MMKV-${name}`)
-  },
+export const MMKVStateStorage = {
+  getItem: (name: string) => MMKVStorage.get(name),
+  setItem: (name: string, value: any) => MMKVStorage.set(name, value),
+  removeItem: (name: string) => MMKVStorage.remove(name),
 }

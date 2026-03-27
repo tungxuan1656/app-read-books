@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 
 import { type SettingConfig } from '@/constants/setting-configs'
-import useAppStore, { storeActions } from '@/controllers/store'
+import { settingsActions, useSettingsStore } from '@/controllers/stores'
 import { cn } from '@/utils'
 
 import { VectorIcon } from './vector-icon'
@@ -19,7 +19,7 @@ interface SettingItemProps {
 }
 
 export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
-  const settings = useAppStore().settings
+  const settings = useSettingsStore.use.settings()
   const currentValue = settings[config.key as keyof typeof settings]
   const currentValueAsString =
     typeof currentValue === 'string'
@@ -62,7 +62,7 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
         (buttonIndex) => {
           if (buttonIndex < config.options!.length) {
             const selectedOption = config.options![buttonIndex]
-            storeActions.updateSetting(
+            settingsActions.updateSetting(
               config.key as keyof typeof settings,
               selectedOption.value as never,
             )
@@ -79,7 +79,7 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
           ...config.options.map((opt) => ({
             text: opt.label,
             onPress: () =>
-              storeActions.updateSetting(
+              settingsActions.updateSetting(
                 config.key as keyof typeof settings,
                 opt.value as never,
               ),
