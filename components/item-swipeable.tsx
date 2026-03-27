@@ -1,11 +1,5 @@
 import React, { useRef } from 'react'
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from 'react-native'
+import { Text, TouchableOpacity, View, type ViewStyle } from 'react-native'
 import Swipeable, {
   type SwipeableMethods,
 } from 'react-native-gesture-handler/ReanimatedSwipeable'
@@ -38,10 +32,11 @@ type ItemSwipeableProps = {
   renderActions?: (item: any, cb?: () => void) => React.ReactNode
   children?: React.ReactNode | JSX.Element | JSX.Element[]
   style?: ViewStyle
+  className?: string
 }
 
 export const ItemSwipeable = React.memo(
-  ({ item, renderActions, children, style }: ItemSwipeableProps) => {
+  ({ item, renderActions, children, style, className }: ItemSwipeableProps) => {
     const refSwipeable = useRef<SwipeableMethods | null>(null)
     return (
       <Swipeable
@@ -50,7 +45,9 @@ export const ItemSwipeable = React.memo(
           renderActions?.(item, () => refSwipeable.current?.close?.())
         }
         ref={refSwipeable}>
-        <View style={[styles.container, style]}>{children}</View>
+        <View className={className ?? 'bg-white'} style={style}>
+          {children}
+        </View>
       </Swipeable>
     )
   },
@@ -61,6 +58,7 @@ export const SwipeableAction = ({
   iconFont,
   item,
   style,
+  className,
   title,
   onPress,
   cb,
@@ -71,6 +69,7 @@ export const SwipeableAction = ({
   icon: string
   iconFont: IconFont
   style?: ViewStyle
+  className?: string
   title: string
   onPress: (item: any) => void
   cb?: () => void
@@ -79,25 +78,32 @@ export const SwipeableAction = ({
 }) => {
   return (
     <TouchableOpacity
-      style={[styles.action, { backgroundColor }, style]}
+      className={`w-20 items-center justify-center px-2 ${className ?? ''}`}
+      style={[{ backgroundColor }, style]}
       onPress={() => {
         onPress(item)
         cb?.()
       }}>
       <VectorIcon name={icon} font={iconFont} color={iconColor} size={20} />
-      <Text style={styles.actionText}>{title}</Text>
+      <Text className='mt-1 text-xs font-medium text-white'>{title}</Text>
     </TouchableOpacity>
   )
 }
 
 export const ViewSwipeable = ({
   style,
+  className,
   children,
 }: {
   style?: ViewStyle
+  className?: string
   children?: React.ReactNode | JSX.Element | JSX.Element[]
 }) => {
-  return <View style={[styles.actionsContainer, style]}>{children}</View>
+  return (
+    <View className={`flex-row p-0 ${className ?? ''}`} style={style}>
+      {children}
+    </View>
+  )
 }
 
 export const RightAction = (
@@ -113,25 +119,3 @@ export const RightAction = (
 
   return <Reanimated.View style={styleAnimation}>{children}</Reanimated.View>
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    padding: 0,
-  },
-  action: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 80,
-    paddingHorizontal: 8,
-  },
-  actionText: {
-    marginTop: 4,
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#fff',
-  },
-})

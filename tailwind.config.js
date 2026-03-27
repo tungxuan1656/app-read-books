@@ -1,25 +1,21 @@
-const tailwindConfig = require('./assets/tailwindcss')
-
-const withCssVars = (colorMap) => {
-  const result = {}
-  Object.keys(colorMap).forEach((key) => {
-    result[key] = `var(--color-${key})`
-  })
-  return result
-}
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./app/**/*.{js,jsx,ts,tsx}'],
+  content: [
+    './app/**/*.{js,jsx,ts,tsx}',
+    './assets/**/*.{js,jsx,ts,tsx}',
+    './components/**/*.{js,jsx,ts,tsx}',
+    './constants/**/*.{js,jsx,ts,tsx}',
+    './controllers/**/*.{js,jsx,ts,tsx}',
+    './hooks/**/*.{js,jsx,ts,tsx}',
+    './services/**/*.{js,jsx,ts,tsx}',
+    './utils/**/*.{js,jsx,ts,tsx}',
+  ],
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
-      colors: {
-        ...withCssVars(tailwindConfig.appColorsClasses),
-        primary: 'var(--color-primary)',
-      },
       fontSize: {
         xss: '0.625rem', // 10px
+        ssm: '0.8125rem', // 13px
       },
       margin: {
         'inset-bottom-if-none-safe-area':
@@ -41,12 +37,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    function ({ addUtilities }) {
-      const newUtilities = {
-        ...tailwindConfig.typoClasses,
-      }
-      addUtilities(newUtilities, ['responsive', 'hover'])
-    },
-  ],
+  plugins: [],
 }

@@ -1,9 +1,7 @@
-import { Image, type ImageSource, type ImageStyle } from 'expo-image'
 import React from 'react'
 import {
   ActivityIndicator,
   type StyleProp,
-  StyleSheet,
   Text,
   type TextStyle,
   TouchableOpacity,
@@ -11,8 +9,9 @@ import {
   type ViewStyle,
 } from 'react-native'
 
-import { AppColors } from '@/assets'
-import { AppTypo } from '@/constants'
+import { cn } from '@/utils'
+
+import { Image, type ImageSource, type ImageStyle } from './image'
 
 export type ButtonTheme = {
   button?: StyleProp<ViewStyle>
@@ -25,7 +24,9 @@ type ButtonProps = {
   title?: string | null
   theme?: ButtonTheme
   style?: StyleProp<ViewStyle>
+  className?: string
   titleStyle?: StyleProp<TextStyle>
+  titleClassName?: string
   isLoading?: boolean
   disabled?: boolean
   iconLeft?: ImageSource | undefined
@@ -42,38 +43,44 @@ export const Button = ({
   iconRight,
   colorLoading,
   style,
+  className,
   titleStyle,
+  titleClassName,
   ...props
 }: ButtonProps) => {
   return (
     <TouchableOpacity
       disabled={disabled || isLoading}
-      style={[styles.button, theme?.button, style]}
+      className={cn(
+        'h-12 flex-row items-center justify-around rounded-2xl bg-blue-500',
+        className,
+      )}
+      style={[theme?.button, style]}
       {...props}>
       {isLoading ? (
-        <ActivityIndicator
-          color={colorLoading ? colorLoading : AppColors.bgMain}
-        />
+        <ActivityIndicator color={colorLoading ? colorLoading : '#ffffff'} />
       ) : (
         <>
           {iconLeft ? (
             <Image
-              style={[styles.iconLeft, theme?.iconLeft]}
+              className='size-6'
+              style={[theme?.iconLeft]}
               // @ts-ignore
-              tintColor={
-                theme?.iconLeft?.tintColor ?? styles.iconLeft.tintColor
-              }
+              tintColor={theme?.iconLeft?.tintColor}
               source={iconLeft}
             />
           ) : null}
-          <Text style={[styles.title, theme?.title, titleStyle]}>{title}</Text>
+          <Text
+            className={cn('text-base font-semibold text-white', titleClassName)}
+            style={[theme?.title, titleStyle]}>
+            {title}
+          </Text>
           {iconRight ? (
             <Image
-              style={[styles.iconRight, theme?.iconRight]}
+              className='size-6'
+              style={[theme?.iconRight]}
               // @ts-ignore
-              tintColor={
-                theme?.iconRight?.tintColor ?? styles.iconRight.tintColor
-              }
+              tintColor={theme?.iconRight?.tintColor}
               source={iconRight}
             />
           ) : null}
@@ -82,27 +89,3 @@ export const Button = ({
     </TouchableOpacity>
   )
 }
-
-const styles = StyleSheet.create({
-  button: {
-    height: 40,
-    alignItems: 'center',
-    borderRadius: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: AppColors.buttonFocus,
-  },
-  title: { ...AppTypo.headline.semiBold, color: AppColors.white },
-  iconRight: {
-    resizeMode: 'contain',
-    width: 24,
-    height: 24,
-    tintColor: undefined,
-  },
-  iconLeft: {
-    resizeMode: 'contain',
-    width: 24,
-    height: 24,
-    tintColor: undefined,
-  },
-})

@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   FlatList,
   type ListRenderItem,
-  StyleSheet,
   Text,
   View,
 } from 'react-native'
@@ -19,8 +18,7 @@ import { Screen } from '@/components/screen'
 import { VectorIcon } from '@/components/vector-icon'
 import useAppStore from '@/controllers/store'
 
-import { AppPalette } from '../../assets'
-import { AppStyles, AppTypo } from '../../constants'
+import { AppColors } from '../../assets'
 import {
   deleteDownloadFile,
   downloadFile,
@@ -126,19 +124,15 @@ const AddBook = () => {
   const renderEmptyList = () => {
     if (fetchingBooks) {
       return (
-        <View style={[styles.emptyContainer, { alignItems: 'center' }]}>
+        <View className='items-center px-5 py-6'>
           <ActivityIndicator />
         </View>
       )
     }
 
     return (
-      <View style={styles.emptyContainer}>
-        <Text
-          style={[
-            AppTypo.caption.regular,
-            { color: AppPalette.gray400, textAlign: 'center' },
-          ]}>
+      <View className='px-5 py-6'>
+        <Text className='text-center text-xs font-normal text-gray-400'>
           {'Chưa có truyện khả dụng.'}
         </Text>
       </View>
@@ -147,23 +141,20 @@ const AddBook = () => {
 
   return (
     <Screen.Container safe='all'>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View className='flex-row items-center'>
         <VectorIcon
           name='angle-left'
           font='FontAwesome6'
           size={16}
           buttonStyle={{ width: 44, height: 44 }}
-          color={AppPalette.gray600}
+          color={AppColors.gray600}
           onPress={() => router.back()}
         />
-        <Text style={[AppTypo.h3.semiBold, { marginLeft: 4 }]}>
-          {'Tải truyện'}
-        </Text>
+        <Text className='ml-1 text-xl font-semibold'>{'Tải truyện'}</Text>
       </View>
       <Divider />
-      <Screen.Content style={{ flex: 1 }}>
+      <Screen.Content>
         <FlatList
-          style={{ flex: 1 }}
           data={exportedBooks}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderExportedBook}
@@ -177,14 +168,9 @@ const AddBook = () => {
         />
       </Screen.Content>
       {processing ? (
-        <View
-          style={[
-            AppStyles.view.absoluteFill,
-            AppStyles.view.contentCenter,
-            { gap: 10, backgroundColor: '#fefefeaa' },
-          ]}>
+        <View className='absolute inset-0 items-center justify-center gap-2.5 bg-[#fefefeaa]'>
           <ActivityIndicator />
-          <Text style={[AppTypo.caption.semiBold]}>{processing}</Text>
+          <Text className='text-xs font-semibold'>{processing}</Text>
         </View>
       ) : null}
     </Screen.Container>
@@ -192,15 +178,3 @@ const AddBook = () => {
 }
 
 export default AddBook
-
-const styles = StyleSheet.create({
-  listHeader: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    gap: 20,
-  },
-  emptyContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-})

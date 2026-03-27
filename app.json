@@ -7,7 +7,6 @@
     "icon": "./assets/images/logo.png",
     "scheme": "tx-truyen",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/logo.png",
       "resizeMode": "contain",
@@ -19,7 +18,8 @@
       "buildNumber": "0",
       "infoPlist": {
         "NSCameraUsageDescription": "This app does not use camera"
-      }
+      },
+      "appleTeamId": "B52J6U3Y4P"
     },
     "android": {
       "adaptiveIcon": {

@@ -1,8 +1,8 @@
 import React, { useCallback, useRef } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { AppPalette } from '@/assets'
+import { AppColors } from '@/assets'
 import useAppStore from '@/controllers/store'
 
 import SheetBookInfo, { type SheetBookInfoRef } from '../sheet-book-info'
@@ -19,13 +19,15 @@ function ReadingButtonLeftControl() {
 
   return (
     <>
-      <View style={[styles.container, { bottom: 12 + insets.bottom }]}>
+      <View
+        className='absolute right-3 items-end gap-2'
+        style={{ bottom: 12 + insets.bottom }}>
         <VectorIcon
           name='book-open-reader'
           font='FontAwesome6'
           size={14}
-          buttonStyle={styles.buttonInfo}
-          color={AppPalette.white}
+          buttonClassName='size-8 rounded-full bg-gray-300'
+          color={AppColors.white}
           onPress={openBook}
         />
       </View>
@@ -35,18 +37,3 @@ function ReadingButtonLeftControl() {
 }
 
 export default React.memo(ReadingButtonLeftControl)
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    right: 12,
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  buttonInfo: {
-    width: 32,
-    height: 32,
-    borderRadius: 40,
-    backgroundColor: AppPalette.gray300,
-  },
-})

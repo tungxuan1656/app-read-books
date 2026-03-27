@@ -1,7 +1,6 @@
 import React from 'react'
 import { Text } from 'react-native'
 
-import { AppTypo } from '@/constants'
 import useAppStore from '@/controllers/store'
 
 export const PrefetchStatus = () => {
@@ -10,7 +9,7 @@ export const PrefetchStatus = () => {
   if (!prefetchState.isRunning) return null
 
   return (
-    <Text style={[AppTypo.mini.regular, { color: '#888' }]}>
+    <Text className='text-xss font-normal text-gray-500'>
       {prefetchState.message}
     </Text>
   )

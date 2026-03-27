@@ -1,8 +1,8 @@
 import { router } from 'expo-router'
 import React, { useCallback } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { View } from 'react-native'
 
-import { AppPalette } from '@/assets'
+import { AppColors } from '@/assets'
 
 import { VectorIcon } from '../vector-icon'
 
@@ -18,23 +18,23 @@ export default function ReadingButtonTopNavigation({
   }, [])
 
   return (
-    <View style={styles.viewContainer}>
+    <View className='absolute right-2.5 top-4 h-7 flex-row items-center justify-center gap-2.5 px-0.5'>
       {/* Navigation */}
-      <View style={styles.viewNavigate}>
+      <View className='flex-row items-center rounded-full bg-gray-300'>
         <VectorIcon
           name='arrow-left'
           font='FontAwesome6'
           size={14}
-          buttonStyle={{ width: 28, height: 28 }}
-          color={AppPalette.white}
+          buttonClassName='size-7'
+          color={AppColors.white}
           onPress={previousChapter}
         />
         <VectorIcon
           name='arrow-right'
           font='FontAwesome6'
           size={14}
-          buttonStyle={{ width: 28, height: 28 }}
-          color={AppPalette.white}
+          buttonClassName='size-7'
+          color={AppColors.white}
           onPress={nextChapter}
         />
       </View>
@@ -44,36 +44,10 @@ export default function ReadingButtonTopNavigation({
         name='bars'
         font='FontAwesome6'
         size={14}
-        buttonStyle={styles.menuButton}
-        color={AppPalette.gray600}
+        buttonClassName='size-7 rounded-full bg-white'
+        color={AppColors.gray600}
         onPress={handleViewReferences}
       />
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  viewContainer: {
-    flexDirection: 'row',
-    height: 28,
-    paddingHorizontal: 2,
-    position: 'absolute',
-    right: 10,
-    top: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-  },
-  viewNavigate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: AppPalette.gray300,
-    borderRadius: 40,
-  },
-  menuButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 40,
-    backgroundColor: 'white',
-  },
-})

@@ -1,16 +1,7 @@
 import { router } from 'expo-router'
 import React from 'react'
-import {
-  Alert,
-  Linking,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { Alert, Linking, Text, TouchableOpacity, View } from 'react-native'
 
-import { AppPalette } from '@/assets'
-import { AppTypo } from '@/constants'
 import useAppStore from '@/controllers/store'
 import { deleteBook, getFolderBooks } from '@/utils'
 
@@ -29,16 +20,14 @@ const HomeBookItem = ({ id }: { id: string; onDeleteSuccess: () => void }) => {
 
   return (
     <TouchableOpacity
-      style={styles.item}
+      className='h-16 flex-row items-center justify-between gap-1.5 px-4'
       key={book.name}
       onPress={onSelectBook}>
-      <View style={{ gap: 4, flex: 1 }}>
-        <Text
-          style={[AppTypo.body.medium, { color: AppPalette.gray900 }]}
-          numberOfLines={2}>
+      <View className='flex-1 gap-1'>
+        <Text className='text-base font-medium text-gray-900' numberOfLines={2}>
           {book.name}
         </Text>
-        <Text style={[AppTypo.caption.regular, { color: AppPalette.gray500 }]}>
+        <Text className='text-sm font-normal text-gray-500'>
           {`${book.author || '#'} - ${book.count} chương`}
         </Text>
       </View>
@@ -47,7 +36,7 @@ const HomeBookItem = ({ id }: { id: string; onDeleteSuccess: () => void }) => {
         name='chevron-right'
         font='FontAwesome5'
         size={12}
-        color={AppPalette.gray400}
+        color='#9ca3af'
       />
     </TouchableOpacity>
   )
@@ -79,14 +68,3 @@ export const useBookActions = (id: string, onDeleteSuccess: () => void) => {
 }
 
 export default React.memo(HomeBookItem)
-
-const styles = StyleSheet.create({
-  item: {
-    flexDirection: 'row',
-    height: 72,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    gap: 6,
-  },
-})

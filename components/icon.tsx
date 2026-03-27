@@ -1,4 +1,3 @@
-import { Image, type ImageProps, type ImageSource } from 'expo-image'
 import React from 'react'
 import {
   type ImageRequireSource,
@@ -8,6 +7,8 @@ import {
   type ViewStyle,
 } from 'react-native'
 
+import { Image, type ImageProps, type ImageSource } from './image'
+
 export type IconSource = ImageRequireSource | ImageSource
 
 type IconProps = {
@@ -15,8 +16,10 @@ type IconProps = {
   size?: number
   color?: string
   style?: ImageStyle
+  className?: string
   onPress?: () => void
   buttonStyle?: StyleProp<ViewStyle>
+  buttonClassName?: string
 } & ImageProps
 
 export const Icon = ({
@@ -24,15 +27,19 @@ export const Icon = ({
   size = 24,
   color,
   style,
+  className,
   onPress,
   buttonStyle,
+  buttonClassName,
   ...props
 }: IconProps) => {
   return onPress ? (
     <TouchableOpacity
       onPress={onPress}
-      style={[{ justifyContent: 'center', alignItems: 'center' }, buttonStyle]}>
+      className={`items-center justify-center ${buttonClassName ?? ''}`}
+      style={buttonStyle}>
       <Image
+        className={className}
         style={[{ width: size, height: size }, style]}
         source={source}
         tintColor={color}
@@ -42,6 +49,7 @@ export const Icon = ({
     </TouchableOpacity>
   ) : (
     <Image
+      className={className}
       style={[{ width: size, height: size }, style]}
       source={source}
       tintColor={color}

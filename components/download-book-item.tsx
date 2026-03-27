@@ -1,9 +1,7 @@
 import React, { memo } from 'react'
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, Text, TouchableOpacity, View } from 'react-native'
 
-import { AppPalette } from '@/assets'
-import { AppTypo } from '@/constants'
-import { formatBytes } from '@/utils'
+import { cn, formatBytes } from '@/utils'
 
 import { VectorIcon } from './vector-icon'
 
@@ -49,16 +47,16 @@ const DownloadBookItem = ({ item, onDownload }: DownloadBookItemProps) => {
   }
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onConfirmDownload}>
-      <View style={styles.details}>
+    <TouchableOpacity
+      className='h-16 flex-row items-center justify-between gap-1.5 px-4'
+      onPress={onConfirmDownload}>
+      <View className='flex-1 gap-1'>
         <Text
-          style={[AppTypo.body.medium, { color: AppPalette.gray900 }]}
+          className={cn('text-base font-medium text-gray-900')}
           numberOfLines={1}>
           {book?.name ?? 'Truyện không tên'}
         </Text>
-        <Text
-          style={[AppTypo.caption.regular, { color: AppPalette.gray500 }]}
-          numberOfLines={1}>
+        <Text className='text-sm font-normal text-gray-500' numberOfLines={1}>
           {(book?.author || 'Không rõ tác giả') +
             ' • ' +
             formatBytes(item.fileSize)}
@@ -68,27 +66,12 @@ const DownloadBookItem = ({ item, onDownload }: DownloadBookItemProps) => {
         name='download'
         font='Feather'
         size={16}
-        color={AppPalette.blue500}
+        color='#3b82f6'
         onPress={onConfirmDownload}
-        buttonStyle={{ padding: 8 }}
+        buttonClassName='p-2'
       />
     </TouchableOpacity>
   )
 }
 
 export default memo(DownloadBookItem)
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 72,
-    gap: 6,
-  },
-  details: {
-    flex: 1,
-    gap: 4,
-  },
-})

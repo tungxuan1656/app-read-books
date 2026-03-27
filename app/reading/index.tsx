@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react'
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
 
 import { ContentDisplay } from '@/components/content-display'
 import { PrefetchStatus } from '@/components/prefetch-status'
@@ -14,7 +8,6 @@ import ReadingButtonLeftControl from '@/components/reading/reading-button-left-c
 import ReadingButtonScrollBottom from '@/components/reading/reading-button-scroll-bottom'
 import ReadingButtonTopNavigation from '@/components/reading/reading-button-top-navigation'
 import { Screen } from '@/components/screen'
-import { AppTypo } from '@/constants'
 import useAppStore from '@/controllers/store'
 import { useChapterPrefetch } from '@/hooks/use-chapter-prefetch'
 import useReadingContent from '@/hooks/use-reading-content'
@@ -52,24 +45,18 @@ const Reading = () => {
   }, [])
 
   return (
-    <View style={{ flex: 1 }}>
-      <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginHorizontal: 16,
-            gap: 8,
-          }}>
-          <Text style={[AppTypo.mini.regular, { flex: 1 }]} numberOfLines={1}>
+    <View className='flex-1'>
+      <Screen.Container safe={'top'} className='bg-[#F5F1E5]'>
+        <View className='mx-4 flex-row items-center gap-2'>
+          <Text className='flex-1 text-xs font-normal' numberOfLines={1}>
             【{chapter.index}】{chapter.name || 'Chương không có tên'}
           </Text>
           <PrefetchStatus />
         </View>
 
-        <View style={{ flex: 1 }}>
+        <View className='flex-1'>
           <ScrollView
-            style={{ flex: 1 }}
+            className='flex-1'
             ref={refScroll}
             scrollEventThrottle={300}
             contentContainerStyle={{ paddingVertical: 44, flexGrow: 1 }}
@@ -79,13 +66,9 @@ const Reading = () => {
             ) : null}
           </ScrollView>
           {chapter.isLoading ? (
-            <View style={styles.loadingOverlay}>
+            <View className='absolute inset-0 items-center justify-center bg-[#F5F1E5] pb-10'>
               <ActivityIndicator size={'small'} />
-              <Text
-                style={[
-                  AppTypo.footnote.regular,
-                  { marginTop: 8, marginHorizontal: 20 },
-                ]}>
+              <Text className='mx-5 mt-2 text-sm font-normal'>
                 {chapter.message}
               </Text>
             </View>
@@ -105,17 +88,3 @@ const Reading = () => {
 }
 
 export default Reading
-
-const styles = StyleSheet.create({
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5F1E5',
-    paddingBottom: 40,
-  },
-})

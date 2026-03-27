@@ -7,7 +7,6 @@ import { Button } from '@/components/button'
 import { Divider } from '@/components/divider'
 import { GToast } from '@/components/g-toast'
 import { Screen } from '@/components/screen'
-import { AppTypo } from '@/constants'
 import useAppStore, { storeActions } from '@/controllers/store'
 
 export default function SettingEditor() {
@@ -46,17 +45,9 @@ export default function SettingEditor() {
     <Screen.Container>
       <Screen.Header title={label} />
       <Divider />
-      <Screen.Content
-        useKeyboard
-        style={{
-          backgroundColor: AppColors.bgExtra,
-          padding: 16,
-          gap: 12,
-          paddingVertical: 20,
-        }}>
+      <Screen.Content useKeyboard className='gap-3 bg-slate-50 px-4 py-5'>
         {description ? (
-          <Text
-            style={[AppTypo.caption.regular, { color: AppColors.textBlur }]}>
+          <Text className='text-ssm font-normal text-gray-500'>
             {description}
           </Text>
         ) : null}
@@ -75,13 +66,13 @@ export default function SettingEditor() {
         <Button
           title='Xóa'
           onPress={handleClear}
-          style={{ flex: 1 }}
+          className='flex-1'
           theme={{
-            button: { backgroundColor: AppColors.bgDisabled },
-            title: { color: AppColors.textMain },
+            button: { backgroundColor: AppColors.gray300 },
+            title: { color: AppColors.gray900 },
           }}
         />
-        <Button title='Lưu' onPress={handleSave} style={{ flex: 2 }} />
+        <Button title='Lưu' onPress={handleSave} className='flex-[2]' />
       </Screen.Footer>
     </Screen.Container>
   )

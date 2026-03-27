@@ -1,5 +1,5 @@
 import React from 'react'
-import { Dimensions, StyleSheet, Text, View } from 'react-native'
+import { Dimensions, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast, {
   BaseToast,
@@ -8,7 +8,6 @@ import Toast, {
 } from 'react-native-toast-message'
 
 import { AppColors } from '@/assets'
-import { AppStyles, AppTypo } from '@/constants'
 
 import { VectorIcon } from './vector-icon'
 
@@ -18,9 +17,9 @@ const renderLeadingIcon = (name: string, font: string) => {
       name={name}
       // @ts-ignore
       font={font}
-      style={{ height: 24, marginLeft: 4 }}
+      className='ml-1 h-6'
       size={24}
-      color={AppColors.bgMain}
+      color={AppColors.white}
     />
   )
 }
@@ -28,13 +27,9 @@ const renderLeadingIcon = (name: string, font: string) => {
 const renderTrailingAction = (action: string) => {
   if (!action) return null
   return (
-    <View
-      style={[
-        AppStyles.view.contentCenter,
-        { maxWidth: '30%', marginHorizontal: 12 },
-      ]}>
+    <View className='mx-3 max-w-[30%] items-center justify-center'>
       <Text
-        style={[styles.text2, { maxWidth: 60, textAlign: 'right' }]}
+        className='max-w-[60px] text-right text-sm font-normal text-white'
         numberOfLines={4}>
         {action}
       </Text>
@@ -49,10 +44,10 @@ const toastConfig: ToastConfig = {
       text1NumberOfLines={2}
       text2NumberOfLines={4}
       renderTrailingIcon={() => renderTrailingAction(props.props?.action)}
-      style={styles.defaultToast}
-      contentContainerStyle={styles.contentContainerStyle}
-      text1Style={styles.text1}
-      text2Style={styles.text2}
+      style={DEFAULT_TOAST_STYLE}
+      contentContainerStyle={CONTENT_CONTAINER_STYLE}
+      text1Style={TEXT1_STYLE}
+      text2Style={TEXT2_STYLE}
     />
   ),
   success: (props: ToastConfigParams<any>) => (
@@ -64,10 +59,10 @@ const toastConfig: ToastConfig = {
         renderLeadingIcon('check-circle-fill', 'Octicons')
       }
       renderTrailingIcon={() => renderTrailingAction(props.props?.action)}
-      style={[styles.defaultToast, styles.successToast]}
-      contentContainerStyle={styles.contentContainerStyle}
-      text1Style={styles.text1}
-      text2Style={styles.text2}
+      style={[DEFAULT_TOAST_STYLE, SUCCESS_TOAST_STYLE]}
+      contentContainerStyle={CONTENT_CONTAINER_STYLE}
+      text1Style={TEXT1_STYLE}
+      text2Style={TEXT2_STYLE}
     />
   ),
   info: (props: ToastConfigParams<any>) => (
@@ -77,10 +72,10 @@ const toastConfig: ToastConfig = {
       text2NumberOfLines={4}
       renderLeadingIcon={() => renderLeadingIcon('info', 'Foundation')}
       renderTrailingIcon={() => renderTrailingAction(props.props?.action)}
-      style={[styles.defaultToast, styles.infoToast]}
-      contentContainerStyle={styles.contentContainerStyle}
-      text1Style={styles.text1}
-      text2Style={styles.text2}
+      style={[DEFAULT_TOAST_STYLE, INFO_TOAST_STYLE]}
+      contentContainerStyle={CONTENT_CONTAINER_STYLE}
+      text1Style={TEXT1_STYLE}
+      text2Style={TEXT2_STYLE}
     />
   ),
   warning: (props: ToastConfigParams<any>) => (
@@ -90,10 +85,10 @@ const toastConfig: ToastConfig = {
       text2NumberOfLines={4}
       renderLeadingIcon={() => renderLeadingIcon('warning', 'Ionicons')}
       renderTrailingIcon={() => renderTrailingAction(props.props?.action)}
-      style={[styles.defaultToast, styles.warningToast]}
-      contentContainerStyle={styles.contentContainerStyle}
-      text1Style={styles.text1}
-      text2Style={styles.text2}
+      style={[DEFAULT_TOAST_STYLE, WARNING_TOAST_STYLE]}
+      contentContainerStyle={CONTENT_CONTAINER_STYLE}
+      text1Style={TEXT1_STYLE}
+      text2Style={TEXT2_STYLE}
     />
   ),
   error: (props: ToastConfigParams<any>) => (
@@ -103,10 +98,10 @@ const toastConfig: ToastConfig = {
       text2NumberOfLines={4}
       renderLeadingIcon={() => renderLeadingIcon('warning', 'Ionicons')}
       renderTrailingIcon={() => renderTrailingAction(props.props?.action)}
-      style={[styles.defaultToast, styles.errorToast]}
-      contentContainerStyle={styles.contentContainerStyle}
-      text1Style={styles.text1}
-      text2Style={styles.text2}
+      style={[DEFAULT_TOAST_STYLE, ERROR_TOAST_STYLE]}
+      contentContainerStyle={CONTENT_CONTAINER_STYLE}
+      text1Style={TEXT1_STYLE}
+      text2Style={TEXT2_STYLE}
     />
   ),
 }
@@ -178,42 +173,49 @@ const wordsToDuration = (msg: string) => {
   else return 5000
 }
 
-const styles = StyleSheet.create({
-  contentContainerStyle: {
-    paddingHorizontal: 8,
-  },
-  text1: {
-    ...AppTypo.body.medium,
-    color: AppColors.bgMain,
-  },
-  text2: {
-    ...AppTypo.body.regular,
-    color: AppColors.bgMain,
-  },
-  defaultToast: {
-    borderLeftColor: AppColors.bgGrayOpacity,
-    backgroundColor: AppColors.bgGrayOpacity,
-    height: 'auto',
-    borderRadius: 24,
-    width: Dimensions.get('window').width - 40,
-    paddingVertical: 12,
-    borderLeftWidth: 0,
-    paddingHorizontal: 12,
-  },
-  infoToast: {
-    borderLeftColor: AppColors.buttonFocus,
-    backgroundColor: AppColors.buttonFocus,
-  },
-  successToast: {
-    borderLeftColor: AppColors.buttonActivate,
-    backgroundColor: AppColors.buttonActivate,
-  },
-  warningToast: {
-    borderLeftColor: AppColors.buttonWarning,
-    backgroundColor: AppColors.buttonWarning,
-  },
-  errorToast: {
-    borderLeftColor: AppColors.buttonValidate,
-    backgroundColor: AppColors.buttonValidate,
-  },
-})
+const CONTENT_CONTAINER_STYLE = {
+  paddingHorizontal: 8,
+}
+
+const TEXT1_STYLE = {
+  fontSize: 14,
+  fontWeight: '500' as const,
+  color: AppColors.white,
+}
+
+const TEXT2_STYLE = {
+  fontSize: 14,
+  fontWeight: '400' as const,
+  color: AppColors.white,
+}
+
+const DEFAULT_TOAST_STYLE = {
+  borderLeftColor: AppColors.gray600,
+  backgroundColor: AppColors.gray600,
+  height: 'auto' as const,
+  borderRadius: 24,
+  width: Dimensions.get('window').width - 40,
+  paddingVertical: 12,
+  borderLeftWidth: 0,
+  paddingHorizontal: 12,
+}
+
+const INFO_TOAST_STYLE = {
+  borderLeftColor: AppColors.blue500,
+  backgroundColor: AppColors.blue500,
+}
+
+const SUCCESS_TOAST_STYLE = {
+  borderLeftColor: AppColors.green600,
+  backgroundColor: AppColors.green600,
+}
+
+const WARNING_TOAST_STYLE = {
+  borderLeftColor: AppColors.orange500,
+  backgroundColor: AppColors.orange500,
+}
+
+const ERROR_TOAST_STYLE = {
+  borderLeftColor: AppColors.red500,
+  backgroundColor: AppColors.red500,
+}

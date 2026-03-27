@@ -3,16 +3,14 @@ import React from 'react'
 import {
   ActionSheetIOS,
   Platform,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
 
-import { AppColors, AppPalette } from '@/assets'
-import { AppTypo } from '@/constants'
 import { type SettingConfig } from '@/constants/setting-configs'
 import useAppStore, { storeActions } from '@/controllers/store'
+import { cn } from '@/utils'
 
 import { VectorIcon } from './vector-icon'
 
@@ -107,17 +105,18 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      className='flex-row items-center justify-between gap-3 bg-white px-5 py-3'
       onPress={handlePress}
       activeOpacity={0.7}>
-      <View style={styles.leftContent}>
-        <Text style={[AppTypo.body.medium, styles.label]}>{config.label}</Text>
+      <View className='flex-1 gap-1'>
+        <Text className='text-base font-medium text-gray-900'>
+          {config.label}
+        </Text>
         <Text
-          style={[
-            AppTypo.caption.regular,
-            styles.value,
-            !hasValue && { color: AppColors.textDisabled },
-          ]}
+          className={cn(
+            'text-ssm font-normal',
+            hasValue ? 'text-gray-500' : 'text-gray-400',
+          )}
           numberOfLines={1}>
           {displayValue}
         </Text>
@@ -126,30 +125,8 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
         name='chevron-right'
         font='FontAwesome5'
         size={12}
-        color={AppPalette.gray400}
+        color='#9ca3af'
       />
     </TouchableOpacity>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: AppColors.white,
-    gap: 12,
-  },
-  leftContent: {
-    flex: 1,
-    gap: 4,
-  },
-  label: {
-    color: AppColors.textMain,
-  },
-  value: {
-    color: AppColors.textBlur,
-  },
-})

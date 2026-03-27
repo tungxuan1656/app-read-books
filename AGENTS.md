@@ -30,8 +30,10 @@ When performing tasks, you MUST reference relevant project docs/files below and 
 | **Download & Book Import** | [app/add-book/index.tsx](./app/add-book/index.tsx), [services/download.service.ts](./services/download.service.ts), [utils/book.helpers.ts](./utils/book.helpers.ts) | Supabase listing, zip download/unzip, local library refresh. |
 | **Cache & Prefetch** | [services/database.service.ts](./services/database.service.ts), [hooks/use-chapter-prefetch.ts](./hooks/use-chapter-prefetch.ts), [utils/content-cache.helpers.ts](./utils/content-cache.helpers.ts), [app/settings/cache-manager.tsx](./app/settings/cache-manager.tsx) | SQLite processed-content cache, chapter prefetch flow, and cache management UX. |
 | **UI Reuse Patterns** | [components/](./components) | Shared primitives and reading-specific controls; prefer reuse over new bespoke components. |
-| **Types & Constants** | [@types/](./@types), [constants/](./constants) | Shared data contracts, reading modes, styles, and settings configs. |
+| **Types & Constants** | [@types/](./@types), [constants/](./constants) | Shared data contracts, reading modes, and settings configs. |
 | **Standards Index** | [docs/standards/README.md](./docs/standards/README.md) | Entry point for coding standards and implementation patterns. |
+| **Color Standard** | [docs/standards/color-guide.md](./docs/standards/color-guide.md) | Tailwind-first color usage with `AppColors` as the only raw color token source. |
+| **Typography Standard** | [docs/standards/typography-guide.md](./docs/standards/typography-guide.md) | Tailwind-first typography scale and reading-screen exception rules. |
 | **Navigation Standard** | [docs/standards/expo-router-navigation-pattern.md](./docs/standards/expo-router-navigation-pattern.md) | Canonical routing and navigation conventions. |
 | **State Standard** | [docs/standards/zustand-store-pattern.md](./docs/standards/zustand-store-pattern.md) | Store contracts, action patterns, and persistence guidance. |
 | **Validation Standard** | [docs/standards/testing-and-validation-pattern.md](./docs/standards/testing-and-validation-pattern.md) | Test/validation workflow and verification checklist. |
