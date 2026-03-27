@@ -10,7 +10,16 @@ const withCssVars = (colorMap) => {
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./app/**/*.{js,jsx,ts,tsx}'],
+  content: [
+    './app/**/*.{js,jsx,ts,tsx}',
+    './assets/**/*.{js,jsx,ts,tsx}',
+    './components/**/*.{js,jsx,ts,tsx}',
+    './constants/**/*.{js,jsx,ts,tsx}',
+    './controllers/**/*.{js,jsx,ts,tsx}',
+    './hooks/**/*.{js,jsx,ts,tsx}',
+    './services/**/*.{js,jsx,ts,tsx}',
+    './utils/**/*.{js,jsx,ts,tsx}',
+  ],
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
@@ -20,6 +29,7 @@ module.exports = {
       },
       fontSize: {
         xss: '0.625rem', // 10px
+        ssm: '0.8125rem', // 13px
       },
       margin: {
         'inset-bottom-if-none-safe-area':
