@@ -48,7 +48,7 @@ export const processChapterContent = async ({
       }
 
       // 3. Get Provider
-      const provider = getAIProviderByType(aiType || 'gemini')
+      const provider = getAIProviderByType(aiType || 'copilot')
       console.log(
         `🌐 [${actionKey}] Using ${provider.name}: ${bookId}_ch${chapterNumber}`,
       )

@@ -1,6 +1,6 @@
 # Mobile App Guidelines
 
-You are a programming assistant specializing in TypeScript, React 19, React Native 0.81 (Expo SDK 54), Expo Router, Zustand, MMKV, NativeWind, ESLint, and Google GenAI integration. Always respond in English.
+You are a programming assistant specializing in TypeScript, React 19, React Native 0.81 (Expo SDK 54), Expo Router, Zustand, MMKV, NativeWind, ESLint, and Copilot API integration. Always respond in English.
 
 ## General Rules
 
@@ -26,7 +26,7 @@ When performing tasks, you MUST reference relevant project docs/files below and 
 | **App Boot & Navigation** | [app/_layout.tsx](./app/_layout.tsx) | Root initialization, splash handling, reading resume flow, and global providers. |
 | **State & Persistence** | [controllers/store.ts](./controllers/store.ts), [controllers/mmkv.ts](./controllers/mmkv.ts) | Zustand store shape, settings contracts, and MMKV persistence pattern. |
 | **Reading Pipeline** | [hooks/use-reading-content.ts](./hooks/use-reading-content.ts), [services/reading.service.ts](./services/reading.service.ts), [services/content-processor.ts](./services/content-processor.ts) | How chapters are loaded, processed (none/translate/summary), and rendered. |
-| **AI Provider Pattern** | [services/ai.service.ts](./services/ai.service.ts), [services/ai-providers/gemini.provider.ts](./services/ai-providers/gemini.provider.ts), [services/ai-providers/copilot.provider.ts](./services/ai-providers/copilot.provider.ts) | Provider abstraction and model-specific integration details. |
+| **AI Provider Pattern** | [services/ai.service.ts](./services/ai.service.ts), [services/ai-providers/copilot.provider.ts](./services/ai-providers/copilot.provider.ts) | Provider abstraction and model-specific integration details. |
 | **Download & Book Import** | [app/add-book/index.tsx](./app/add-book/index.tsx), [services/download.service.ts](./services/download.service.ts), [utils/book.helpers.ts](./utils/book.helpers.ts) | Supabase listing, zip download/unzip, local library refresh. |
 | **Cache & Prefetch** | [services/database.service.ts](./services/database.service.ts), [hooks/use-chapter-prefetch.ts](./hooks/use-chapter-prefetch.ts), [utils/content-cache.helpers.ts](./utils/content-cache.helpers.ts), [app/settings/cache-manager.tsx](./app/settings/cache-manager.tsx) | SQLite processed-content cache, chapter prefetch flow, and cache management UX. |
 | **UI Reuse Patterns** | [components/](./components) | Shared primitives and reading-specific controls; prefer reuse over new bespoke components. |
@@ -48,7 +48,7 @@ When performing tasks, you MUST reference relevant project docs/files below and 
 - **State**: [Zustand](https://zustand.docs.pmnd.rs/) + [react-native-mmkv](https://github.com/mrousavy/react-native-mmkv)
 - **Storage & cache**: [expo-file-system](https://docs.expo.dev/versions/latest/sdk/filesystem/) + [expo-sqlite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
 - **Navigation**: [expo-router](https://docs.expo.dev/router/introduction/) + React Navigation Native
-- **AI**: [Google GenAI SDK](https://www.npmjs.com/package/@google/genai) with internal multi-provider service layer
+- **AI**: Copilot-compatible chat completion API with internal provider abstraction
 - **UI & styling**: NativeWind + TailwindCSS + `@gorhom/bottom-sheet`
 - **UX/platform libs**: `react-native-reanimated`, `react-native-gesture-handler`, `react-native-screens`, `expo-image`
 - **Code quality**: ESLint 9 (`eslint-config-expo`, `eslint-plugin-tailwindcss`, `eslint-plugin-unicorn`) + TypeScript noEmit check

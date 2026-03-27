@@ -26,7 +26,7 @@ i18n/
 Key style:
 
 - `common.actions.save`
-- `settings.labels.geminiApiKey`
+- `settings.labels.copilotApiUrl`
 - `reading.errors.loadFailed`
 
 ## 4) Dynamic Text Rule
