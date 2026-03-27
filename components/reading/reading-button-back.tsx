@@ -1,14 +1,16 @@
-import React from 'react'
-import { AppPalette } from '@/assets'
 import { router } from 'expo-router'
+import React from 'react'
 import { StyleSheet } from 'react-native'
+
+import { AppPalette } from '@/assets'
+
 import { VectorIcon } from '../vector-icon'
 
 function ReadingButtonBack() {
   return (
     <VectorIcon
-      name="circle-chevron-left"
-      font="FontAwesome6"
+      name='circle-chevron-left'
+      font='FontAwesome6'
       size={22}
       buttonStyle={{ ...styles.buttonBack }}
       color={AppPalette.gray300}

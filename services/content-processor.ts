@@ -1,7 +1,8 @@
-import { dbService } from './database.service'
 import { getBookChapterContent } from '@/utils'
-import { getAIProviderByType, AIProviderType } from './ai.service'
-import { simpleMdToHtml, formatContentForTTS } from '@/utils/string.helpers'
+import { simpleMdToHtml } from '@/utils/string.helpers'
+
+import { type AIProviderType, getAIProviderByType } from './ai.service'
+import { dbService } from './database.service'
 
 interface ProcessOptions {
   bookId: string
@@ -30,7 +31,11 @@ export const processChapterContent = async ({
   const promise = (async () => {
     try {
       // 1. Check cache
-      const cached = await dbService.getProcessedChapter(bookId, chapterNumber, actionKey)
+      const cached = await dbService.getProcessedChapter(
+        bookId,
+        chapterNumber,
+        actionKey,
+      )
       if (cached) {
         console.log(`✅ [${actionKey}] Cache hit: ${bookId}_ch${chapterNumber}`)
         return cached.content
@@ -44,19 +49,29 @@ export const processChapterContent = async ({
 
       // 3. Get Provider
       const provider = getAIProviderByType(aiType || 'gemini')
-      console.log(`🌐 [${actionKey}] Using ${provider.name}: ${bookId}_ch${chapterNumber}`)
+      console.log(
+        `🌐 [${actionKey}] Using ${provider.name}: ${bookId}_ch${chapterNumber}`,
+      )
 
       // 4. Process with AI
       const processedText = await provider.processContent(prompt, rawContent)
       const htmlContent = simpleMdToHtml(processedText)
 
       // 5. Save to cache
-      await dbService.saveProcessedChapter(bookId, chapterNumber, actionKey, htmlContent)
+      await dbService.saveProcessedChapter(
+        bookId,
+        chapterNumber,
+        actionKey,
+        htmlContent,
+      )
       console.log(`💾 [${actionKey}] Saved: ${bookId}_ch${chapterNumber}`)
 
       return htmlContent
     } catch (error) {
-      console.error(`❌ [${actionKey}] Error: ${bookId}_ch${chapterNumber}`, error)
+      console.error(
+        `❌ [${actionKey}] Error: ${bookId}_ch${chapterNumber}`,
+        error,
+      )
       throw error
     } finally {
       pendingRequests.delete(requestKey)

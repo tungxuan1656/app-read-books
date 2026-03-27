@@ -1,25 +1,26 @@
+import { router } from 'expo-router'
 import React from 'react'
 import {
-  StatusBar,
-  StyleSheet,
-  View,
-  ViewStyle,
-  Text,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  ScrollView,
-  TouchableWithoutFeedback,
-  Keyboard,
-  TextStyle,
-  Image,
-  StyleProp,
   ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StatusBar,
+  type StyleProp,
+  StyleSheet,
+  Text,
+  type TextStyle,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+  type ViewStyle,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AppColors, AppIcons } from '@/assets'
+
+import { AppColors } from '@/assets'
 import { AppTypo } from '@/constants'
-import { router } from 'expo-router'
+
 import { VectorIcon } from './vector-icon'
 
 type ContainerProps = {
@@ -28,7 +29,11 @@ type ContainerProps = {
   children?: React.ReactNode
 }
 
-const Container: React.FC<ContainerProps> = ({ children, safe = 'bottom', style = {} }) => {
+const Container: React.FC<ContainerProps> = ({
+  children,
+  safe = 'bottom',
+  style = {},
+}) => {
   const insets = useSafeAreaInsets()
 
   return (
@@ -75,26 +80,39 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <View style={[{ backgroundColor: AppColors.bgMain }, style]}>
-      <View style={[styles.headerContainer, safeTop && { marginTop: insets.top }]}>
+      <View
+        style={[styles.headerContainer, safeTop && { marginTop: insets.top }]}>
         <View style={styles.left}>
           {hasBack ? (
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.backButton}>
               <VectorIcon
-                font="FontAwesome6"
-                name="angle-left"
+                font='FontAwesome6'
+                name='angle-left'
                 color={tintColor ?? AppColors.buttonBlur}
               />
             </TouchableOpacity>
           ) : null}
           {hasClose ? (
-            <TouchableOpacity onPress={() => onClose?.()} style={styles.backButton}>
-              <VectorIcon font="Ionicons" name="close" color={tintColor ?? AppColors.buttonBlur} />
+            <TouchableOpacity
+              onPress={() => onClose?.()}
+              style={styles.backButton}>
+              <VectorIcon
+                font='Ionicons'
+                name='close'
+                color={tintColor ?? AppColors.buttonBlur}
+              />
             </TouchableOpacity>
           ) : null}
           {ItemLeft}
         </View>
         <Text
-          style={[styles.title, { color: tintColor ?? AppColors.textMain }, titleStyle]}
+          style={[
+            styles.title,
+            { color: tintColor ?? AppColors.textMain },
+            titleStyle,
+          ]}
           numberOfLines={1}>
           {title}
         </Text>
@@ -171,7 +189,12 @@ type FooterProps = {
 const Footer: React.FC<FooterProps> = ({ children, style }) => {
   const insets = useSafeAreaInsets()
   return (
-    <View style={[{ paddingBottom: insets.bottom !== 0 ? 0 : 16 }, styles.containerFooter, style]}>
+    <View
+      style={[
+        { paddingBottom: insets.bottom !== 0 ? 0 : 16 },
+        styles.containerFooter,
+        style,
+      ]}>
       {children}
     </View>
   )
@@ -199,7 +222,12 @@ const styles = StyleSheet.create({
     top: -4,
     flexDirection: 'row',
   },
-  left: { height: headerHeight, flexDirection: 'row', alignItems: 'center', minWidth: 16 },
+  left: {
+    height: headerHeight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 16,
+  },
   right: { height: headerHeight, flexDirection: 'row', alignItems: 'center' },
   title: {
     ...AppTypo.headline.semiBold,

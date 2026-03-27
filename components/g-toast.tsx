@@ -1,9 +1,15 @@
-import { AppColors } from '@/assets'
-import { AppStyles, AppTypo } from '@/constants'
 import React from 'react'
 import { Dimensions, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Toast, { BaseToast, ToastConfig, ToastConfigParams } from 'react-native-toast-message'
+import Toast, {
+  BaseToast,
+  type ToastConfig,
+  type ToastConfigParams,
+} from 'react-native-toast-message'
+
+import { AppColors } from '@/assets'
+import { AppStyles, AppTypo } from '@/constants'
+
 import { VectorIcon } from './vector-icon'
 
 const renderLeadingIcon = (name: string, font: string) => {
@@ -22,8 +28,14 @@ const renderLeadingIcon = (name: string, font: string) => {
 const renderTrailingAction = (action: string) => {
   if (!action) return null
   return (
-    <View style={[AppStyles.view.contentCenter, { maxWidth: '30%', marginHorizontal: 12 }]}>
-      <Text style={[styles.text2, { maxWidth: 60, textAlign: 'right' }]} numberOfLines={4}>
+    <View
+      style={[
+        AppStyles.view.contentCenter,
+        { maxWidth: '30%', marginHorizontal: 12 },
+      ]}>
+      <Text
+        style={[styles.text2, { maxWidth: 60, textAlign: 'right' }]}
+        numberOfLines={4}>
         {action}
       </Text>
     </View>
@@ -48,7 +60,9 @@ const toastConfig: ToastConfig = {
       {...props}
       text1NumberOfLines={2}
       text2NumberOfLines={4}
-      renderLeadingIcon={() => renderLeadingIcon('check-circle-fill', 'Octicons')}
+      renderLeadingIcon={() =>
+        renderLeadingIcon('check-circle-fill', 'Octicons')
+      }
       renderTrailingIcon={() => renderTrailingAction(props.props?.action)}
       style={[styles.defaultToast, styles.successToast]}
       contentContainerStyle={styles.contentContainerStyle}
@@ -109,7 +123,13 @@ type GToastProps = {
   action?: string
   onPress?: () => void
 }
-const show = ({ type = 'default', title, message, action, onPress }: GToastProps) => {
+const show = ({
+  type = 'default',
+  title,
+  message,
+  action,
+  onPress,
+}: GToastProps) => {
   Toast.show({
     type: type,
     visibilityTime: wordsToDuration((title ?? '') + (message ?? '')),

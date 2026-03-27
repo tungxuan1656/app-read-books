@@ -1,7 +1,8 @@
-import useAppStore, { storeActions } from '@/controllers/store'
-import { getReadingContent } from '@/services/reading.service'
-import { dbService } from '@/services/database.service'
 import { useEffect, useRef } from 'react'
+
+import useAppStore, { storeActions } from '@/controllers/store'
+import { dbService } from '@/services/database.service'
+import { getReadingContent } from '@/services/reading.service'
 
 export const useChapterPrefetch = (
   bookId: string,
@@ -30,7 +31,10 @@ export const useChapterPrefetch = (
     const runPrefetch = async () => {
       const totalChapters = book.references?.length || 0
       const startChapter = currentChapter + 1
-      const endChapter = Math.min(startChapter + +PREFETCH_COUNT - 1, totalChapters)
+      const endChapter = Math.min(
+        startChapter + +PREFETCH_COUNT - 1,
+        totalChapters,
+      )
 
       if (startChapter > endChapter) return
 
@@ -46,7 +50,9 @@ export const useChapterPrefetch = (
       )
 
       // Filter out chapters that already have cache
-      const chaptersToProcess = chaptersToCheck.filter((ch) => !cachedChapters.has(ch))
+      const chaptersToProcess = chaptersToCheck.filter(
+        (ch) => !cachedChapters.has(ch),
+      )
 
       if (chaptersToProcess.length === 0) {
         console.log('✅ [Prefetch] All chapters already cached')

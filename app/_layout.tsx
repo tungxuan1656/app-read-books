@@ -1,13 +1,16 @@
-import { GToastComponent } from '@/components/g-toast'
+import '../global.css'
+
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { router, Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+
+import { ErrorBoundary } from '@/components/error-boundary'
+import { GSpinnerComponent } from '@/components/g-spinner'
+import { GToastComponent } from '@/components/g-toast'
 import useAppStore from '@/controllers/store'
 import { stringifyParams } from '@/hooks/use-typed-local-search-params'
-import { GSpinnerComponent } from '@/components/g-spinner'
-import { ErrorBoundary } from '@/components/error-boundary'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -18,7 +21,9 @@ export default function RootLayout() {
       setTimeout(() => {
         router.push({
           pathname: '/reading',
-          params: stringifyParams({ bookId: useAppStore.getState().reading.bookId }),
+          params: stringifyParams({
+            bookId: useAppStore.getState().reading.bookId,
+          }),
         })
         SplashScreen.hideAsync()
       }, 100)
@@ -28,11 +33,14 @@ export default function RootLayout() {
   }, [])
 
   return (
-    <ErrorBoundary catchErrors="always">
+    <ErrorBoundary catchErrors='always'>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
           <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="reading/index" options={{ gestureEnabled: false }} />
+            <Stack.Screen
+              name='reading/index'
+              options={{ gestureEnabled: false }}
+            />
           </Stack>
           <GToastComponent />
           <GSpinnerComponent />

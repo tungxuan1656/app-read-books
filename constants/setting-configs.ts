@@ -54,7 +54,8 @@ export const SETTING_GROUPS: SettingGroup[] = [
         key: 'COPILOT_MODEL',
         label: 'Copilot Model',
         placeholder: 'gpt-4.1',
-        description: 'Tên model Copilot sử dụng (ví dụ: gpt-4.1, gpt-4o). Để trống sẽ dùng gpt-4.1',
+        description:
+          'Tên model Copilot sử dụng (ví dụ: gpt-4.1, gpt-4o). Để trống sẽ dùng gpt-4.1',
       },
       {
         key: 'COPILOT_MIN_CHUNK_SIZE',

@@ -1,4 +1,5 @@
 import useAppStore from '@/controllers/store'
+
 import type { AIProvider } from '../ai.service'
 
 /**
@@ -11,7 +12,10 @@ export const createCopilotProvider = (): AIProvider => {
 
     async processContent(prompt: string, content: string): Promise<string> {
       // Adjust prompt for text input (not file)
-      const adjustedPrompt = prompt.replace('file original_content.txt', 'nội dung bên dưới')
+      const adjustedPrompt = prompt.replace(
+        'file original_content.txt',
+        'nội dung bên dưới',
+      )
 
       // Split content into chunks
       const chunks = splitContentIntoChunks(content)
@@ -28,7 +32,9 @@ export const createCopilotProvider = (): AIProvider => {
 
       // Xử lý song song nhiều chunks
       const promises = chunks.map(async (chunk, index) => {
-        console.log(`Copilot: Processing chunk ${index + 1}/${chunks.length}: ${chunk.length} characters`)
+        console.log(
+          `Copilot: Processing chunk ${index + 1}/${chunks.length}: ${chunk.length} characters`,
+        )
         const messages: CopilotMessage[] = [
           { role: 'system', content: adjustedPrompt },
           {
@@ -65,7 +71,10 @@ interface CopilotMessage {
  * - Split bằng <br><br>
  * - Thử từ maxChunks lùi dần về 1 cho đến khi avgChunkSize >= MIN_CHUNK_SIZE
  */
-const splitContentIntoChunks = (content: string, maxChunks: number = 10): string[] => {
+const splitContentIntoChunks = (
+  content: string,
+  maxChunks: number = 10,
+): string[] => {
   const SPLIT_KEY = '<br><br>'
   const MIN_CHUNK_SIZE = getCopilotMinChunkSize() // Minimum average size per chunk
 
@@ -93,7 +102,8 @@ const splitContentIntoChunks = (content: string, maxChunks: number = 10): string
   // Thử từ maxChunks lùi dần về 1
   for (let numChunks = maxChunks; numChunks >= 1; numChunks--) {
     const chunks = groupPartsIntoChunks(numChunks)
-    const avgChunkSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
+    const avgChunkSize =
+      chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
 
     // Nếu thoả mãn điều kiện hoặc đã về 1 chunk, dùng kết quả này
     if (avgChunkSize >= MIN_CHUNK_SIZE || numChunks === 1) {
@@ -156,7 +166,8 @@ const callCopilotAPI = async (
       return data.choices[0].message.content
     } catch (e: any) {
       console.error(`Copilot error (attempt ${attempt + 1}):`, e.message)
-      lastError = e instanceof Error ? e : new Error('Có lỗi xảy ra khi gọi Copilot API')
+      lastError =
+        e instanceof Error ? e : new Error('Có lỗi xảy ra khi gọi Copilot API')
 
       if (attempt < maxRetries - 1) {
         const waitTime = Math.pow(2, attempt) * 1000

@@ -1,5 +1,6 @@
-import { AppColors } from '@/assets'
 import { StyleSheet } from 'react-native'
+
+import { AppColors } from '@/assets'
 
 export const AppStyles = {
   view: StyleSheet.create({
@@ -64,7 +65,11 @@ export const AppStyles = {
       overflow: 'hidden',
       flex: 1,
     },
-    listContentSection: { marginTop: 16, marginBottom: 16, overflow: 'visible' },
+    listContentSection: {
+      marginTop: 16,
+      marginBottom: 16,
+      overflow: 'visible',
+    },
     contentSection: {
       paddingHorizontal: 16,
       marginHorizontal: 16,

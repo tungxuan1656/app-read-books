@@ -1,5 +1,11 @@
-import { ContentListUnion, createPartFromUri, GoogleGenAI } from '@google/genai'
+import {
+  type ContentListUnion,
+  createPartFromUri,
+  GoogleGenAI,
+} from '@google/genai'
+
 import useAppStore from '@/controllers/store'
+
 import type { AIProvider } from '../ai.service'
 
 /**
@@ -14,10 +20,13 @@ export const createGeminiProvider = (): AIProvider => {
       const keys = parseGeminiApiKeys()
       let lastError: Error | null = null
 
-      for (let attempt = 0; attempt < Math.min(maxRetries, keys.length || 1); attempt++) {
+      for (
+        let attempt = 0;
+        attempt < Math.min(maxRetries, keys.length || 1);
+        attempt++
+      ) {
         try {
           const client = getGeminiClient()
-          const model = getGeminiModel()
 
           // // OPTIMIZATION: If content is short (< 30k chars), send text directly
           // // This avoids the overhead of file upload and processing wait time
@@ -74,9 +83,15 @@ export const createGeminiProvider = (): AIProvider => {
           return response.text
         } catch (e: any) {
           console.error('Gemini error:', e.message)
-          lastError = e instanceof Error ? e : new Error('Có lỗi xảy ra khi gọi Gemini API')
+          lastError =
+            e instanceof Error
+              ? e
+              : new Error('Có lỗi xảy ra khi gọi Gemini API')
 
-          if (isKeyRotatableError(e) && attempt < Math.min(maxRetries, keys.length) - 1) {
+          if (
+            isKeyRotatableError(e) &&
+            attempt < Math.min(maxRetries, keys.length) - 1
+          ) {
             rotateToNextKey()
             continue
           }
@@ -102,7 +117,9 @@ export const parseGeminiApiKeys = (): string[] => {
 export const getGeminiClient = (): GoogleGenAI => {
   const keys = parseGeminiApiKeys()
   if (keys.length === 0) {
-    throw new Error('Gemini API Key chưa được cấu hình. Vui lòng vào Settings để thiết lập.')
+    throw new Error(
+      'Gemini API Key chưa được cấu hình. Vui lòng vào Settings để thiết lập.',
+    )
   }
 
   let index = useAppStore.getState().settings.GEMINI_API_KEY_INDEX || 0

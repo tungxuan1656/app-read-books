@@ -53,4 +53,3 @@ export const AppRadius = {
 export const AppSize = {
   custom: (n: number) => n,
 }
-

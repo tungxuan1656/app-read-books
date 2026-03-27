@@ -1,3 +1,13 @@
+import React, { useCallback, useEffect, useState } from 'react'
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+
 import { AppPalette } from '@/assets'
 import { Divider } from '@/components/divider'
 import { GToast } from '@/components/g-toast'
@@ -5,11 +15,11 @@ import { Screen } from '@/components/screen'
 import { VectorIcon } from '@/components/vector-icon'
 import { AppTypo } from '@/constants'
 import { dbService } from '@/services/database.service'
-import React, { useCallback, useEffect, useState } from 'react'
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const CacheManagement = () => {
-  const [stats, setStats] = useState<{ totalChapters: number }>({ totalChapters: 0 })
+  const [stats, setStats] = useState<{ totalChapters: number }>({
+    totalChapters: 0,
+  })
   const [loading, setLoading] = useState(false)
 
   const loadStats = useCallback(async () => {
@@ -40,7 +50,7 @@ const CacheManagement = () => {
               await dbService.clearAllCache()
               GToast.success({ message: 'Đã xóa toàn bộ dữ liệu cache' })
               loadStats()
-            } catch (error) {
+            } catch (_error) {
               GToast.error({ message: 'Có lỗi xảy ra khi xóa dữ liệu' })
             } finally {
               setLoading(false)
@@ -53,7 +63,7 @@ const CacheManagement = () => {
 
   return (
     <Screen.Container>
-      <Screen.Header title="Quản lý dữ liệu" />
+      <Screen.Header title='Quản lý dữ liệu' />
       <Divider />
 
       <Screen.Content>
@@ -67,21 +77,35 @@ const CacheManagement = () => {
           </View>
 
           <View style={styles.actionsContainer}>
-            <Text style={[AppTypo.h3.bold, { marginBottom: 16 }]}>Hành động</Text>
+            <Text style={[AppTypo.h3.bold, { marginBottom: 16 }]}>
+              Hành động
+            </Text>
 
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: AppPalette.red500 }]}
+              style={[
+                styles.actionButton,
+                { backgroundColor: AppPalette.red500 },
+              ]}
               onPress={handleClearAllCache}
               disabled={loading}>
-              <VectorIcon name="trash" font="FontAwesome6" size={14} color="white" />
+              <VectorIcon
+                name='trash'
+                font='FontAwesome6'
+                size={14}
+                color='white'
+              />
               <Text style={[AppTypo.body.medium, { color: 'white' }]}>
                 {loading ? 'Đang xử lý...' : 'Xóa dữ liệu Dịch/Tóm tắt'}
               </Text>
             </TouchableOpacity>
 
-            <Text style={[AppTypo.caption.regular, { color: AppPalette.gray500, marginTop: 8 }]}>
-              * Việc này sẽ không xóa sách gốc, chỉ xóa các bản dịch và tóm tắt đã lưu để giải
-              phóng bộ nhớ.
+            <Text
+              style={[
+                AppTypo.caption.regular,
+                { color: AppPalette.gray500, marginTop: 8 },
+              ]}>
+              * Việc này sẽ không xóa sách gốc, chỉ xóa các bản dịch và tóm tắt
+              đã lưu để giải phóng bộ nhớ.
             </Text>
           </View>
         </ScrollView>

@@ -1,11 +1,11 @@
-import React from 'react'
-import { TouchableOpacity, TouchableOpacityProps, ViewStyle } from 'react-native'
 import {
   AntDesign,
   Entypo,
   EvilIcons,
   Feather,
   FontAwesome,
+  FontAwesome5,
+  FontAwesome6,
   Fontisto,
   Foundation,
   Ionicons,
@@ -14,9 +14,13 @@ import {
   Octicons,
   SimpleLineIcons,
   Zocial,
-  FontAwesome5,
-  FontAwesome6,
 } from '@expo/vector-icons'
+import React from 'react'
+import {
+  TouchableOpacity,
+  type TouchableOpacityProps,
+  type ViewStyle,
+} from 'react-native'
 
 const allComponents = {
   MaterialCommunityIcons,

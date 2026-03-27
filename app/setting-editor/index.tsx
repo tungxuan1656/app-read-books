@@ -1,14 +1,14 @@
+import { router, useLocalSearchParams } from 'expo-router'
+import React, { useMemo } from 'react'
+import { Text, TextInput } from 'react-native'
+
 import { AppColors } from '@/assets'
 import { Button } from '@/components/button'
 import { Divider } from '@/components/divider'
 import { GToast } from '@/components/g-toast'
 import { Screen } from '@/components/screen'
 import { AppTypo } from '@/constants'
-import { storeActions } from '@/controllers/store'
-import useAppStore from '@/controllers/store'
-import { router, useLocalSearchParams } from 'expo-router'
-import React from 'react'
-import { StyleSheet, Text, TextInput } from 'react-native'
+import useAppStore, { storeActions } from '@/controllers/store'
 
 export default function SettingEditor() {
   const params = useLocalSearchParams<{
@@ -24,8 +24,9 @@ export default function SettingEditor() {
   const description = params.description
 
   // Lấy giá trị hiện tại từ store
-  const settings = useAppStore.getState().settings
-  const currentValue = (settings[settingKey as keyof typeof settings] as string) || ''
+  const settings = useMemo(() => useAppStore.getState().settings, [])
+  const currentValue =
+    (settings[settingKey as keyof typeof settings] as string) || ''
   const refTextValue = React.useRef<string>(currentValue)
 
   const handleSave = () => {
@@ -47,9 +48,15 @@ export default function SettingEditor() {
       <Divider />
       <Screen.Content
         useKeyboard
-        style={{ backgroundColor: AppColors.bgExtra, padding: 16, gap: 12, paddingVertical: 20 }}>
+        style={{
+          backgroundColor: AppColors.bgExtra,
+          padding: 16,
+          gap: 12,
+          paddingVertical: 20,
+        }}>
         {description ? (
-          <Text style={[AppTypo.caption.regular, { color: AppColors.textBlur }]}>
+          <Text
+            style={[AppTypo.caption.regular, { color: AppColors.textBlur }]}>
             {description}
           </Text>
         ) : null}
@@ -57,16 +64,16 @@ export default function SettingEditor() {
         <TextInput
           placeholder={placeholder}
           onChangeText={(text) => (refTextValue.current = text)}
-          style={[styles.input, AppTypo.body.regular]}
+          className='rounded-2xl border border-neutral-200 bg-white p-4'
           multiline={true}
           defaultValue={currentValue}
-          textAlignVertical="top"
-          autoCapitalize="none"
+          textAlignVertical='top'
+          autoCapitalize='none'
         />
       </Screen.Content>
       <Screen.Footer>
         <Button
-          title="Xóa"
+          title='Xóa'
           onPress={handleClear}
           style={{ flex: 1 }}
           theme={{
@@ -74,20 +81,8 @@ export default function SettingEditor() {
             title: { color: AppColors.textMain },
           }}
         />
-        <Button title="Lưu" onPress={handleSave} style={{ flex: 2 }} />
+        <Button title='Lưu' onPress={handleSave} style={{ flex: 2 }} />
       </Screen.Footer>
     </Screen.Container>
   )
 }
-
-const styles = StyleSheet.create({
-  input: {
-    borderColor: AppColors.bgDisabled,
-    backgroundColor: AppColors.white,
-    borderWidth: 1,
-    borderRadius: 20,
-    padding: 16,
-    lineHeight: 20,
-    flex: 1,
-  },
-})

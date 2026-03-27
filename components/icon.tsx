@@ -1,11 +1,11 @@
-import { Image, ImageProps, ImageSource } from 'expo-image'
+import { Image, type ImageProps, type ImageSource } from 'expo-image'
 import React from 'react'
 import {
-  ImageStyle,
+  type ImageRequireSource,
+  type ImageStyle,
+  type StyleProp,
   TouchableOpacity,
-  ViewStyle,
-  ImageRequireSource,
-  StyleProp,
+  type ViewStyle,
 } from 'react-native'
 
 export type IconSource = ImageRequireSource | ImageSource

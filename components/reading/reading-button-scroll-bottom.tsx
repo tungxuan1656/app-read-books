@@ -1,15 +1,21 @@
 import React from 'react'
 import { StyleSheet } from 'react-native'
-import { AppPalette } from '@/assets'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+
+import { AppPalette } from '@/assets'
+
 import { VectorIcon } from '../vector-icon'
 
-function ReadingButtonScrollBottom({ onScrollToBottom }: { onScrollToBottom: () => void }) {
+function ReadingButtonScrollBottom({
+  onScrollToBottom,
+}: {
+  onScrollToBottom: () => void
+}) {
   const insets = useSafeAreaInsets()
   return (
     <VectorIcon
-      name="circle-arrow-down"
-      font="FontAwesome6"
+      name='circle-arrow-down'
+      font='FontAwesome6'
       size={18}
       buttonStyle={{
         ...styles.buttonScrollToBottom,

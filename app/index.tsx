@@ -1,16 +1,22 @@
-import { AppColors, AppPalette } from '@/assets'
-import { GToast } from '@/components/g-toast'
-import HomeBookItem, { useBookActions } from '@/components/home-book-item'
-import { ItemSwipeable, SwipeableAction, ViewSwipeable } from '@/components/item-swipeable'
-import { Screen } from '@/components/screen'
 import { router, useFocusEffect } from 'expo-router'
 import React, { useCallback } from 'react'
-import { FlatList, ListRenderItem, Text, View } from 'react-native'
+import { FlatList, type ListRenderItem, Text, View } from 'react-native'
+
+import { AppColors, AppPalette } from '@/assets'
+import { Divider } from '@/components/divider'
+import { GToast } from '@/components/g-toast'
+import HomeBookItem, { useBookActions } from '@/components/home-book-item'
+import {
+  ItemSwipeable,
+  SwipeableAction,
+  ViewSwipeable,
+} from '@/components/item-swipeable'
+import { Screen } from '@/components/screen'
+import { VectorIcon } from '@/components/vector-icon'
+
 import { AppTypo } from '../constants'
 import useAppStore, { storeActions } from '../controllers/store'
 import { readFolderBooks } from '../utils'
-import { VectorIcon } from '@/components/vector-icon'
-import { Divider } from '@/components/divider'
 
 const BookItemWithSwipe = React.memo(
   ({ id, onDeleteSuccess }: { id: string; onDeleteSuccess: () => void }) => {
@@ -20,9 +26,9 @@ const BookItemWithSwipe = React.memo(
       (_item: any, cb?: () => void) => (
         <ViewSwipeable>
           <SwipeableAction
-            icon="circle-info"
-            iconFont="FontAwesome6"
-            title="Info"
+            icon='circle-info'
+            iconFont='FontAwesome6'
+            title='Info'
             backgroundColor={AppPalette.blue500}
             onPress={() => {
               cb?.()
@@ -31,9 +37,9 @@ const BookItemWithSwipe = React.memo(
             item={id}
           />
           <SwipeableAction
-            icon="delete"
-            iconFont="Feather"
-            title="Xóa"
+            icon='delete'
+            iconFont='Feather'
+            title='Xóa'
             backgroundColor={AppPalette.red500}
             onPress={() => {
               cb?.()
@@ -82,21 +88,28 @@ export default function Home() {
           gap: 8,
           justifyContent: 'space-between',
         }}>
-        <Text style={[AppTypo.h4.semiBold, { marginLeft: 16 }]}>{'Danh sách truyện'}</Text>
+        <Text style={[AppTypo.h4.semiBold, { marginLeft: 16 }]}>
+          {'Danh sách truyện'}
+        </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <VectorIcon
-            name="settings"
-            font="MaterialIcons"
+            name='settings'
+            font='MaterialIcons'
             size={16}
             buttonStyle={{ marginLeft: 8, width: 32, height: 44 }}
             color={AppPalette.gray600}
             onPress={() => router.push('/settings')}
           />
           <VectorIcon
-            name="plus"
-            font="FontAwesome6"
+            name='plus'
+            font='FontAwesome6'
             size={16}
-            buttonStyle={{ marginLeft: 8, width: 32, height: 44, marginRight: 12 }}
+            buttonStyle={{
+              marginLeft: 8,
+              width: 32,
+              height: 44,
+              marginRight: 12,
+            }}
             color={AppPalette.gray600}
             onPress={() => router.push('/add-book')}
           />
@@ -111,7 +124,12 @@ export default function Home() {
           contentContainerStyle={{ paddingBottom: 80, flexGrow: 1 }}
           keyExtractor={(item) => item}
           ListEmptyComponent={
-            <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 100 }}>
+            <View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingTop: 100,
+              }}>
               <Text
                 style={[
                   AppTypo.body.regular,

@@ -1,14 +1,6 @@
-import { ReadingAIMode } from '@/@types/common'
-import { AppPalette } from '@/assets'
-import { AppStyles, AppTypo } from '@/constants'
-import useAppStore, { storeActions } from '@/controllers/store'
-import { RELOAD_CONTENT_EVENT } from '@/hooks/use-reading-content'
-import { getAIActions } from '@/services/ai-actions.service'
-import { clearProcessedChapter } from '@/services/content-processor'
-import { getListFonts } from '@/utils'
 import BottomSheet, {
   BottomSheetBackdrop,
-  BottomSheetBackdropProps,
+  type BottomSheetBackdropProps,
   BottomSheetView,
 } from '@gorhom/bottom-sheet'
 import React, { forwardRef, useCallback, useMemo } from 'react'
@@ -17,8 +9,18 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native'
+
+import { type ReadingAIMode } from '@/@types/common'
+import { AppPalette } from '@/assets'
+import { AppStyles, AppTypo } from '@/constants'
+import useAppStore, { storeActions } from '@/controllers/store'
+import { RELOAD_CONTENT_EVENT } from '@/hooks/use-reading-content'
+import { getAIActions } from '@/services/ai-actions.service'
+import { clearProcessedChapter } from '@/services/content-processor'
+import { getListFonts } from '@/utils'
+
 import { VectorIcon } from './vector-icon'
 
 export interface SheetBookInfoRef {
@@ -30,188 +32,231 @@ type SheetBookInfoProps = {
   onClose?: () => void
 }
 
-const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(({ onClose }, ref) => {
-  const bottomSheetRef = React.useRef<BottomSheet>(null)
-  const { font, fontSize, lineHeight } = useAppStore((state) => state.typography)
-  const readingAIMode = useAppStore((state) => state.readingAIMode)
+const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
+  ({ onClose }, ref) => {
+    const bottomSheetRef = React.useRef<BottomSheet>(null)
+    const { font, fontSize, lineHeight } = useAppStore(
+      (state) => state.typography,
+    )
+    const readingAIMode = useAppStore((state) => state.readingAIMode)
 
-  // Expose methods through ref
-  React.useImperativeHandle(ref, () => ({
-    present: () => {
-      bottomSheetRef.current?.expand()
-    },
-    dismiss: () => {
-      bottomSheetRef.current?.close()
-    },
-  }))
+    // Expose methods through ref
+    React.useImperativeHandle(ref, () => ({
+      present: () => {
+        bottomSheetRef.current?.expand()
+      },
+      dismiss: () => {
+        bottomSheetRef.current?.close()
+      },
+    }))
 
-  const handleClose = useCallback(() => {
-    onClose?.()
-  }, [onClose])
+    const handleClose = useCallback(() => {
+      onClose?.()
+    }, [onClose])
 
-  // Handler cho nút Xử lý lại
-  const handleReprocess = useCallback(async () => {
-    const bookId = useAppStore.getState().reading.bookId
-    const chapterNumber = useAppStore.getState().id2BookReadingChapter[bookId] || 1
-    if (readingAIMode === 'none' || !bookId || !chapterNumber) return
-    try {
-      // Xóa cache của chương hiện tại theo mode (actionKey)
-      await clearProcessedChapter(bookId, chapterNumber, readingAIMode)
+    // Handler cho nút Xử lý lại
+    const handleReprocess = useCallback(async () => {
+      const bookId = useAppStore.getState().reading.bookId
+      const chapterNumber =
+        useAppStore.getState().id2BookReadingChapter[bookId] || 1
+      if (readingAIMode === 'none' || !bookId || !chapterNumber) return
+      try {
+        // Xóa cache của chương hiện tại theo mode (actionKey)
+        await clearProcessedChapter(bookId, chapterNumber, readingAIMode)
 
-      // Gọi callback để trigger reload nội dung
-      DeviceEventEmitter.emit(RELOAD_CONTENT_EVENT)
+        // Gọi callback để trigger reload nội dung
+        DeviceEventEmitter.emit(RELOAD_CONTENT_EVENT)
 
-      // Đóng bottom sheet
-      bottomSheetRef.current?.close()
-    } catch (error) {
-      console.error('Error reprocessing:', error)
-    }
-  }, [readingAIMode])
+        // Đóng bottom sheet
+        bottomSheetRef.current?.close()
+      } catch (error) {
+        console.error('Error reprocessing:', error)
+      }
+    }, [readingAIMode])
 
-  // Memoize font list for better performance
-  const fontList = useMemo(() => getListFonts(), [])
+    // Memoize font list for better performance
+    const fontList = useMemo(() => getListFonts(), [])
 
-  const aiModes = useMemo(() => {
-    const actions = getAIActions()
-    return [
-      { value: 'none', label: 'Không' },
-      ...actions.map((a) => ({ value: a.key, label: a.name })),
-    ]
-  }, [])
+    const aiModes = useMemo(() => {
+      const actions = getAIActions()
+      return [
+        { value: 'none', label: 'Không' },
+        ...actions.map((a) => ({ value: a.key, label: a.name })),
+      ]
+    }, [])
 
-  // Memoize font controls for better performance
-  const fontSizeControls = useMemo(
-    () => (
-      <View style={{ flex: 1 }}>
-        <Text style={styles.titleSection}>{'Cỡ chữ'}</Text>
-        <View style={styles.viewRow}>
-          <VectorIcon
-            name="circle-minus"
-            font="FontAwesome6"
-            color={AppPalette.gray200}
-            size={20}
-            onPress={() => storeActions.setTypography({ fontSize: fontSize - 1 })}
-            buttonProps={{ hitSlop: 10 }}
-          />
-          <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
-            {fontSize}
-          </Text>
-          <VectorIcon
-            name="circle-plus"
-            font="FontAwesome6"
-            color={AppPalette.gray200}
-            size={20}
-            onPress={() => storeActions.setTypography({ fontSize: fontSize + 1 })}
-            buttonProps={{ hitSlop: 10 }}
-          />
+    // Memoize font controls for better performance
+    const fontSizeControls = useMemo(
+      () => (
+        <View style={{ flex: 1 }}>
+          <Text style={styles.titleSection}>{'Cỡ chữ'}</Text>
+          <View style={styles.viewRow}>
+            <VectorIcon
+              name='circle-minus'
+              font='FontAwesome6'
+              color={AppPalette.gray200}
+              size={20}
+              onPress={() =>
+                storeActions.setTypography({ fontSize: fontSize - 1 })
+              }
+              buttonProps={{ hitSlop: 10 }}
+            />
+            <Text
+              style={[
+                AppTypo.caption.semiBold,
+                { width: 24, textAlign: 'center' },
+              ]}>
+              {fontSize}
+            </Text>
+            <VectorIcon
+              name='circle-plus'
+              font='FontAwesome6'
+              color={AppPalette.gray200}
+              size={20}
+              onPress={() =>
+                storeActions.setTypography({ fontSize: fontSize + 1 })
+              }
+              buttonProps={{ hitSlop: 10 }}
+            />
+          </View>
         </View>
-      </View>
-    ),
-    [fontSize],
-  )
+      ),
+      [fontSize],
+    )
 
-  const lineHeightControls = useMemo(
-    () => (
-      <View style={{ flex: 1 }}>
-        <Text style={styles.titleSection}>{'Chiều cao dòng'}</Text>
-        <View style={styles.viewRow}>
-          <VectorIcon
-            name="circle-minus"
-            font="FontAwesome6"
-            color={AppPalette.gray200}
-            size={20}
-            onPress={() => storeActions.setTypography({ lineHeight: (lineHeight * 10 - 1) / 10 })}
-            buttonProps={{ hitSlop: 10 }}
-          />
-          <Text style={[AppTypo.caption.semiBold, { width: 24, textAlign: 'center' }]}>
-            {Math.round(lineHeight * 10) / 10}
-          </Text>
-          <VectorIcon
-            name="circle-plus"
-            font="FontAwesome6"
-            color={AppPalette.gray200}
-            size={20}
-            onPress={() => storeActions.setTypography({ lineHeight: (lineHeight * 10 + 1) / 10 })}
-            buttonProps={{ hitSlop: 10 }}
-          />
+    const lineHeightControls = useMemo(
+      () => (
+        <View style={{ flex: 1 }}>
+          <Text style={styles.titleSection}>{'Chiều cao dòng'}</Text>
+          <View style={styles.viewRow}>
+            <VectorIcon
+              name='circle-minus'
+              font='FontAwesome6'
+              color={AppPalette.gray200}
+              size={20}
+              onPress={() =>
+                storeActions.setTypography({
+                  lineHeight: (lineHeight * 10 - 1) / 10,
+                })
+              }
+              buttonProps={{ hitSlop: 10 }}
+            />
+            <Text
+              style={[
+                AppTypo.caption.semiBold,
+                { width: 24, textAlign: 'center' },
+              ]}>
+              {Math.round(lineHeight * 10) / 10}
+            </Text>
+            <VectorIcon
+              name='circle-plus'
+              font='FontAwesome6'
+              color={AppPalette.gray200}
+              size={20}
+              onPress={() =>
+                storeActions.setTypography({
+                  lineHeight: (lineHeight * 10 + 1) / 10,
+                })
+              }
+              buttonProps={{ hitSlop: 10 }}
+            />
+          </View>
         </View>
-      </View>
-    ),
-    [lineHeight],
-  )
+      ),
+      [lineHeight],
+    )
 
-  const renderFontItem = useCallback(
-    (fontName: string) => (
-      <TouchableOpacity
-        key={fontName}
-        onPress={() => storeActions.setTypography({ font: fontName })}
-        style={[styles.viewItemFont, font === fontName && styles.viewItemSelected]}>
-        <Text style={styles.textItemFont}>{fontName}</Text>
-      </TouchableOpacity>
-    ),
-    [font],
-  )
+    const renderFontItem = useCallback(
+      (fontName: string) => (
+        <TouchableOpacity
+          key={fontName}
+          onPress={() => storeActions.setTypography({ font: fontName })}
+          style={[
+            styles.viewItemFont,
+            font === fontName && styles.viewItemSelected,
+          ]}>
+          <Text style={styles.textItemFont}>{fontName}</Text>
+        </TouchableOpacity>
+      ),
+      [font],
+    )
 
-  const renderReadingMode = useCallback(
-    (mode: { value: string; label: string }) => (
-      <TouchableOpacity
-        key={mode.value}
-        onPress={() => storeActions.setReadingAIMode(mode.value as ReadingAIMode)}
-        style={[styles.viewItemFont, readingAIMode === mode.value && styles.viewItemSelected]}>
-        <Text style={styles.textItemFont}>{mode.label}</Text>
-      </TouchableOpacity>
-    ),
-    [readingAIMode],
-  )
+    const renderReadingMode = useCallback(
+      (mode: { value: string; label: string }) => (
+        <TouchableOpacity
+          key={mode.value}
+          onPress={() =>
+            storeActions.setReadingAIMode(mode.value as ReadingAIMode)
+          }
+          style={[
+            styles.viewItemFont,
+            readingAIMode === mode.value && styles.viewItemSelected,
+          ]}>
+          <Text style={styles.textItemFont}>{mode.label}</Text>
+        </TouchableOpacity>
+      ),
+      [readingAIMode],
+    )
 
-  return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      index={-1}
-      // snapPoints={snapPoints}
-      enablePanDownToClose
-      onClose={handleClose}
-      enableDynamicSizing={true}
-      backdropComponent={renderBackdrop}
-      backgroundStyle={styles.bottomSheetBackground}
-      handleIndicatorStyle={styles.handleIndicator}>
-      <BottomSheetView style={styles.titleContainer}>
-        <View
-          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={styles.title}>{'Cài đặt'}</Text>
-        </View>
-        <Text style={styles.titleSection}>{'Font chữ'}</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-          {fontList.map(renderFontItem)}
-        </View>
-        <Text style={styles.titleSection}>{'Chế độ đọc AI'}</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-          {aiModes.map(renderReadingMode)}
-          <TouchableOpacity
-            onPress={handleReprocess}
-            disabled={readingAIMode === 'none'}
-            style={[
-              styles.viewItemFont,
-              {
-                backgroundColor: readingAIMode === 'none' ? AppPalette.gray300 : AppPalette.red400,
-                flexDirection: 'row',
-                gap: 4,
-                opacity: readingAIMode === 'none' ? 0.7 : 1,
-              },
-            ]}>
-            <VectorIcon name="reload-circle" font="Ionicons" size={16} color="white" />
-            <Text style={[styles.textItemFont, { color: 'white' }]}>{'Xử lý lại'}</Text>
-          </TouchableOpacity>
-        </View>
+    return (
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        // snapPoints={snapPoints}
+        enablePanDownToClose
+        onClose={handleClose}
+        enableDynamicSizing={true}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.handleIndicator}>
+        <BottomSheetView style={styles.titleContainer}>
+          <View className='flex-row items-center justify-between'>
+            <Text style={styles.title}>{'Cài đặt'}</Text>
+          </View>
+          <Text style={styles.titleSection}>{'Font chữ'}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {fontList.map(renderFontItem)}
+          </View>
+          <Text style={styles.titleSection}>{'Chế độ đọc AI'}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {aiModes.map(renderReadingMode)}
+            <TouchableOpacity
+              onPress={handleReprocess}
+              disabled={readingAIMode === 'none'}
+              style={[
+                styles.viewItemFont,
+                {
+                  backgroundColor:
+                    readingAIMode === 'none'
+                      ? AppPalette.gray300
+                      : AppPalette.red400,
+                  flexDirection: 'row',
+                  gap: 4,
+                  opacity: readingAIMode === 'none' ? 0.7 : 1,
+                },
+              ]}>
+              <VectorIcon
+                name='reload-circle'
+                font='Ionicons'
+                size={16}
+                color='white'
+              />
+              <Text style={[styles.textItemFont, { color: 'white' }]}>
+                {'Xử lý lại'}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          {fontSizeControls}
-          {lineHeightControls}
-        </View>
-      </BottomSheetView>
-    </BottomSheet>
-  )
-})
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            {fontSizeControls}
+            {lineHeightControls}
+          </View>
+        </BottomSheetView>
+      </BottomSheet>
+    )
+  },
+)
 
 SheetBookInfo.displayName = 'SheetBookInfo'
 

@@ -23,6 +23,4 @@ ios/
 android/
 
 .env
-.gitnexus
-.agents/skills/gitnexus/*
 .agents/skills/generated/*

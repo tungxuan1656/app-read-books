@@ -1,118 +1,12 @@
-<!-- gitnexus:start -->
-# GitNexus — Code Intelligence
-
-This project is indexed by GitNexus as **app-read-books** (346 symbols, 776 relationships, 25 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
-
-> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
-
-## Always Do
-
-- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
-- **MUST run `gitnexus_detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows.
-- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
-- When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
-- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
-
-## When Debugging
-
-1. `gitnexus_query({query: "<error or symptom>"})` — find execution flows related to the issue
-2. `gitnexus_context({name: "<suspect function>"})` — see all callers, callees, and process participation
-3. `READ gitnexus://repo/app-read-books/process/{processName}` — trace the full execution flow step by step
-4. For regressions: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — see what your branch changed
-
-## When Refactoring
-
-- **Renaming**: MUST use `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` first. Review the preview — graph edits are safe, text_search edits need manual review. Then run with `dry_run: false`.
-- **Extracting/Splitting**: MUST run `gitnexus_context({name: "target"})` to see all incoming/outgoing refs, then `gitnexus_impact({target: "target", direction: "upstream"})` to find all external callers before moving code.
-- After any refactor: run `gitnexus_detect_changes({scope: "all"})` to verify only expected files changed.
-
-## Never Do
-
-- NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
-- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
-- NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
-- NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
-
-## Tools Quick Reference
-
-| Tool | When to use | Command |
-|------|-------------|---------|
-| `query` | Find code by concept | `gitnexus_query({query: "auth validation"})` |
-| `context` | 360-degree view of one symbol | `gitnexus_context({name: "validateUser"})` |
-| `impact` | Blast radius before editing | `gitnexus_impact({target: "X", direction: "upstream"})` |
-| `detect_changes` | Pre-commit scope check | `gitnexus_detect_changes({scope: "staged"})` |
-| `rename` | Safe multi-file rename | `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` |
-| `cypher` | Custom graph queries | `gitnexus_cypher({query: "MATCH ..."})` |
-
-## Impact Risk Levels
-
-| Depth | Meaning | Action |
-|-------|---------|--------|
-| d=1 | WILL BREAK — direct callers/importers | MUST update these |
-| d=2 | LIKELY AFFECTED — indirect deps | Should test |
-| d=3 | MAY NEED TESTING — transitive | Test if critical path |
-
-## Resources
-
-| Resource | Use for |
-|----------|---------|
-| `gitnexus://repo/app-read-books/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/app-read-books/clusters` | All functional areas |
-| `gitnexus://repo/app-read-books/processes` | All execution flows |
-| `gitnexus://repo/app-read-books/process/{name}` | Step-by-step execution trace |
-
-## Self-Check Before Finishing
-
-Before completing any code modification task, verify:
-1. `gitnexus_impact` was run for all modified symbols
-2. No HIGH/CRITICAL risk warnings were ignored
-3. `gitnexus_detect_changes()` confirms changes match expected scope
-4. All d=1 (WILL BREAK) dependents were updated
-
-## Keeping the Index Fresh
-
-After committing code changes, the GitNexus index becomes stale. Re-run analyze to update it:
-
-```bash
-npx gitnexus analyze
-```
-
-If the index previously included embeddings, preserve them by adding `--embeddings`:
-
-```bash
-npx gitnexus analyze --embeddings
-```
-
-To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.embeddings` field shows the count (0 means no embeddings). **Running analyze without `--embeddings` will delete any previously generated embeddings.**
-
-> Claude Code users: A PostToolUse hook handles this automatically after `git commit` and `git merge`.
-
-## CLI
-
-| Task | Read this skill file |
-|------|---------------------|
-| Understand architecture / "How does X work?" | `.agents/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.agents/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.agents/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.agents/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.agents/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.agents/skills/gitnexus/gitnexus-cli/SKILL.md` |
-| Work in the Services area (42 symbols) | `.agents/skills/generated/services/SKILL.md` |
-| Work in the Components area (16 symbols) | `.agents/skills/generated/components/SKILL.md` |
-| Work in the Hooks area (12 symbols) | `.agents/skills/generated/hooks/SKILL.md` |
-| Work in the Ai-providers area (5 symbols) | `.agents/skills/generated/ai-providers/SKILL.md` |
-
-<!-- gitnexus:end -->
-
 # Mobile App Guidelines
 
-You are a programming assistant specializing in TypeScript, React 19, React Native 0.81 (Expo SDK 54), Expo Router, Zustand, MMKV, Google GenAI, and CapCut TTS integration. Always respond in English.
+You are a programming assistant specializing in TypeScript, React 19, React Native 0.81 (Expo SDK 54), Expo Router, Zustand, MMKV, NativeWind, ESLint, and Google GenAI integration. Always respond in English.
 
 ## General Rules
 
 - **Autonomy**: Focus on execution first. Keep explanations short unless asked.
 - **Dependencies**: Prefer existing Expo/React Native stack. Add new packages only when necessary.
-- **Code hygiene**: After code changes, run `pnpm run lint` and `pnpm run tsc-check`.
+- **Code hygiene**: After code changes, run `pnpm run lint` (or `pnpm lint`) and `pnpm run tsc-check`.
 - **Routing**: Follow file-based routing in `app/` (`expo-router`).
 - **State management**: Use `useAppStore` and `storeActions` from `controllers/store.ts`; avoid ad-hoc global state.
 - **Business logic**: Put side-effect/business logic in `services/` and orchestration in `hooks/`; keep screens/components lean.
@@ -128,22 +22,67 @@ When performing tasks, you MUST reference relevant project docs/files below and 
 
 | Use Case | Reference | Description |
 | :-- | :-- | :-- |
-| **System Overview** | [docs/PROJECT_DOCS.md](./docs/PROJECT_DOCS.md) | Product scope, architecture, and operational flows (startup, download, reading AI, TTS). |
+| **System Overview** | [docs/PROJECT_DOCS.md](./docs/PROJECT_DOCS.md) | Product scope, architecture, and operational flows (startup, download, reading AI). |
 | **App Boot & Navigation** | [app/_layout.tsx](./app/_layout.tsx) | Root initialization, splash handling, reading resume flow, and global providers. |
 | **State & Persistence** | [controllers/store.ts](./controllers/store.ts), [controllers/mmkv.ts](./controllers/mmkv.ts) | Zustand store shape, settings contracts, and MMKV persistence pattern. |
 | **Reading Pipeline** | [hooks/use-reading-content.ts](./hooks/use-reading-content.ts), [services/reading.service.ts](./services/reading.service.ts), [services/content-processor.ts](./services/content-processor.ts) | How chapters are loaded, processed (none/translate/summary), and rendered. |
 | **AI Provider Pattern** | [services/ai.service.ts](./services/ai.service.ts), [services/ai-providers/gemini.provider.ts](./services/ai-providers/gemini.provider.ts), [services/ai-providers/copilot.provider.ts](./services/ai-providers/copilot.provider.ts) | Provider abstraction and model-specific integration details. |
-| **TTS Pipeline** | [services/tts.service.ts](./services/tts.service.ts), [hooks/use-tts-player.ts](./hooks/use-tts-player.ts), [services/audio-player.service.ts](./services/audio-player.service.ts) | CapCut WebSocket TTS conversion, playback lifecycle, and cancellation behavior. |
 | **Download & Book Import** | [app/add-book/index.tsx](./app/add-book/index.tsx), [services/download.service.ts](./services/download.service.ts), [utils/book.helpers.ts](./utils/book.helpers.ts) | Supabase listing, zip download/unzip, local library refresh. |
 | **Cache & Prefetch** | [services/database.service.ts](./services/database.service.ts), [hooks/use-chapter-prefetch.ts](./hooks/use-chapter-prefetch.ts), [utils/content-cache.helpers.ts](./utils/content-cache.helpers.ts), [app/settings/cache-manager.tsx](./app/settings/cache-manager.tsx) | SQLite processed-content cache, chapter prefetch flow, and cache management UX. |
 | **UI Reuse Patterns** | [components/](./components) | Shared primitives and reading-specific controls; prefer reuse over new bespoke components. |
 | **Types & Constants** | [@types/](./@types), [constants/](./constants) | Shared data contracts, reading modes, styles, and settings configs. |
+| **Standards Index** | [docs/standards/README.md](./docs/standards/README.md) | Entry point for coding standards and implementation patterns. |
+| **Navigation Standard** | [docs/standards/expo-router-navigation-pattern.md](./docs/standards/expo-router-navigation-pattern.md) | Canonical routing and navigation conventions. |
+| **State Standard** | [docs/standards/zustand-store-pattern.md](./docs/standards/zustand-store-pattern.md) | Store contracts, action patterns, and persistence guidance. |
+| **Validation Standard** | [docs/standards/testing-and-validation-pattern.md](./docs/standards/testing-and-validation-pattern.md) | Test/validation workflow and verification checklist. |
+| **Naming Standard** | [docs/standards/naming-and-conventions-pattern.md](./docs/standards/naming-and-conventions-pattern.md), [docs/standards/type-naming-pattern.md](./docs/standards/type-naming-pattern.md) | File/type naming and convention rules. |
+| **CI/CD Automation** | [fastlane/Fastfile](./fastlane/Fastfile), [fastlane/README.md](./fastlane/README.md) | Delivery lanes for Android/iOS build and distribution. |
 
-## Main Stack (Quick Link)
+## Main Stack (from package.json)
 
-- **Framework**: [Expo](https://docs.expo.dev/) + [Expo Router](https://docs.expo.dev/router/introduction/)
-- **Runtime**: [React Native](https://reactnative.dev/) + [React 19](https://react.dev/)
-- **State**: [Zustand](https://zustand.docs.pmnd.rs/) + MMKV persistence
-- **Storage**: [expo-file-system](https://docs.expo.dev/versions/latest/sdk/filesystem/) + [expo-sqlite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
-- **AI**: [Google GenAI SDK](https://www.npmjs.com/package/@google/genai) + internal provider abstraction
-- **Audio/TTS**: [react-native-track-player](https://rntp.dev/) + CapCut WebSocket TTS flow
+- **App framework**: [Expo SDK 54](https://docs.expo.dev/) + [Expo Router](https://docs.expo.dev/router/introduction/)
+- **Runtime**: [React Native 0.81](https://reactnative.dev/) + [React 19](https://react.dev/)
+- **Language**: TypeScript 5.9
+- **State**: [Zustand](https://zustand.docs.pmnd.rs/) + [react-native-mmkv](https://github.com/mrousavy/react-native-mmkv)
+- **Storage & cache**: [expo-file-system](https://docs.expo.dev/versions/latest/sdk/filesystem/) + [expo-sqlite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
+- **Navigation**: [expo-router](https://docs.expo.dev/router/introduction/) + React Navigation Native
+- **AI**: [Google GenAI SDK](https://www.npmjs.com/package/@google/genai) with internal multi-provider service layer
+- **UI & styling**: NativeWind + TailwindCSS + `@gorhom/bottom-sheet`
+- **UX/platform libs**: `react-native-reanimated`, `react-native-gesture-handler`, `react-native-screens`, `expo-image`
+- **Code quality**: ESLint 9 (`eslint-config-expo`, `eslint-plugin-tailwindcss`, `eslint-plugin-unicorn`) + TypeScript noEmit check
+
+## CI/CD (Fastlane)
+
+- **Fastlane is the delivery entry point** for build and distribution automation.
+- **Android lanes**: `fastlane android build`, `fastlane android upload`, `fastlane android distribute`.
+- **iOS lanes**: `fastlane ios prepare`, `fastlane ios build`, `fastlane ios upload`, `fastlane ios distribute`.
+- When modifying release workflows, update both `fastlane/Fastfile` and related project documentation.
+
+## Installed Skills (Current `.agents/skills`)
+
+Use only relevant skills for the task; prefer minimal-sufficient combinations.
+
+- **Core workflow**: `using-superpowers`, `concise-planning`, `writing-plans`, `executing-plans`, `lint-and-validate`, `verification-before-completion`, `kaizen`
+- **Debugging & quality**: `systematic-debugging`, `code-review-checklist`, `requesting-code-review`, `receiving-code-review`
+- **Frontend/mobile**: `react-best-practices`, `react-patterns`, `frontend-design`, `ui-ux-pro-max`, `tailwind-patterns`, `browser-automation`, `e2e-testing-patterns`
+- **Backend/API/security**: `backend-dev-guidelines`, `api-patterns`, `api-security-best-practices`, `auth-implementation-patterns`, `nodejs-best-practices`, `database-design`, `javascript-pro`, `typescript-expert`
+- **Security testing**: `ethical-hacking-methodology`, `sql-injection-testing`, `xss-html-injection`, `broken-authentication`
+- **Git & collaboration**: `git-pushing`, `using-git-worktrees`, `finishing-a-development-branch`, `subagent-driven-development`, `dispatching-parallel-agents`
+- **TDD/testing**: `test-driven-development`
+- **Docs & skill authoring**: `writing-skills`
+
+## Code Review Priority (Required)
+
+- **Review-first mindset**: When asked to review, prioritize bugs, regressions, security risks, and missing tests over style-only feedback.
+- **Use review skills explicitly**:
+  - `code-review-checklist` for systematic findings.
+  - `requesting-code-review` before merge-ready changes.
+  - `receiving-code-review` when implementing feedback.
+  - `systematic-debugging` if a finding indicates runtime or logic failure.
+- **Finding format**:
+  - Report by severity first (`High`, `Medium`, `Low`).
+  - Include exact file path and line reference when possible.
+  - Explain impact and proposed fix in 1-3 concise bullets.
+- **Minimum validation after applying review fixes**:
+  - `pnpm run lint`
+  - `pnpm run tsc-check`

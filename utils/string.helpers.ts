@@ -36,11 +36,11 @@ export const splitContentToParagraph = (content: string): string[] => {
 /**
  * Helper function to check if text contains letters, including Vietnamese characters.
  */
-const hasLetters = (text: string): boolean => {
-  return /[a-zA-ZàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđĐ]/.test(text)
+export const hasLetters = (text: string): boolean => {
+  return /[a-zA-ZàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđĐ]/.test(
+    text,
+  )
 }
-
-
 
 function removeDotsAndDashesComma(str: string): string {
   const words = str.split(' ')

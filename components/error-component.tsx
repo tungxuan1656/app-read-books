@@ -1,8 +1,10 @@
-import React, { type ErrorInfo, useState } from 'react'
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
-import { Screen } from './screen'
-import { AppTypo } from '@/constants'
+import React, { type ErrorInfo } from 'react'
+import { ScrollView, Text, View } from 'react-native'
+
 import { AppColors } from '@/assets'
+import { AppTypo } from '@/constants'
+
+import { Screen } from './screen'
 
 export interface ErrorComponentProps {
   error: Error
@@ -12,7 +14,7 @@ export interface ErrorComponentProps {
 
 export const ErrorComponent = (props?: ErrorComponentProps) => {
   return (
-    <Screen.Container safe="all">
+    <Screen.Container safe='all'>
       <Screen.Content>
         <View
           style={{
@@ -39,10 +41,14 @@ export const ErrorComponent = (props?: ErrorComponentProps) => {
                 backgroundColor: '#E0E0E0',
                 padding: 12,
               }}>
-              <Text style={{ color: AppColors.textExtra, fontSize: 12 }} selectable>
+              <Text
+                style={{ color: AppColors.textExtra, fontSize: 12 }}
+                selectable>
                 {JSON.stringify(props?.error, null, 2)}
               </Text>
-              <Text style={{ color: AppColors.textExtra, fontSize: 12 }} selectable>
+              <Text
+                style={{ color: AppColors.textExtra, fontSize: 12 }}
+                selectable>
                 {JSON.stringify(props?.errorInfo, null, 2)}
               </Text>
             </View>

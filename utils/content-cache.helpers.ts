@@ -15,7 +15,10 @@ export const clearBookCache = async (bookId: string): Promise<void> => {
     await dbService.clearBookCache(bookId)
     console.log(`✅ [Content Cache] Cache cleared for book: ${bookId}`)
   } catch (error) {
-    console.error(`❌ [Content Cache] Error clearing cache for book ${bookId}:`, error)
+    console.error(
+      `❌ [Content Cache] Error clearing cache for book ${bookId}:`,
+      error,
+    )
     throw error
   }
 }
@@ -23,8 +26,13 @@ export const clearBookCache = async (bookId: string): Promise<void> => {
 /**
  * Xóa cache của một chapter cụ thể
  */
-export const clearChapterCache = async (bookId: string, chapterNumber: number): Promise<void> => {
-  console.log(`🗑️ [Content Cache] Clearing cache for book ${bookId}, chapter ${chapterNumber}`)
+export const clearChapterCache = async (
+  bookId: string,
+  chapterNumber: number,
+): Promise<void> => {
+  console.log(
+    `🗑️ [Content Cache] Clearing cache for book ${bookId}, chapter ${chapterNumber}`,
+  )
 
   try {
     await dbService.deleteProcessedChapter(bookId, chapterNumber)
@@ -34,8 +42,6 @@ export const clearChapterCache = async (bookId: string, chapterNumber: number): 
     throw error
   }
 }
-
-
 
 /**
  * Xóa toàn bộ cache - sử dụng cẩn thận

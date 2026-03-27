@@ -139,7 +139,11 @@ class DatabaseService {
     }
   }
 
-  async deleteProcessedChapter(bookId: string, chapter: number, mode?: ReadingMode): Promise<void> {
+  async deleteProcessedChapter(
+    bookId: string,
+    chapter: number,
+    mode?: ReadingMode,
+  ): Promise<void> {
     if (!this.db) await this.initialize()
 
     try {
@@ -160,7 +164,9 @@ class DatabaseService {
     }
   }
 
-  async getProcessedChaptersForBook(bookId: string): Promise<ProcessedChapter[]> {
+  async getProcessedChaptersForBook(
+    bookId: string,
+  ): Promise<ProcessedChapter[]> {
     if (!this.db) await this.initialize()
 
     try {
@@ -180,12 +186,15 @@ class DatabaseService {
 
     try {
       if (mode) {
-        await this.db!.runAsync('DELETE FROM processed_chapters WHERE book_id = ? AND mode = ?', [
-          bookId,
-          mode,
-        ])
+        await this.db!.runAsync(
+          'DELETE FROM processed_chapters WHERE book_id = ? AND mode = ?',
+          [bookId, mode],
+        )
       } else {
-        await this.db!.runAsync('DELETE FROM processed_chapters WHERE book_id = ?', [bookId])
+        await this.db!.runAsync(
+          'DELETE FROM processed_chapters WHERE book_id = ?',
+          [bookId],
+        )
       }
     } catch (error) {
       console.error('Error clearing book cache:', error)
@@ -220,7 +229,10 @@ class DatabaseService {
     if (!this.db) await this.initialize()
 
     try {
-      const chapters = await this.db!.getAllAsync<{ mode: string; count: number }>(
+      const chapters = await this.db!.getAllAsync<{
+        mode: string
+        count: number
+      }>(
         'SELECT mode, COUNT(*) as count FROM processed_chapters WHERE book_id = ? GROUP BY mode',
         [bookId],
       )

@@ -1,5 +1,5 @@
-import { unzip } from 'react-native-zip-archive'
 import { File } from 'expo-file-system'
+
 import { isFileAsync } from '../utils'
 
 export const getFilenameOfUrl = (url: string) => {
