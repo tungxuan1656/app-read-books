@@ -46,7 +46,7 @@ const Reading = () => {
 
   return (
     <View className='flex-1'>
-      <Screen.Container safe={'top'} style={{ backgroundColor: '#F5F1E5' }}>
+      <Screen.Container safe={'top'} className='bg-[#F5F1E5]'>
         <View className='mx-4 flex-row items-center gap-2'>
           <Text className='flex-1 text-xss font-normal' numberOfLines={1}>
             【{chapter.index}】{chapter.name || 'Chương không có tên'}

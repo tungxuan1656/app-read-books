@@ -45,7 +45,7 @@ export const ItemSwipeable = React.memo(
           renderActions?.(item, () => refSwipeable.current?.close?.())
         }
         ref={refSwipeable}>
-        <View className={className ?? 'bg-white'} style={[style]}>
+        <View className={className ?? 'bg-white'} style={style}>
           {children}
         </View>
       </Swipeable>
@@ -100,7 +100,7 @@ export const ViewSwipeable = ({
   children?: React.ReactNode | JSX.Element | JSX.Element[]
 }) => {
   return (
-    <View className={`flex-row p-0 ${className ?? ''}`} style={[style]}>
+    <View className={`flex-row p-0 ${className ?? ''}`} style={style}>
       {children}
     </View>
   )

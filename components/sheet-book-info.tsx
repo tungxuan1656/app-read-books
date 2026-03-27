@@ -4,13 +4,7 @@ import BottomSheet, {
   BottomSheetView,
 } from '@gorhom/bottom-sheet'
 import React, { forwardRef, useCallback, useMemo } from 'react'
-import {
-  DeviceEventEmitter,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { DeviceEventEmitter, Text, TouchableOpacity, View } from 'react-native'
 
 import { type ReadingAIMode } from '@/@types/common'
 import { AppColors } from '@/assets'
@@ -18,7 +12,7 @@ import useAppStore, { storeActions } from '@/controllers/store'
 import { RELOAD_CONTENT_EVENT } from '@/hooks/use-reading-content'
 import { getAIActions } from '@/services/ai-actions.service'
 import { clearProcessedChapter } from '@/services/content-processor'
-import { getListFonts } from '@/utils'
+import { cn, getListFonts } from '@/utils'
 
 import { VectorIcon } from './vector-icon'
 
@@ -87,9 +81,9 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
     // Memoize font controls for better performance
     const fontSizeControls = useMemo(
       () => (
-        <View style={{ flex: 1 }}>
+        <View className='flex-1'>
           <Text className='text-ssm font-medium'>{'Cỡ chữ'}</Text>
-          <View style={styles.viewRow}>
+          <View className='flex-row items-center gap-2'>
             <VectorIcon
               name='circle-minus'
               font='FontAwesome6'
@@ -100,9 +94,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
               }
               buttonProps={{ hitSlop: 10 }}
             />
-            <Text
-              style={[{ width: 24, textAlign: 'center' }]}
-              className='text-xs font-semibold'>
+            <Text className='w-6 text-center text-xs font-semibold'>
               {fontSize}
             </Text>
             <VectorIcon
@@ -123,9 +115,9 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
 
     const lineHeightControls = useMemo(
       () => (
-        <View style={{ flex: 1 }}>
+        <View className='flex-1'>
           <Text className='text-ssm font-medium'>{'Chiều cao dòng'}</Text>
-          <View style={styles.viewRow}>
+          <View className='flex-row items-center gap-2'>
             <VectorIcon
               name='circle-minus'
               font='FontAwesome6'
@@ -138,9 +130,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
               }
               buttonProps={{ hitSlop: 10 }}
             />
-            <Text
-              style={[{ width: 24, textAlign: 'center' }]}
-              className='text-xs font-semibold'>
+            <Text className='w-6 text-center text-xs font-semibold'>
               {Math.round(lineHeight * 10) / 10}
             </Text>
             <VectorIcon
@@ -166,11 +156,11 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
         <TouchableOpacity
           key={fontName}
           onPress={() => storeActions.setTypography({ font: fontName })}
-          style={[
-            styles.viewItemFont,
-            font === fontName && styles.viewItemSelected,
-          ]}>
-          <Text style={styles.textItemFont}>{fontName}</Text>
+          className={cn(
+            'items-center justify-center rounded-full bg-gray-50 px-2 py-1.5',
+            font === fontName && 'bg-blue-50',
+          )}>
+          <Text className='text-xs font-normal'>{fontName}</Text>
         </TouchableOpacity>
       ),
       [font],
@@ -183,11 +173,11 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
           onPress={() =>
             storeActions.setReadingAIMode(mode.value as ReadingAIMode)
           }
-          style={[
-            styles.viewItemFont,
-            readingAIMode === mode.value && styles.viewItemSelected,
-          ]}>
-          <Text style={styles.textItemFont}>{mode.label}</Text>
+          className={cn(
+            'items-center justify-center rounded-full bg-gray-50 px-2 py-1.5',
+            readingAIMode === mode.value && 'bg-blue-50',
+          )}>
+          <Text className='text-xs font-normal'>{mode.label}</Text>
         </TouchableOpacity>
       ),
       [readingAIMode],
@@ -202,38 +192,32 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
         onClose={handleClose}
         enableDynamicSizing={true}
         backdropComponent={renderBackdrop}
-        backgroundStyle={styles.bottomSheetBackground}
-        handleIndicatorStyle={styles.handleIndicator}>
-        <BottomSheetView style={styles.titleContainer}>
+        backgroundStyle={BOTTOM_SHEET_BACKGROUND}
+        handleIndicatorStyle={HANDLE_INDICATOR}>
+        <BottomSheetView className='flex-1 px-4 pb-[60px] pt-3'>
           <View className='flex-row items-center justify-between'>
             <Text className='text-lg font-medium text-gray-900'>
               {'Cài đặt'}
             </Text>
           </View>
           <Text className='mb-2 mt-4 text-ssm font-medium'>{'Font chữ'}</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          <View className='flex-row flex-wrap gap-1.5'>
             {fontList.map(renderFontItem)}
           </View>
           <Text className='mb-2 mt-4 text-ssm font-medium'>
             {'Chế độ đọc AI'}
           </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          <View className='flex-row flex-wrap gap-1.5'>
             {aiModes.map(renderReadingMode)}
             <TouchableOpacity
               onPress={handleReprocess}
               disabled={readingAIMode === 'none'}
-              style={[
-                styles.viewItemFont,
-                {
-                  backgroundColor:
-                    readingAIMode === 'none'
-                      ? AppColors.gray300
-                      : AppColors.red400,
-                  flexDirection: 'row',
-                  gap: 4,
-                  opacity: readingAIMode === 'none' ? 0.7 : 1,
-                },
-              ]}>
+              className={cn(
+                'flex-row items-center justify-center gap-1 rounded-full px-2 py-1.5',
+                readingAIMode === 'none'
+                  ? 'bg-gray-300 opacity-70'
+                  : 'bg-red-400',
+              )}>
               <VectorIcon
                 name='reload-circle'
                 font='Ionicons'
@@ -246,8 +230,7 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
             </TouchableOpacity>
           </View>
 
-          <View
-            style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View className='flex-row justify-between'>
             {fontSizeControls}
             {lineHeightControls}
           </View>
@@ -265,42 +248,18 @@ const renderBackdrop = (props: BottomSheetBackdropProps) => (
   <BottomSheetBackdrop {...props} disappearsOnIndex={-1} />
 )
 
-const styles = StyleSheet.create({
-  bottomSheetBackground: {
-    backgroundColor: AppColors.white,
-    borderTopRightRadius: 24,
-    borderTopLeftRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.53,
-    shadowRadius: 13.97,
-    elevation: 21,
-  },
-  handleIndicator: {
-    backgroundColor: AppColors.gray200,
-    width: 40,
-  },
-  titleContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingBottom: 60,
-    paddingTop: 12,
-  },
-  viewItemFont: {
-    borderRadius: 30,
-    backgroundColor: AppColors.gray50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  viewItemSelected: {
-    backgroundColor: AppColors.blue50,
-  },
-  textItemFont: { fontSize: 12, fontWeight: '400' },
-  viewRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-})
+const BOTTOM_SHEET_BACKGROUND = {
+  backgroundColor: AppColors.white,
+  borderTopRightRadius: 24,
+  borderTopLeftRadius: 24,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 10 },
+  shadowOpacity: 0.53,
+  shadowRadius: 13.97,
+  elevation: 21,
+}
+
+const HANDLE_INDICATOR = {
+  backgroundColor: AppColors.gray200,
+  width: 40,
+}

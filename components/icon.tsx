@@ -37,7 +37,7 @@ export const Icon = ({
     <TouchableOpacity
       onPress={onPress}
       className={`items-center justify-center ${buttonClassName ?? ''}`}
-      style={[buttonStyle]}>
+      style={buttonStyle}>
       <Image
         className={className}
         style={[{ width: size, height: size }, style]}

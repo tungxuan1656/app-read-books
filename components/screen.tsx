@@ -17,11 +17,14 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { cn } from '@/utils'
+
 import { VectorIcon } from './vector-icon'
 
 type ContainerProps = {
   safe?: 'all' | 'bottom' | 'top' | 'none'
   style?: StyleProp<ViewStyle>
+  className?: string
   children?: React.ReactNode
 }
 
@@ -29,11 +32,12 @@ const Container: React.FC<ContainerProps> = ({
   children,
   safe = 'bottom',
   style = {},
+  className,
 }) => {
   const insets = useSafeAreaInsets()
 
   return (
-    <View className='flex-1 bg-white' style={[style]}>
+    <View className={cn('flex-1 bg-white', className)} style={style}>
       <StatusBar barStyle='dark-content' backgroundColor='#ffffff' />
       <View
         style={{
@@ -50,6 +54,7 @@ const Container: React.FC<ContainerProps> = ({
 type HeaderProps = {
   safeTop?: boolean
   style?: StyleProp<ViewStyle>
+  className?: string
   ItemLeft?: React.ReactNode
   ItemRight?: React.ReactNode
   title?: string
@@ -69,13 +74,14 @@ const Header: React.FC<HeaderProps> = ({
   hasClose = false,
   titleStyle,
   style,
+  className,
   onClose,
   tintColor,
 }) => {
   const insets = useSafeAreaInsets()
 
   return (
-    <View className='bg-white' style={[style]}>
+    <View className={cn('bg-white', className)} style={style}>
       <View
         className='-top-1 h-11 flex-row items-center bg-white'
         style={[safeTop && { marginTop: insets.top }]}>
@@ -105,7 +111,7 @@ const Header: React.FC<HeaderProps> = ({
           {ItemLeft}
         </View>
         <Text
-          style={[{ color: tintColor ?? '#111827' }, titleStyle]}
+          style={[tintColor ? { color: tintColor } : undefined, titleStyle]}
           className='flex-1 text-base font-semibold'
           numberOfLines={1}>
           {title}
@@ -138,7 +144,11 @@ const Content: React.FC<ContentProps> = ({
   showLoading = false,
 }) => {
   if (showLoading) {
-    return <ActivityIndicator style={[{ flex: 1 }, style]} size='small' />
+    return (
+      <View className='flex-1 items-center justify-center' style={style}>
+        <ActivityIndicator size='small' />
+      </View>
+    )
   }
 
   if (useKeyboard) {
@@ -148,8 +158,8 @@ const Content: React.FC<ContentProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         {useScroll ? (
           <ScrollView
-            className={className}
-            style={[{ flex: 1 }, style]}
+            className={cn('flex-1', className)}
+            style={style}
             keyboardShouldPersistTaps={'handled'}
             contentContainerStyle={contentContainerStyle}
             refreshControl={refreshControl}>
@@ -157,7 +167,7 @@ const Content: React.FC<ContentProps> = ({
           </ScrollView>
         ) : (
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View className={className} style={[{ flex: 1 }, style]}>
+            <View className={cn('flex-1', className)} style={style}>
               {children}
             </View>
           </TouchableWithoutFeedback>
@@ -169,8 +179,8 @@ const Content: React.FC<ContentProps> = ({
   if (useScroll) {
     return (
       <ScrollView
-        className={className}
-        style={[{ flex: 1 }, style]}
+        className={cn('flex-1', className)}
+        style={style}
         refreshControl={refreshControl}
         contentContainerStyle={contentContainerStyle}>
         {children}
@@ -179,7 +189,7 @@ const Content: React.FC<ContentProps> = ({
   }
 
   return (
-    <View className={className} style={[{ flex: 1 }, style]}>
+    <View className={cn('flex-1', className)} style={style}>
       {children}
     </View>
   )

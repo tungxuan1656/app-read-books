@@ -102,7 +102,7 @@ export const VectorIcon = ({
     <TouchableOpacity
       onPress={onPress}
       className={`items-center justify-center ${buttonClassName ?? ''}`}
-      style={[buttonStyle]}
+      style={buttonStyle}
       {...buttonProps}>
       {/* @ts-ignore */}
       <IconComponent

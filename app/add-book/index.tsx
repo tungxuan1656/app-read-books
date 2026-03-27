@@ -168,9 +168,7 @@ const AddBook = () => {
         />
       </Screen.Content>
       {processing ? (
-        <View
-          className='absolute inset-0 items-center justify-center'
-          style={{ gap: 10, backgroundColor: '#fefefeaa' }}>
+        <View className='absolute inset-0 items-center justify-center gap-2.5 bg-[#fefefeaa]'>
           <ActivityIndicator />
           <Text className='text-xs font-semibold'>{processing}</Text>
         </View>

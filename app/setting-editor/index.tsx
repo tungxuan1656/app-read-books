@@ -45,10 +45,7 @@ export default function SettingEditor() {
     <Screen.Container>
       <Screen.Header title={label} />
       <Divider />
-      <Screen.Content
-        useKeyboard
-        className='bg-slate-50 px-4 py-5'
-        style={{ gap: 12 }}>
+      <Screen.Content useKeyboard className='gap-3 bg-slate-50 px-4 py-5'>
         {description ? (
           <Text className='text-xs font-normal text-gray-500'>
             {description}
@@ -69,13 +66,13 @@ export default function SettingEditor() {
         <Button
           title='Xóa'
           onPress={handleClear}
-          style={{ flex: 1 }}
+          className='flex-1'
           theme={{
             button: { backgroundColor: AppColors.gray300 },
             title: { color: AppColors.gray900 },
           }}
         />
-        <Button title='Lưu' onPress={handleSave} style={{ flex: 2 }} />
+        <Button title='Lưu' onPress={handleSave} className='flex-[2]' />
       </Screen.Footer>
     </Screen.Container>
   )

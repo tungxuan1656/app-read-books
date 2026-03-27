@@ -10,19 +10,13 @@ type Props = {
 }
 
 export const Divider: React.FC<Props> = React.memo(
-  ({
-    color = '#e2e8f0',
-    width = 1,
-    style,
-    className,
-    direction = 'vertical',
-  }) => {
+  ({ color, width = 1, style, className, direction = 'vertical' }) => {
     return (
       <View
-        className={className}
+        className={`${direction === 'vertical' ? 'h-px bg-slate-200' : 'w-px bg-slate-200'} ${className ?? ''}`}
         style={[
-          { backgroundColor: color },
           direction === 'vertical' ? { height: width } : { width: width },
+          color ? { backgroundColor: color } : undefined,
           style,
         ]}
       />

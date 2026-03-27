@@ -1,5 +1,4 @@
 import React from 'react'
-import { StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AppColors } from '@/assets'
@@ -18,9 +17,10 @@ function ReadingButtonScrollBottom({
       font='FontAwesome6'
       size={18}
       buttonStyle={{
-        ...styles.buttonScrollToBottom,
         bottom: Math.max(10, insets.bottom) - 16,
+        position: 'absolute',
       }}
+      buttonClassName='absolute size-12 self-center rounded-full bg-transparent'
       color={AppColors.gray300}
       onPress={onScrollToBottom}
     />
@@ -28,16 +28,3 @@ function ReadingButtonScrollBottom({
 }
 
 export default React.memo(ReadingButtonScrollBottom)
-
-const styles = StyleSheet.create({
-  buttonScrollToBottom: {
-    alignSelf: 'center',
-    borderRadius: 100,
-    backgroundColor: 'transparent',
-    right: 'auto',
-    left: 'auto',
-    width: 48,
-    height: 48,
-    position: 'absolute',
-  },
-})

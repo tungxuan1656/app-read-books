@@ -38,9 +38,7 @@ export const GSpinnerComponent = ({ theme }: { theme?: GSpinnerTheme }) => {
   }, [])
 
   return visible ? (
-    <View
-      className='absolute inset-0 items-center justify-center bg-transparent'
-      style={{ gap: 16 }}>
+    <View className='absolute inset-0 items-center justify-center gap-4 bg-transparent'>
       <ActivityIndicator color={'#222'} />
       {label ? (
         <Text
