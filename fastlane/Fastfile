@@ -6,7 +6,7 @@ require 'shellwords'
 
 DIAWI_UPLOAD_ENDPOINT = 'https://upload.diawi.com/'
 DIAWI_STATUS_ENDPOINT = 'https://upload.diawi.com/status'
-DIAWI_TOKEN = 'wVnisACCEttCi4DNYuduFw8hasO44t51dlNObVxStY'
+DIAWI_TOKEN = '5As7ju0u8JnFYMiT5thqxHbtx7VYUYNp46cp856w0s'
 PROJECT_ROOT = File.expand_path('..', __dir__)
 IOS_ROOT = File.join(PROJECT_ROOT, 'ios')
 ANDROID_ROOT = File.join(PROJECT_ROOT, 'android')
