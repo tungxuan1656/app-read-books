@@ -30,4 +30,16 @@ describe('html-content.helpers', () => {
 
     expect(sanitizeAiHtmlContent(input)).toBe('<p>Nested</p>')
   })
+
+  it('preserves unmatched leading fence marker', () => {
+    const input = '```html\n<p>Unclosed fence</p>'
+
+    expect(sanitizeAiHtmlContent(input)).toBe('```html\n<p>Unclosed fence</p>')
+  })
+
+  it('preserves unmatched trailing fence marker', () => {
+    const input = '<p>Unopened fence</p>\n```'
+
+    expect(sanitizeAiHtmlContent(input)).toBe('<p>Unopened fence</p>\n```')
+  })
 })

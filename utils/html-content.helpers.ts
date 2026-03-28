@@ -19,9 +19,5 @@ export const sanitizeAiHtmlContent = (content: string): string => {
     output = match[1].trim()
   }
 
-  // Fallback cleanup for partially malformed fences.
-  output = output.replace(/^\s*```(?:html|xml|markdown|md|text)?\s*\n?/i, '')
-  output = output.replace(/\n?\s*```\s*$/i, '')
-
   return output.trim()
 }
