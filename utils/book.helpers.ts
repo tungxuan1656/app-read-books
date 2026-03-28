@@ -1,6 +1,7 @@
 import { Directory, File, Paths } from 'expo-file-system'
 
 import { GToast } from '@/components/g-toast'
+import { sanitizeAiHtmlContent } from '@/utils/html-content.helpers'
 import { logger } from '@/utils/logger'
 
 /**
@@ -129,10 +130,12 @@ export const getBookChapterContent = async (
  * Wrap HTML content vào template
  */
 export const getChapterHtml = (html: string): string => {
+  const sanitizedHtml = sanitizeAiHtmlContent(html)
+
   return `
     <html lang="en">
       <body>
-        ${html.replace(/(<br>){3,}/gi, '<br><br>')}
+        ${sanitizedHtml.replace(/(<br>){3,}/gi, '<br><br>')}
       </body>
     </html>
   `
