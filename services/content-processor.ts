@@ -1,5 +1,4 @@
 import { getBookChapterContent } from '@/utils'
-import { sanitizeAiHtmlContent } from '@/utils/html-content.helpers'
 import { logger } from '@/utils/logger'
 import { simpleMdToHtml } from '@/utils/string.helpers'
 
@@ -58,10 +57,7 @@ export const processChapterContent = async ({
 
       // 4. Process with AI
       const processedText = await provider.processContent(prompt, rawContent)
-      const sanitizedContent = sanitizeAiHtmlContent(processedText)
-      const htmlContent = sanitizeAiHtmlContent(
-        simpleMdToHtml(sanitizedContent),
-      )
+      const htmlContent = simpleMdToHtml(processedText)
 
       // 5. Save to cache
       await dbService.saveProcessedChapter(

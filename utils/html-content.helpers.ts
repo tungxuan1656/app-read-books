@@ -12,11 +12,37 @@ export const sanitizeAiHtmlContent = (content: string): string => {
 
   // Some providers may wrap content in multiple fence layers.
   for (let i = 0; i < 3; i += 1) {
-    const match = output.match(
-      /^\s*```(?:html|xml|markdown|md|text)?\s*\n?([\s\S]*?)\n?```\s*$/i,
-    )
-    if (!match) break
-    output = match[1].trim()
+    const htmlOpenMatch = /```html\s*/i.exec(output)
+
+    if (htmlOpenMatch) {
+      const openStartIndex = htmlOpenMatch.index
+      const openEndIndex = openStartIndex + htmlOpenMatch[0].length
+      const closeIndex = output.lastIndexOf('```')
+
+      if (closeIndex > openEndIndex) {
+        output = output.slice(openEndIndex, closeIndex).trim()
+      } else {
+        // If only one marker exists, remove it and keep remaining content.
+        output = (
+          output.slice(0, openStartIndex) + output.slice(openEndIndex)
+        ).trim()
+      }
+
+      continue
+    }
+
+    const firstFenceIndex = output.indexOf('```')
+    if (firstFenceIndex === -1) break
+
+    const lastFenceIndex = output.lastIndexOf('```')
+    if (lastFenceIndex > firstFenceIndex) {
+      output = output.slice(firstFenceIndex + 3, lastFenceIndex).trim()
+    } else {
+      // If only one marker exists, remove it and keep remaining content.
+      output = (
+        output.slice(0, firstFenceIndex) + output.slice(firstFenceIndex + 3)
+      ).trim()
+    }
   }
 
   return output.trim()

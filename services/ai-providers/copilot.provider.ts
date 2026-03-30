@@ -1,4 +1,5 @@
 import { useSettingsStore } from '@/controllers/stores'
+import { sanitizeAiHtmlContent } from '@/utils/html-content.helpers'
 import { logger } from '@/utils/logger'
 
 import type { AIProvider } from '../ai.service'
@@ -45,7 +46,8 @@ export const createCopilotProvider = (): AIProvider => {
           },
         ]
         const result = await callCopilotAPI(messages)
-        return result
+        const sanitizedResult = sanitizeAiHtmlContent(result)
+        return sanitizedResult
       })
 
       // Đợi tất cả promises hoàn thành và join kết quả
@@ -197,8 +199,6 @@ const callCopilotAPI = async (
 
 const cleanCopilotResponse = (response: string): string => {
   let cleaned = response.trim()
-  cleaned = cleaned.replace(/^```(?:html|xml|text|markdown)?\s*\n?/gi, '')
-  cleaned = cleaned.replace(/\n?```\s*$/gi, '')
   // Remove div and p tags (opening and closing with any attributes)
   cleaned = cleaned.replace(/<\/?div[^>]*>/gi, '')
   cleaned = cleaned.replace(/<\/?p[^>]*>/gi, '')

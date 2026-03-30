@@ -67,8 +67,6 @@ export const formatContentForTTS = (content: string): string => {
 
 export function simpleMdToHtml(md: string) {
   let html = md
-  html = html.replaceAll('```text', '')
-
   // 1. Chuyển đổi In Đậm (**bold**)
   // Tìm **nội dung** và thay thế bằng <strong>nội dung</strong>
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -82,4 +80,12 @@ export function simpleMdToHtml(md: string) {
   html = html.replace(/\n\n/g, '<br><br>')
 
   return html
+}
+
+export const simpleRemoveHtmlSectionFormat = (html: string): string => {
+  let cleaned = html
+  cleaned = cleaned.replaceAll(/^```(?:html|xml|text|markdown)?\s*\n?/gi, '')
+  cleaned = cleaned.replaceAll(/\n?```\s*$/gi, '')
+
+  return cleaned
 }
