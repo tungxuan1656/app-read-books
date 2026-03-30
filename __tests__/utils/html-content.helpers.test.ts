@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 import { sanitizeAiHtmlContent } from '@/utils/html-content.helpers'
 
 describe('html-content.helpers', () => {
