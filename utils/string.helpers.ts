@@ -86,7 +86,13 @@ export const simpleRemoveHtmlSectionFormat = (html: string): string => {
   let cleaned = html
   cleaned = cleaned.replaceAll(/^```(?:html|xml|text|markdown)?\s*\n?/gi, '')
   cleaned = cleaned.replaceAll(/\n?```\s*$/gi, '')
-  cleaned = cleaned.replaceAll('\n', '<br><br>')
+
+  cleaned = cleaned
+    .replaceAll('\n', '<br><br>')
+    .split('<br>')
+    .map((s) => s.trim())
+    .join('<br>')
+
   cleaned = cleaned.replaceAll(/(<br>){3,}/gi, '<br><br>')
 
   return cleaned
