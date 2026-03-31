@@ -134,7 +134,7 @@ export const getChapterHtml = (html: string): string => {
   return `
     <html lang="en">
       <body>
-        ${simpleRemoveHtmlSectionFormat(html).replace(/(<br>){3,}/gi, '<br><br>')}
+        ${simpleRemoveHtmlSectionFormat(html)}
       </body>
     </html>
   `
