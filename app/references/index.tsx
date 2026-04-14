@@ -1,5 +1,5 @@
 import { router } from 'expo-router'
-import React, { useLayoutEffect, useRef } from 'react'
+import React, { useRef } from 'react'
 import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 
 import { AppColors } from '@/assets'
@@ -19,20 +19,6 @@ const References = () => {
   const currentIndex = useBooksStore(
     (s) => s.id2BookReadingChapter[bookId] ?? 0,
   )
-
-  useLayoutEffect(() => {
-    const references = book?.references ?? []
-    if (
-      Array.isArray(references) &&
-      references.length > 0 &&
-      currentIndex - 1 < references.length - 1
-    ) {
-      refList.current?.scrollToIndex({
-        animated: false,
-        index: currentIndex - 1,
-      })
-    }
-  }, [book, currentIndex])
 
   const setChapter = (chapter: number) => {
     booksActions.updateReadingChapter(bookId, chapter)
@@ -62,7 +48,8 @@ const References = () => {
           renderItem={({ item, index }) => (
             <TouchableOpacity
               key={item}
-              className='h-9 px-3'
+              className='px-3'
+              style={{ height: 36 }}
               onPress={() => setChapter(index + 1)}>
               <Text
                 numberOfLines={1}
