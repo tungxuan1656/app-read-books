@@ -36,8 +36,6 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
       return
     }
 
-    console.log(config.inputType, `${config.inputType === 'multiline'}`)
-
     // Mặc định navigate đến editor
     router.push({
       pathname: '/setting-editor',
