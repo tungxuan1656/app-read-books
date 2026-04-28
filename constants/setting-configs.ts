@@ -23,6 +23,42 @@ export interface SettingGroup {
 
 export const SETTING_GROUPS: SettingGroup[] = [
   {
+    title: 'AI Provider',
+    configs: [
+      {
+        key: 'AI_PROVIDER',
+        label: 'AI Provider',
+        placeholder: 'copilot',
+        description: 'Chọn provider AI dùng để xử lý nội dung',
+        inputType: 'picker',
+        options: [
+          { label: 'Copilot', value: 'copilot' },
+          { label: 'DeepSeek', value: 'deepseek' },
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Shared AI Config',
+    configs: [
+      {
+        key: 'AI_CUSTOM_HEADERS',
+        label: 'AI Custom Headers',
+        placeholder: '{"Authorization":"Bearer <token>"}',
+        description:
+          'Headers dùng chung cho mọi AI provider ở dạng JSON object string. Ví dụ: {"X-Trace-Id":"abc","Authorization":"Bearer token"}',
+        inputType: 'multiline',
+      },
+      {
+        key: 'AI_MIN_CHUNK_SIZE',
+        label: 'Min Chunk Size',
+        placeholder: '1300',
+        description:
+          'Kích thước tối thiểu trung bình của mỗi chunk khi chia nội dung (mặc định 1300 ký tự). Giá trị càng lớn, số chunk càng ít.',
+      },
+    ],
+  },
+  {
     title: 'Copilot Config',
     configs: [
       {
@@ -39,20 +75,24 @@ export const SETTING_GROUPS: SettingGroup[] = [
         description:
           'Tên model Copilot sử dụng (ví dụ: gpt-4.1, gpt-4o). Để trống sẽ dùng gpt-4.1',
       },
+    ],
+  },
+  {
+    title: 'DeepSeek Config',
+    configs: [
       {
-        key: 'COPILOT_CUSTOM_HEADERS',
-        label: 'Copilot Custom Headers',
-        placeholder: '{"Authorization":"Bearer <token>"}',
+        key: 'DEEPSEEK_API_URL',
+        label: 'DeepSeek API URL',
+        placeholder: 'https://api.deepseek.com/v1/chat/completions',
         description:
-          'Headers tùy chỉnh cho Copilot API ở dạng JSON object string. Ví dụ: {"X-Trace-Id":"abc","Authorization":"Bearer token"}',
-        inputType: 'multiline',
+          'URL API của DeepSeek. Để trống sẽ dùng https://api.deepseek.com/v1/chat/completions',
       },
       {
-        key: 'COPILOT_MIN_CHUNK_SIZE',
-        label: 'Min Chunk Size',
-        placeholder: '1300',
+        key: 'DEEPSEEK_MODEL',
+        label: 'DeepSeek Model',
+        placeholder: 'deepseek-chat',
         description:
-          'Kích thước tối thiểu trung bình của mỗi chunk khi chia nội dung (mặc định 1300 ký tự). Giá trị càng lớn, số chunk càng ít.',
+          'Tên model DeepSeek sử dụng (ví dụ: deepseek-chat, deepseek-reasoner). Để trống sẽ dùng deepseek-chat',
       },
     ],
   },

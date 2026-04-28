@@ -1,6 +1,6 @@
 import { type AIAction, type AppSettings } from '@/@types/settings'
 
-export const APP_STORE_VERSION = 3
+export const APP_STORE_VERSION = 4
 
 const DEFAULT_AI_ACTIONS: AIAction[] = [
   {
@@ -55,12 +55,14 @@ Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_
 export const DEFAULT_SETTINGS: AppSettings = {
   COPILOT_API_URL: 'http://localhost:8317/v1/chat/completions',
   COPILOT_MODEL: 'gpt-4.1',
-  COPILOT_CUSTOM_HEADERS: '',
+  DEEPSEEK_API_URL: 'https://api.deepseek.com/v1/chat/completions',
+  DEEPSEEK_MODEL: 'deepseek-chat',
+  AI_CUSTOM_HEADERS: '',
   SUPABASE_ANON_KEY: '',
   PREFETCH_COUNT: '3',
   AI_PROVIDER: 'copilot',
   AI_PROCESS_ACTIONS: DEFAULT_AI_ACTIONS,
-  COPILOT_MIN_CHUNK_SIZE: '1300',
+  AI_MIN_CHUNK_SIZE: '1300',
 }
 
 const isAIAction = (value: unknown): value is AIAction => {
@@ -99,8 +101,18 @@ const toStringValue = (value: unknown, fallback: string): string => {
   return fallback
 }
 
+const normalizeAIProvider = (value: unknown): AppSettings['AI_PROVIDER'] => {
+  return value === 'deepseek' ? 'deepseek' : 'copilot'
+}
+
 export const sanitizeSettings = (value: unknown): AppSettings => {
-  const input = (value || {}) as Partial<Record<keyof AppSettings, unknown>>
+  const input = (value || {}) as Partial<Record<keyof AppSettings, unknown>> & {
+    COPILOT_CUSTOM_HEADERS?: unknown
+    COPILOT_MIN_CHUNK_SIZE?: unknown
+  }
+
+  const legacyCustomHeaders = toStringValue(input.COPILOT_CUSTOM_HEADERS, '')
+  const legacyMinChunkSize = toStringValue(input.COPILOT_MIN_CHUNK_SIZE, '')
 
   return {
     COPILOT_API_URL: toStringValue(
@@ -111,9 +123,17 @@ export const sanitizeSettings = (value: unknown): AppSettings => {
       input.COPILOT_MODEL,
       DEFAULT_SETTINGS.COPILOT_MODEL,
     ),
-    COPILOT_CUSTOM_HEADERS: toStringValue(
-      input.COPILOT_CUSTOM_HEADERS,
-      DEFAULT_SETTINGS.COPILOT_CUSTOM_HEADERS,
+    DEEPSEEK_API_URL: toStringValue(
+      input.DEEPSEEK_API_URL,
+      DEFAULT_SETTINGS.DEEPSEEK_API_URL,
+    ),
+    DEEPSEEK_MODEL: toStringValue(
+      input.DEEPSEEK_MODEL,
+      DEFAULT_SETTINGS.DEEPSEEK_MODEL,
+    ),
+    AI_CUSTOM_HEADERS: toStringValue(
+      input.AI_CUSTOM_HEADERS,
+      legacyCustomHeaders || DEFAULT_SETTINGS.AI_CUSTOM_HEADERS,
     ),
     SUPABASE_ANON_KEY: toStringValue(
       input.SUPABASE_ANON_KEY,
@@ -123,15 +143,15 @@ export const sanitizeSettings = (value: unknown): AppSettings => {
       input.PREFETCH_COUNT,
       DEFAULT_SETTINGS.PREFETCH_COUNT,
     ),
-    AI_PROVIDER: 'copilot',
+    AI_PROVIDER: normalizeAIProvider(input.AI_PROVIDER),
     AI_PROCESS_ACTIONS: normalizeAIActions(input.AI_PROCESS_ACTIONS),
-    COPILOT_MIN_CHUNK_SIZE: toStringValue(
-      input.COPILOT_MIN_CHUNK_SIZE,
-      DEFAULT_SETTINGS.COPILOT_MIN_CHUNK_SIZE,
+    AI_MIN_CHUNK_SIZE: toStringValue(
+      input.AI_MIN_CHUNK_SIZE,
+      legacyMinChunkSize || DEFAULT_SETTINGS.AI_MIN_CHUNK_SIZE,
     ),
   }
 }
 
 export const migratePersistedSettings = (persisted: unknown): AppSettings => {
-  return sanitizeSettings({ ...DEFAULT_SETTINGS, ...(persisted as object) })
+  return sanitizeSettings(persisted)
 }
