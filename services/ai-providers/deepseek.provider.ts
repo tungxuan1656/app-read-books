@@ -73,7 +73,7 @@ export const getDeepSeekApiUrl = (): string => {
 export const getDeepSeekModel = (): string => {
   return (
     useSettingsStore.getState().settings.DEEPSEEK_MODEL?.trim() ||
-    'deepseek-chat'
+    'deepseek-v4-flash'
   )
 }
 
@@ -108,7 +108,11 @@ const callDeepSeekAPI = async (
           'Content-Type': 'application/json',
           ...customHeaders,
         },
-        body: JSON.stringify({ model, messages }),
+        body: JSON.stringify({
+          model,
+          messages,
+          thinking: { type: 'disabled' },
+        }),
       })
 
       if (!response.ok) {
