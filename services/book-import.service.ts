@@ -19,17 +19,12 @@ const GET_EXPORTED_BOOKS_URL =
   'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books'
 
 export const fetchExportedBooks = async (
-  supabaseAnonKey: string,
+  booksApiUrl: string,
 ): Promise<ServiceResult<ExportedBook[]>> => {
-  if (!supabaseAnonKey.trim()) {
-    return fail('MISSING_SUPABASE_KEY', 'Chưa cấu hình SUPABASE_ANON_KEY')
-  }
-
   try {
-    const response = await fetch(GET_EXPORTED_BOOKS_URL, {
+    const response = await fetch(booksApiUrl || GET_EXPORTED_BOOKS_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${supabaseAnonKey}`,
         'Content-Type': 'application/json',
       },
     })

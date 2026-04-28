@@ -1,6 +1,6 @@
 import { type AIAction, type AppSettings } from '@/@types/settings'
 
-export const APP_STORE_VERSION = 4
+export const APP_STORE_VERSION = 5
 
 const DEFAULT_AI_ACTIONS: AIAction[] = [
   {
@@ -58,7 +58,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   DEEPSEEK_API_URL: 'https://api.deepseek.com/v1/chat/completions',
   DEEPSEEK_MODEL: 'deepseek-chat',
   AI_CUSTOM_HEADERS: '',
-  SUPABASE_ANON_KEY: '',
+  BOOKS_API_URL:
+    'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books',
   PREFETCH_COUNT: '3',
   AI_PROVIDER: 'copilot',
   AI_PROCESS_ACTIONS: DEFAULT_AI_ACTIONS,
@@ -135,9 +136,9 @@ export const sanitizeSettings = (value: unknown): AppSettings => {
       input.AI_CUSTOM_HEADERS,
       legacyCustomHeaders || DEFAULT_SETTINGS.AI_CUSTOM_HEADERS,
     ),
-    SUPABASE_ANON_KEY: toStringValue(
-      input.SUPABASE_ANON_KEY,
-      DEFAULT_SETTINGS.SUPABASE_ANON_KEY,
+    BOOKS_API_URL: toStringValue(
+      input.BOOKS_API_URL,
+      DEFAULT_SETTINGS.BOOKS_API_URL,
     ),
     PREFETCH_COUNT: toStringValue(
       input.PREFETCH_COUNT,

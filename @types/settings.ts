@@ -10,7 +10,7 @@ export interface AppSettings {
   DEEPSEEK_API_URL: string
   DEEPSEEK_MODEL: string
   AI_CUSTOM_HEADERS: string
-  SUPABASE_ANON_KEY: string
+  BOOKS_API_URL: string
   PREFETCH_COUNT: string
   AI_PROVIDER: 'copilot' | 'deepseek'
   AI_PROCESS_ACTIONS: AIAction[]

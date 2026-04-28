@@ -100,10 +100,11 @@ export const SETTING_GROUPS: SettingGroup[] = [
     title: 'App Config',
     configs: [
       {
-        key: 'SUPABASE_ANON_KEY',
-        label: 'Supabase Anon Key',
-        placeholder: 'Nhập Supabase Anon Key',
-        description: 'Khóa ẩn danh để kết nối với Supabase',
+        key: 'BOOKS_API_URL',
+        label: 'Books API URL',
+        placeholder:
+          'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books',
+        description: 'URL API để tải danh sách truyện export.',
       },
       {
         key: 'PREFETCH_COUNT',
