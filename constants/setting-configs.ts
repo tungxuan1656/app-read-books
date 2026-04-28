@@ -23,6 +23,24 @@ export interface SettingGroup {
 
 export const SETTING_GROUPS: SettingGroup[] = [
   {
+    title: 'App Config',
+    configs: [
+      {
+        key: 'BOOKS_API_URL',
+        label: 'Books API URL',
+        placeholder:
+          'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books',
+        description: 'URL API để tải danh sách truyện export.',
+      },
+      {
+        key: 'PREFETCH_COUNT',
+        label: 'Số chương tải trước',
+        placeholder: '3',
+        description: 'Số chương sẽ được tự động tải trước khi đọc (mặc định 3)',
+      },
+    ],
+  },
+  {
     title: 'AI Provider',
     configs: [
       {
@@ -93,24 +111,6 @@ export const SETTING_GROUPS: SettingGroup[] = [
         placeholder: 'deepseek-chat',
         description:
           'Tên model DeepSeek sử dụng (ví dụ: deepseek-chat, deepseek-reasoner). Để trống sẽ dùng deepseek-chat',
-      },
-    ],
-  },
-  {
-    title: 'App Config',
-    configs: [
-      {
-        key: 'BOOKS_API_URL',
-        label: 'Books API URL',
-        placeholder:
-          'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books',
-        description: 'URL API để tải danh sách truyện export.',
-      },
-      {
-        key: 'PREFETCH_COUNT',
-        label: 'Số chương tải trước',
-        placeholder: '3',
-        description: 'Số chương sẽ được tự động tải trước khi đọc (mặc định 3)',
       },
     ],
   },

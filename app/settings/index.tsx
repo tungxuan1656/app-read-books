@@ -28,7 +28,7 @@ export default function Settings() {
     [],
   )
 
-  const renderFooter = () => (
+  const renderAddOns = () => (
     <View className='mt-4 p-4'>
       <TouchableOpacity
         className='flex-row items-center justify-between rounded-xl bg-white p-4'
@@ -91,8 +91,8 @@ export default function Settings() {
           renderSectionHeader={renderSectionHeader}
           keyExtractor={(item) => item.key}
           ItemSeparatorComponent={Divider}
-          contentContainerStyle={{ flexGrow: 1 }}
-          ListFooterComponent={renderFooter}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+          ListHeaderComponent={renderAddOns}
           stickySectionHeadersEnabled={false}
         />
       </Screen.Content>
