@@ -53,10 +53,10 @@ Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_
 ]
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  COPILOT_API_URL: 'http://localhost:8317/v1/chat/completions',
-  COPILOT_MODEL: 'gpt-4.1',
-  DEEPSEEK_API_URL: 'https://api.deepseek.com/v1/chat/completions',
-  DEEPSEEK_MODEL: 'deepseek-chat',
+  COPILOT_API_URL: 'https://copilot.tungxuan.io.vn/v1/chat/completions',
+  COPILOT_MODEL: 'gpt-4o',
+  DEEPSEEK_API_URL: 'https://api.deepseek.com/chat/completions',
+  DEEPSEEK_MODEL: 'deepseek-v4-flash',
   AI_CUSTOM_HEADERS: '',
   BOOKS_API_URL:
     'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books',

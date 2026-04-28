@@ -101,7 +101,7 @@ export const SETTING_GROUPS: SettingGroup[] = [
       {
         key: 'DEEPSEEK_API_URL',
         label: 'DeepSeek API URL',
-        placeholder: 'https://api.deepseek.com/v1/chat/completions',
+        placeholder: 'https://api.deepseek.com/chat/completions',
         description:
           'URL API của DeepSeek. Để trống sẽ dùng https://api.deepseek.com/v1/chat/completions',
       },

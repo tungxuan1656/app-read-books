@@ -66,7 +66,7 @@ export const createDeepSeekProvider = (): AIProvider => {
 export const getDeepSeekApiUrl = (): string => {
   return (
     useSettingsStore.getState().settings.DEEPSEEK_API_URL?.trim() ||
-    'https://api.deepseek.com/v1/chat/completions'
+    'https://api.deepseek.com/chat/completions'
   )
 }
 
