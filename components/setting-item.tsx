@@ -44,6 +44,7 @@ export const SettingItem: React.FC<SettingItemProps> = ({ config }) => {
         label: config.label,
         placeholder: config.placeholder,
         description: config.description,
+        multiple: `${config.inputType === 'multiline'}`,
       },
     })
   }

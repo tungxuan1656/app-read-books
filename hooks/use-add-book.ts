@@ -22,12 +22,12 @@ export const useAddBook = (): UseAddBookState => {
   const [fetchingBooks, setFetchingBooks] = useState(false)
   const [lastError, setLastError] = useState('')
 
-  const supabaseAnonKey = useSettingsStore.use.settings().SUPABASE_ANON_KEY
+  const booksApiUrl = useSettingsStore.use.settings().BOOKS_API_URL
 
   const fetchBooks = useCallback(async () => {
     setFetchingBooks(true)
     setLastError('')
-    const result = await fetchExportedBooks(supabaseAnonKey)
+    const result = await fetchExportedBooks(booksApiUrl)
     if (result.ok) {
       setExportedBooks(result.data)
     } else {
@@ -35,7 +35,7 @@ export const useAddBook = (): UseAddBookState => {
       setLastError(result.error.message)
     }
     setFetchingBooks(false)
-  }, [supabaseAnonKey])
+  }, [booksApiUrl])
 
   useEffect(() => {
     fetchBooks()

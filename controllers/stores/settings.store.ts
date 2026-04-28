@@ -23,6 +23,17 @@ const _useSettingsStore = create<SettingsStoreState>()(
       name: 'settings-storage',
       version: APP_STORE_VERSION,
       storage: MMKVStateStorage,
+      merge: (persistedState, currentState) => {
+        const incoming = (persistedState || {}) as Partial<SettingsStoreState>
+
+        return {
+          ...currentState,
+          ...incoming,
+          settings: migratePersistedSettings(
+            incoming.settings ?? currentState.settings,
+          ),
+        }
+      },
       migrate: (persistedState) => {
         const incoming = (persistedState || {}) as Partial<SettingsStoreState>
 

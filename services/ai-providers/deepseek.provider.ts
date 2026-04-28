@@ -12,12 +12,12 @@ import {
 } from './provider-shared'
 
 /**
- * Copilot Provider Implementation
- * Sử dụng local API tại localhost:8317 (hoặc URL được cấu hình)
+ * DeepSeek Provider Implementation
+ * Sử dụng DeepSeek API (hoặc URL được cấu hình)
  */
-export const createCopilotProvider = (): AIProvider => {
+export const createDeepSeekProvider = (): AIProvider => {
   return {
-    name: 'Copilot',
+    name: 'DeepSeek',
 
     async processContent(prompt: string, content: string): Promise<string> {
       const adjustedPrompt = prompt.replace(
@@ -25,21 +25,21 @@ export const createCopilotProvider = (): AIProvider => {
         'nội dung bên dưới',
       )
 
-      const chunks = splitContentIntoChunks(content, getCopilotMinChunkSize())
+      const chunks = splitContentIntoChunks(content, getDeepSeekMinChunkSize())
 
       if (chunks.length === 1) {
         const messages: ProviderMessage[] = [
           { role: 'system', content: adjustedPrompt },
           { role: 'user', content: `Đây là nội dung cần xử lý:\n\n${content}` },
         ]
-        const result = await callCopilotAPI(messages)
+        const result = await callDeepSeekAPI(messages)
         return result
       }
 
       const promises = chunks.map(async (chunk, index) => {
         logger.info(
-          'CopilotProvider',
-          `Copilot: Processing chunk ${index + 1}/${chunks.length}: ${chunk.length} characters`,
+          'DeepSeekProvider',
+          `DeepSeek: Processing chunk ${index + 1}/${chunks.length}: ${chunk.length} characters`,
         )
         const messages: ProviderMessage[] = [
           { role: 'system', content: adjustedPrompt },
@@ -48,14 +48,14 @@ export const createCopilotProvider = (): AIProvider => {
             content: `Đây là nội dung cần xử lý (phần ${index + 1}/${chunks.length}):\n\n${chunk}`,
           },
         ]
-        const result = await callCopilotAPI(messages)
+        const result = await callDeepSeekAPI(messages)
         return sanitizeAiHtmlContent(result)
       })
 
       const results = await Promise.all(promises)
       logger.info(
-        'CopilotProvider',
-        'Copilot: All chunks processed, joining results',
+        'DeepSeekProvider',
+        'DeepSeek: All chunks processed, joining results',
       )
 
       return cleanProviderResponse(results.join('<br><br>'))
@@ -63,40 +63,43 @@ export const createCopilotProvider = (): AIProvider => {
   }
 }
 
-export const getCopilotApiUrl = (): string => {
+export const getDeepSeekApiUrl = (): string => {
   return (
-    useSettingsStore.getState().settings.COPILOT_API_URL?.trim() ||
-    'http://localhost:8317/v1/chat/completions'
+    useSettingsStore.getState().settings.DEEPSEEK_API_URL?.trim() ||
+    'https://api.deepseek.com/chat/completions'
   )
 }
 
-export const getCopilotModel = (): string => {
-  return useSettingsStore.getState().settings.COPILOT_MODEL?.trim() || 'gpt-4.1'
+export const getDeepSeekModel = (): string => {
+  return (
+    useSettingsStore.getState().settings.DEEPSEEK_MODEL?.trim() ||
+    'deepseek-chat'
+  )
 }
 
-export const getCopilotMinChunkSize = (): number => {
+export const getDeepSeekMinChunkSize = (): number => {
   return getSharedMinChunkSize()
 }
 
-export const getCopilotCustomHeaders = (): Record<string, string> => {
-  return getSharedCustomHeaders('CopilotProvider')
+export const getDeepSeekCustomHeaders = (): Record<string, string> => {
+  return getSharedCustomHeaders('DeepSeekProvider')
 }
 
-const callCopilotAPI = async (
+const callDeepSeekAPI = async (
   messages: ProviderMessage[],
   maxRetries: number = 3,
 ): Promise<string> => {
-  const apiUrl = getCopilotApiUrl()
-  const model = getCopilotModel()
-  const customHeaders = getCopilotCustomHeaders()
+  const apiUrl = getDeepSeekApiUrl()
+  const model = getDeepSeekModel()
+  const customHeaders = getDeepSeekCustomHeaders()
 
   let lastError: Error | null = null
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       logger.info(
-        'CopilotProvider',
-        `Copilot: Calling API (attempt ${attempt + 1}/${maxRetries})`,
+        'DeepSeekProvider',
+        `DeepSeek: Calling API (attempt ${attempt + 1}/${maxRetries})`,
       )
 
       const response = await fetch(apiUrl, {
@@ -110,27 +113,27 @@ const callCopilotAPI = async (
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(`Copilot API error (${response.status}): ${errorText}`)
+        throw new Error(`DeepSeek API error (${response.status}): ${errorText}`)
       }
 
       const data = await response.json()
 
       if (!data.choices?.[0]?.message?.content) {
-        throw new Error('Không nhận được response từ Copilot')
+        throw new Error('Không nhận được response từ DeepSeek')
       }
 
-      logger.info('CopilotProvider', 'Copilot: API call successful')
+      logger.info('DeepSeekProvider', 'DeepSeek: API call successful')
       return data.choices[0].message.content
     } catch (error) {
       logger.error(
-        'CopilotProvider',
-        `Copilot error (attempt ${attempt + 1})`,
+        'DeepSeekProvider',
+        `DeepSeek error (attempt ${attempt + 1})`,
         error,
       )
       lastError =
         error instanceof Error
           ? error
-          : new Error('Có lỗi xảy ra khi gọi Copilot API')
+          : new Error('Có lỗi xảy ra khi gọi DeepSeek API')
 
       if (attempt < maxRetries - 1) {
         const waitTime = Math.pow(2, attempt) * 1000

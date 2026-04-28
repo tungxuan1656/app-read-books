@@ -9,6 +9,7 @@ import { Divider } from '@/components/divider'
 import { GToast } from '@/components/g-toast'
 import { Screen } from '@/components/screen'
 import { settingsActions, useSettingsStore } from '@/controllers/stores'
+import { cn } from '@/utils'
 
 export default function SettingEditor() {
   const params = useLocalSearchParams<{
@@ -16,12 +17,14 @@ export default function SettingEditor() {
     label: string
     placeholder: string
     description?: string
+    multiple?: string
   }>()
 
   const settingKey = params.settingKey
   const label = params.label
   const placeholder = params.placeholder
   const description = params.description
+  const multiple = params.multiple === 'true'
 
   const isAIProcessActionsKey = settingKey === 'AI_PROCESS_ACTIONS'
 
@@ -103,8 +106,11 @@ export default function SettingEditor() {
         <TextInput
           placeholder={placeholder}
           onChangeText={(text) => (refTextValue.current = text)}
-          className='rounded-2xl border border-neutral-200 bg-white p-4'
-          multiline={true}
+          className={cn(
+            'rounded-2xl border border-neutral-200 bg-white p-4',
+            multiple && 'flex-1',
+          )}
+          multiline={multiple}
           defaultValue={currentValue}
           textAlignVertical='top'
           autoCapitalize='none'
