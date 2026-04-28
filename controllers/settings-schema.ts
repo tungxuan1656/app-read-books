@@ -1,6 +1,6 @@
 import { type AIAction, type AppSettings } from '@/@types/settings'
 
-export const APP_STORE_VERSION = 2
+export const APP_STORE_VERSION = 3
 
 const DEFAULT_AI_ACTIONS: AIAction[] = [
   {
@@ -55,6 +55,7 @@ Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_
 export const DEFAULT_SETTINGS: AppSettings = {
   COPILOT_API_URL: 'http://localhost:8317/v1/chat/completions',
   COPILOT_MODEL: 'gpt-4.1',
+  COPILOT_CUSTOM_HEADERS: '',
   SUPABASE_ANON_KEY: '',
   PREFETCH_COUNT: '3',
   AI_PROVIDER: 'copilot',
@@ -109,6 +110,10 @@ export const sanitizeSettings = (value: unknown): AppSettings => {
     COPILOT_MODEL: toStringValue(
       input.COPILOT_MODEL,
       DEFAULT_SETTINGS.COPILOT_MODEL,
+    ),
+    COPILOT_CUSTOM_HEADERS: toStringValue(
+      input.COPILOT_CUSTOM_HEADERS,
+      DEFAULT_SETTINGS.COPILOT_CUSTOM_HEADERS,
     ),
     SUPABASE_ANON_KEY: toStringValue(
       input.SUPABASE_ANON_KEY,

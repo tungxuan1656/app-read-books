@@ -40,6 +40,14 @@ export const SETTING_GROUPS: SettingGroup[] = [
           'Tên model Copilot sử dụng (ví dụ: gpt-4.1, gpt-4o). Để trống sẽ dùng gpt-4.1',
       },
       {
+        key: 'COPILOT_CUSTOM_HEADERS',
+        label: 'Copilot Custom Headers',
+        placeholder: '{"Authorization":"Bearer <token>"}',
+        description:
+          'Headers tùy chỉnh cho Copilot API ở dạng JSON object string. Ví dụ: {"X-Trace-Id":"abc","Authorization":"Bearer token"}',
+        inputType: 'multiline',
+      },
+      {
         key: 'COPILOT_MIN_CHUNK_SIZE',
         label: 'Min Chunk Size',
         placeholder: '1300',

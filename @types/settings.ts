@@ -7,6 +7,7 @@ export interface AIAction {
 export interface AppSettings {
   COPILOT_API_URL: string
   COPILOT_MODEL: string
+  COPILOT_CUSTOM_HEADERS: string
   SUPABASE_ANON_KEY: string
   PREFETCH_COUNT: string
   AI_PROVIDER: 'copilot'

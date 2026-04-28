@@ -141,12 +141,55 @@ export const getCopilotMinChunkSize = (): number => {
   return !isNaN(parsed) && parsed > 0 ? parsed : 1300
 }
 
+export const getCopilotCustomHeaders = (): Record<string, string> => {
+  const rawHeaders = useSettingsStore
+    .getState()
+    .settings.COPILOT_CUSTOM_HEADERS?.trim()
+
+  if (!rawHeaders) {
+    return {}
+  }
+
+  try {
+    const parsed = JSON.parse(rawHeaders)
+
+    if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
+      logger.warn(
+        'CopilotProvider',
+        'Copilot custom headers must be a JSON object, skipping custom headers',
+      )
+      return {}
+    }
+
+    const normalizedHeaders = Object.entries(
+      parsed as Record<string, unknown>,
+    ).reduce<Record<string, string>>((acc, [key, value]) => {
+      const normalizedKey = key.trim()
+      if (!normalizedKey || value === null || value === undefined) {
+        return acc
+      }
+      acc[normalizedKey] = String(value)
+      return acc
+    }, {})
+
+    return normalizedHeaders
+  } catch (error) {
+    logger.warn(
+      'CopilotProvider',
+      'Copilot custom headers JSON is invalid, skipping custom headers',
+      error,
+    )
+    return {}
+  }
+}
+
 const callCopilotAPI = async (
   messages: CopilotMessage[],
   maxRetries: number = 3,
 ): Promise<string> => {
   const apiUrl = getCopilotApiUrl()
   const model = getCopilotModel()
+  const customHeaders = getCopilotCustomHeaders()
 
   let lastError: Error | null = null
 
@@ -159,7 +202,10 @@ const callCopilotAPI = async (
 
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...customHeaders,
+        },
         body: JSON.stringify({ model, messages }),
       })
 
