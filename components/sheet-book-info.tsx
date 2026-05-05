@@ -3,6 +3,7 @@ import BottomSheet, {
   type BottomSheetBackdropProps,
   BottomSheetView,
 } from '@gorhom/bottom-sheet'
+import { router } from 'expo-router'
 import React, { forwardRef, useCallback, useMemo } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 
@@ -247,6 +248,14 @@ const SheetBookInfo = forwardRef<SheetBookInfoRef, SheetBookInfoProps>(
             <Text className='text-lg font-medium text-gray-900'>
               {'Cài đặt'}
             </Text>
+            <VectorIcon
+              name='settings'
+              font='MaterialIcons'
+              size={16}
+              buttonStyle={{ marginLeft: 8, width: 32, height: 44 }}
+              color={AppColors.gray600}
+              onPress={() => router.push('/settings')}
+            />
           </View>
           <Text className='mb-2 mt-4 text-sm font-medium'>{'Font chữ'}</Text>
           <View className='flex-row flex-wrap gap-2'>
