@@ -1,4 +1,3 @@
-import { useSettingsStore } from '@/controllers/stores'
 import { getBookChapterContent } from '@/utils'
 
 import { getActionByKey } from './ai-actions.service'
@@ -33,13 +32,10 @@ export const getReadingContent = async (
     throw new Error(`Không tìm thấy hành động AI: ${actionKey}`)
   }
 
-  const aiProvider = useSettingsStore.getState().settings.AI_PROVIDER
-
   return await processChapterContent({
     bookId,
     chapterNumber,
     actionKey: action.key,
     prompt: action.prompt,
-    aiType: aiProvider,
   })
 }

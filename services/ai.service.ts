@@ -3,8 +3,7 @@ import {
   hasProvider,
   registerProvider,
 } from './ai-provider-registry'
-import { createCopilotProvider } from './ai-providers/copilot.provider'
-import { createDeepSeekProvider } from './ai-providers/deepseek.provider'
+import { createOpenAIProvider } from './ai-providers/openai.provider'
 
 /**
  * AI Provider Interface
@@ -14,18 +13,14 @@ export interface AIProvider {
   processContent(prompt: string, content: string): Promise<string>
 }
 
-export type AIProviderType = 'copilot' | 'deepseek'
+export type AIProviderType = 'openai'
 
 /**
  * Lấy AI Provider theo type cụ thể
  */
 export const getAIProviderByType = (type: AIProviderType): AIProvider => {
   if (!hasProvider(type)) {
-    if (type === 'deepseek') {
-      registerProvider('deepseek', createDeepSeekProvider)
-    } else {
-      registerProvider('copilot', createCopilotProvider)
-    }
+    registerProvider('openai', createOpenAIProvider)
   }
 
   return getProvider(type)
@@ -33,24 +28,18 @@ export const getAIProviderByType = (type: AIProviderType): AIProvider => {
 
 // ============ Re-exports for convenience ============
 
-// Copilot exports
 export {
-  createCopilotProvider,
-  getCopilotApiUrl,
-  getCopilotModel,
-} from './ai-providers/copilot.provider'
-export {
-  createDeepSeekProvider,
-  getDeepSeekApiUrl,
-  getDeepSeekModel,
-} from './ai-providers/deepseek.provider'
+  createOpenAIProvider,
+  getOpenAIApiUrl,
+  getOpenAIModel,
+} from './ai-providers/openai.provider'
 
 // ============ Legacy exports for backward compatibility ============
 
-export const copilotProcessContent = async (
+export const openaiProcessContent = async (
   prompt: string,
   content: string,
 ): Promise<string> => {
-  const provider = createCopilotProvider()
+  const provider = createOpenAIProvider()
   return provider.processContent(prompt, content)
 }

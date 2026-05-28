@@ -23,13 +23,13 @@ describe('settings-schema', () => {
 
   it('migrates legacy settings with string AI_PROCESS_ACTIONS', () => {
     const migrated = migratePersistedSettings({
-      COPILOT_MODEL: 'gpt-4o-mini',
+      OPENAI_MODEL: 'gpt-4o-mini',
       AI_PROCESS_ACTIONS: JSON.stringify([
         { key: 'summary', name: 'Summary', prompt: 'Summarize' },
       ]),
     })
 
-    expect(migrated.COPILOT_MODEL).toBe('gpt-4o-mini')
+    expect(migrated.OPENAI_MODEL).toBe('gpt-4o-mini')
     expect(Array.isArray(migrated.AI_PROCESS_ACTIONS)).toBe(true)
     expect(migrated.AI_PROCESS_ACTIONS[0].key).toBe('summary')
   })

@@ -53,15 +53,13 @@ Nhiệm vụ: tóm tắt lại nội dung chương truyện trong file original_
 ]
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  COPILOT_API_URL: 'https://copilot.tungxuan.io.vn/v1/chat/completions',
-  COPILOT_MODEL: 'gpt-4o',
-  DEEPSEEK_API_URL: 'https://api.deepseek.com/chat/completions',
-  DEEPSEEK_MODEL: 'deepseek-v4-flash',
+  OPENAI_API_URL: 'https://copilot.tungxuan.io.vn/v1/chat/completions',
+  OPENAI_MODEL: 'gpt-4o',
   AI_CUSTOM_HEADERS: '',
   BOOKS_API_URL:
     'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books',
   PREFETCH_COUNT: '3',
-  AI_PROVIDER: 'copilot',
+  AI_PROVIDER: 'openai',
   AI_PROCESS_ACTIONS: DEFAULT_AI_ACTIONS,
   AI_MIN_CHUNK_SIZE: '1300',
 }
@@ -103,7 +101,7 @@ const toStringValue = (value: unknown, fallback: string): string => {
 }
 
 const normalizeAIProvider = (value: unknown): AppSettings['AI_PROVIDER'] => {
-  return value === 'deepseek' ? 'deepseek' : 'copilot'
+  return 'openai'
 }
 
 export const sanitizeSettings = (value: unknown): AppSettings => {
@@ -116,21 +114,13 @@ export const sanitizeSettings = (value: unknown): AppSettings => {
   const legacyMinChunkSize = toStringValue(input.COPILOT_MIN_CHUNK_SIZE, '')
 
   return {
-    COPILOT_API_URL: toStringValue(
-      input.COPILOT_API_URL,
-      DEFAULT_SETTINGS.COPILOT_API_URL,
+    OPENAI_API_URL: toStringValue(
+      input.OPENAI_API_URL,
+      DEFAULT_SETTINGS.OPENAI_API_URL,
     ),
-    COPILOT_MODEL: toStringValue(
-      input.COPILOT_MODEL,
-      DEFAULT_SETTINGS.COPILOT_MODEL,
-    ),
-    DEEPSEEK_API_URL: toStringValue(
-      input.DEEPSEEK_API_URL,
-      DEFAULT_SETTINGS.DEEPSEEK_API_URL,
-    ),
-    DEEPSEEK_MODEL: toStringValue(
-      input.DEEPSEEK_MODEL,
-      DEFAULT_SETTINGS.DEEPSEEK_MODEL,
+    OPENAI_MODEL: toStringValue(
+      input.OPENAI_MODEL,
+      DEFAULT_SETTINGS.OPENAI_MODEL,
     ),
     AI_CUSTOM_HEADERS: toStringValue(
       input.AI_CUSTOM_HEADERS,

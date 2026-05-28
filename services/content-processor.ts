@@ -2,7 +2,7 @@ import { getBookChapterContent } from '@/utils'
 import { logger } from '@/utils/logger'
 import { simpleMdToHtml } from '@/utils/string.helpers'
 
-import { type AIProviderType, getAIProviderByType } from './ai.service'
+import { getAIProviderByType } from './ai.service'
 import { dbService } from './database.service'
 
 interface ProcessOptions {
@@ -10,7 +10,6 @@ interface ProcessOptions {
   chapterNumber: number
   actionKey: string
   prompt: string
-  aiType?: AIProviderType
 }
 
 const pendingRequests = new Map<string, Promise<string>>()
@@ -20,7 +19,6 @@ export const processChapterContent = async ({
   chapterNumber,
   actionKey,
   prompt,
-  aiType,
 }: ProcessOptions): Promise<string> => {
   const requestKey = `${bookId}_ch${chapterNumber}_${actionKey}`
 
@@ -49,7 +47,7 @@ export const processChapterContent = async ({
       }
 
       // 3. Get Provider
-      const provider = getAIProviderByType(aiType || 'copilot')
+      const provider = getAIProviderByType('openai')
       logger.info(
         actionKey,
         `Using ${provider.name}: ${bookId}_ch${chapterNumber}`,

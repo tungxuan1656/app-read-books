@@ -5,14 +5,12 @@ export interface AIAction {
 }
 
 export interface AppSettings {
-  COPILOT_API_URL: string
-  COPILOT_MODEL: string
-  DEEPSEEK_API_URL: string
-  DEEPSEEK_MODEL: string
+  OPENAI_API_URL: string
+  OPENAI_MODEL: string
   AI_CUSTOM_HEADERS: string
   BOOKS_API_URL: string
   PREFETCH_COUNT: string
-  AI_PROVIDER: 'copilot' | 'deepseek'
+  AI_PROVIDER: 'openai'
   AI_PROCESS_ACTIONS: AIAction[]
   AI_MIN_CHUNK_SIZE: string
 }
