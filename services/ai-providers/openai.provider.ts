@@ -6,6 +6,7 @@ import type { AIProvider } from '../ai.service'
 import {
   cleanProviderResponse,
   getSharedCustomHeaders,
+  getSharedExtraBody,
   getSharedMinChunkSize,
   type ProviderMessage,
   splitContentIntoChunks,
@@ -82,6 +83,10 @@ export const getOpenAICustomHeaders = (): Record<string, string> => {
   return getSharedCustomHeaders('OpenAIProvider')
 }
 
+export const getOpenAIExtraBody = (): Record<string, unknown> => {
+  return getSharedExtraBody('OpenAIProvider')
+}
+
 const callOpenAIAPI = async (
   messages: ProviderMessage[],
   maxRetries: number = 3,
@@ -89,6 +94,8 @@ const callOpenAIAPI = async (
   const apiUrl = getOpenAIApiUrl()
   const model = getOpenAIModel()
   const customHeaders = getOpenAICustomHeaders()
+  const extraBody = getOpenAIExtraBody()
+  console.log('extraBody: ', extraBody)
 
   let lastError: Error | null = null
 
@@ -105,7 +112,11 @@ const callOpenAIAPI = async (
           'Content-Type': 'application/json',
           ...customHeaders,
         },
-        body: JSON.stringify({ model, messages }),
+        body: JSON.stringify({
+          model,
+          messages,
+          ...extraBody,
+        }),
       })
 
       if (!response.ok) {

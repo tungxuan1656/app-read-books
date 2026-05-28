@@ -52,6 +52,14 @@ export const SETTING_GROUPS: SettingGroup[] = [
         inputType: 'multiline',
       },
       {
+        key: 'AI_EXTRA_BODY',
+        label: 'AI Extra Body',
+        placeholder: '{}',
+        description:
+          'Extra body params thêm vào request API ở dạng JSON string. Ví dụ: {"top_p":0.9,"temperature":0.7}',
+        inputType: 'multiline',
+      },
+      {
         key: 'AI_MIN_CHUNK_SIZE',
         label: 'Min Chunk Size',
         placeholder: '1300',
@@ -75,7 +83,7 @@ export const SETTING_GROUPS: SettingGroup[] = [
         label: 'OpenAI Model',
         placeholder: 'gpt-4.1',
         description:
-          'Tên model OpenAI sử dụng (ví dụ: gpt-4.1, gpt-4o). Để trống sẽ dùng gpt-4.1',
+          'Tên model OpenAI sử dụng. VD: gpt-4.1, gpt-4o, minimax/MiniMax-M2.5, ds/deepseek-v4-pro, cx/gpt-5.4-mini',
       },
     ],
   },

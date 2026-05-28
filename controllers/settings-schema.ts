@@ -56,6 +56,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   OPENAI_API_URL: 'https://copilot.tungxuan.io.vn/v1/chat/completions',
   OPENAI_MODEL: 'gpt-4o',
   AI_CUSTOM_HEADERS: '',
+  AI_EXTRA_BODY: '{"thinking":{"type":"disabled"},"stream":false}',
   BOOKS_API_URL:
     'https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books',
   PREFETCH_COUNT: '3',
@@ -100,7 +101,7 @@ const toStringValue = (value: unknown, fallback: string): string => {
   return fallback
 }
 
-const normalizeAIProvider = (value: unknown): AppSettings['AI_PROVIDER'] => {
+const normalizeAIProvider = (_value: unknown): AppSettings['AI_PROVIDER'] => {
   return 'openai'
 }
 
@@ -125,6 +126,10 @@ export const sanitizeSettings = (value: unknown): AppSettings => {
     AI_CUSTOM_HEADERS: toStringValue(
       input.AI_CUSTOM_HEADERS,
       legacyCustomHeaders || DEFAULT_SETTINGS.AI_CUSTOM_HEADERS,
+    ),
+    AI_EXTRA_BODY: toStringValue(
+      input.AI_EXTRA_BODY,
+      DEFAULT_SETTINGS.AI_EXTRA_BODY,
     ),
     BOOKS_API_URL: toStringValue(
       input.BOOKS_API_URL,

@@ -8,6 +8,7 @@ export interface AppSettings {
   OPENAI_API_URL: string
   OPENAI_MODEL: string
   AI_CUSTOM_HEADERS: string
+  AI_EXTRA_BODY: string
   BOOKS_API_URL: string
   PREFETCH_COUNT: string
   AI_PROVIDER: 'openai'

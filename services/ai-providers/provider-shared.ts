@@ -91,6 +91,39 @@ export const getSharedCustomHeaders = (
   }
 }
 
+export const getSharedExtraBody = (
+  providerTag: string,
+): Record<string, unknown> => {
+  const rawExtraBody = useSettingsStore
+    .getState()
+    .settings.AI_EXTRA_BODY?.trim()
+
+  if (!rawExtraBody) {
+    return {}
+  }
+
+  try {
+    const parsed = JSON.parse(rawExtraBody)
+
+    if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
+      logger.warn(
+        providerTag,
+        'Extra body must be a JSON object, skipping extra body',
+      )
+      return {}
+    }
+
+    return parsed as Record<string, unknown>
+  } catch (error) {
+    logger.warn(
+      providerTag,
+      'Extra body JSON is invalid, skipping extra body',
+      error,
+    )
+    return {}
+  }
+}
+
 export const cleanProviderResponse = (response: string): string => {
   let cleaned = response.trim()
   cleaned = cleaned.replace(/<\/?div[^>]*>/gi, '')
