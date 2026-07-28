@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:harness-init:v1.0:work",
+  "title": "Harness v1.0 feature work",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "acceptanceResults", "nextAction", "completion"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "acceptanceResults": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "met", "evidence"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "met": {"type": "boolean"},
+          "evidence": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "nextAction": {"type": ["string", "null"]},
+    "completion": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "verifiedAt": {"type": ["string", "null"]},
+        "completedAt": {"type": ["string", "null"]},
+        "cancellationSummary": {"type": ["string", "null"]},
+        "supersededBy": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

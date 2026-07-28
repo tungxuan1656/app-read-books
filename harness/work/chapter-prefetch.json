@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "chapter-prefetch",
+  "acceptanceResults": [
+    {
+      "id": "a1",
+      "met": true,
+      "evidence": "Verified in app/reading/index.tsx (calling useChapterPrefetch with bookId, index, and isCurrentChapterReady hook values)."
+    },
+    {
+      "id": "a2",
+      "met": true,
+      "evidence": "Verified in hooks/use-chapter-prefetch.ts (calling dbService.getChaptersCacheStatus to check next N chapters in one query)."
+    },
+    {
+      "id": "a3",
+      "met": true,
+      "evidence": "Verified in hooks/use-chapter-prefetch.ts (running sequential for-loop to fetch each missing chapter, checking isCancelled and runIdRef.current on every step to halt immediately on unmount or navigation)."
+    }
+  ],
+  "nextAction": null,
+  "completion": {
+    "verifiedAt": "2026-07-28T10:25:00Z",
+    "completedAt": "2026-07-28T10:25:00Z",
+    "cancellationSummary": null,
+    "supersededBy": null
+  }
+}

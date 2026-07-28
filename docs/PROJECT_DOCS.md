@@ -1,90 +1,92 @@
-# Tài liệu Mô tả Ứng dụng App Read Books
+# Project Description — App Read Books
 
-## 1. Giới thiệu
-**App Read Books** là một ứng dụng di động được xây dựng bằng React Native (Expo), cho phép người dùng đọc truyện, sách với các tính năng nâng cao như dịch thuật và tóm tắt nội dung bằng AI (Copilot API).
+## 1. Introduction
+**App Read Books** is a mobile application built using React Native (Expo) that allows users to read books and novels with advanced AI features such as machine translation and summarization using a Copilot-compatible API.
 
-## 2. Các Tính năng Chính
+## 2. Core Features
 
-### 2.1. Quản lý Sách (Book Management)
-- **Danh sách sách:** Hiển thị danh sách các truyện/sách đã tải về.
-- **Thêm sách:**
-  - Tải sách từ nguồn dữ liệu trực tuyến (Supabase).
-  - Sách được tải về dưới dạng file `.zip` và tự động giải nén vào thư mục lưu trữ của ứng dụng.
-- **Xóa sách:** Cho phép xóa sách khỏi thiết bị thông qua thao tác vuốt (swipe) trên danh sách.
-- **Thông tin sách:** Xem thông tin chi tiết của sách.
+### 2.1. Book Library Management
+- **Book List:** Displays all downloaded novels/books.
+- **Add Book:**
+  - Fetches the list of available books from a remote Supabase backend.
+  - Downloads the book as a `.zip` archive and unzips it into the local app filesystem.
+- **Delete Book:** Allows deleting books from the device via a swipe-left gesture on the book list.
+- **Book Details:** Displays metadata, chapters, and description in a Bottom Sheet.
 
-### 2.2. Đọc Sách (Reading)
-- **Hiển thị nội dung:** Hiển thị nội dung chương truyện dưới dạng HTML.
-- **Điều hướng:**
-  - Chuyển chương (Trước/Sau).
-  - Tự động lưu vị trí đọc (offset) và cuộn đến vị trí đó khi mở lại.
-  - Nút cuộn nhanh xuống cuối trang.
-- **Chế độ đọc AI (AI Reading Modes):**
-  - **Mặc định (None):** Hiển thị nội dung gốc của sách.
-  - **Dịch thuật (Translate):** Sử dụng Copilot API để dịch nội dung chương sang ngôn ngữ đích (cấu hình trong Settings).
-  - **Tóm tắt (Summary):** Sử dụng Copilot API để tóm tắt nội dung chương.
+### 2.2. Book Reader
+- **Content Rendering:** Renders chapter text formatted as HTML inside a WebView.
+- **Navigation:**
+  - Navigate between chapters (Previous/Next).
+  - Automatically persists the current reading position (scroll offset) and restores it when reopened.
+  - Quick-scroll to bottom of the page button.
+- **AI Reading Modes:**
+  - **Default (None):** Renders the original text of the book.
+  - **Translation (Translate):** Leverages Copilot API to translate chapter content to Vietnamese with custom target constraints.
+  - **Summary (Summary):** Summarizes the chapter content to 50-60% length.
 
-### 2.3. Cài đặt (Settings)
-- Quản lý các cấu hình quan trọng:
-  - **Copilot API:** API URL, Model, Prompts cho dịch và tóm tắt.
-  - **Supabase:** Anon Key để tải sách.
-- Cấu hình giao diện đọc (Typography): Font chữ, kích thước, chiều cao dòng.
+### 2.3. Settings Management
+- Configure crucial parameters:
+  - **AI (OpenAI-compatible):** Custom API URL (`OPENAI_API_URL`), Model (`OPENAI_MODEL`), Custom Headers, Extra Body parameters, and custom AI actions (translation and summary prompts).
+  - **Books Download:** Books API URL (`BOOKS_API_URL`) to fetch available books from Supabase Functions.
+  - **Prefetch:** The number of chapters to prefetch ahead (`PREFETCH_COUNT`, default is 3).
+- Reading Layout controls (Typography): font family, font size, and line height.
 
-## 3. Kiến trúc và Công nghệ
+## 3. Architecture & Technologies
 
 ### 3.1. Tech Stack
-- **Framework:** React Native (Expo).
+- **Framework:** React Native (Expo SDK 54).
 - **Language:** TypeScript.
-- **State Management:** Zustand (kết hợp với MMKV để persist data).
+- **State Management:** Zustand (with MMKV integration for persistence).
 - **Navigation:** Expo Router.
-- **Storage:** MMKV (cho settings/state), Expo File System (cho file sách).
-- **AI Integration:** Copilot-compatible chat completion API thông qua provider nội bộ.
-- **UI Components:** React Native Gesture Handler, Bottom Sheet.
+- **Storage:** MMKV (settings & simple states), Expo File System (book folders), and SQLite (`expo-sqlite`) for processed AI cache.
+- **AI Integration:** OpenAI-compatible chat completion provider endpoint.
+- **UI Components:** React Native Gesture Handler, Gorhom Bottom Sheet.
 
-### 3.2. Cấu trúc Thư mục Chính
-- `app/`: Chứa các màn hình và cấu hình routing (Expo Router).
-- `components/`: Các UI component tái sử dụng.
-- `controllers/`: Quản lý state (Store) và storage.
-- `services/`: Các service xử lý logic nghiệp vụ (Download, AI providers, AI actions, Database).
-- `hooks/`: Custom hooks cho logic đọc sách, navigation, v.v.
-- `utils/`: Các hàm tiện ích hỗ trợ.
+### 3.2. Primary Folder Structure
+- `app/`: Route screen endpoints and routing layouts (Expo Router).
+- `components/`: Reusable UI elements.
+- `controllers/stores/`: Zustand stores grouped by concern.
+- `services/`: Business workflows, API integrations, and database managers.
+- `hooks/`: Screen orchestration hooks and lifecycle controllers.
+- `utils/`: Common pure helpers.
 
-### 3.3. Ownership sau Refactor
-- `app/*`: chỉ xử lý routing + composition UI.
-- `hooks/*`: orchestration lifecycle và trạng thái cho màn hình.
-- `services/*`: business logic, network/file/database I/O và provider integration.
-- `controllers/*`: schema state, persistence, migration.
+### 3.3. Refactored Ownership Boundaries
+- `app/*`: Route mapping + UI composition only.
+- `hooks/*`: Orchestrating component lifecycle, cancellation, and store-service bindings.
+- `services/*`: Core IO, networking, filesystem, database, and AI provider integrations.
+- `controllers/*`: State schemas, store initializers, mmkv bridges, and migrations.
 
-## 4. Luồng Hoạt động (Operational Flows)
+## 4. Operational Flows
 
-### 4.1. Khởi động Ứng dụng
-1. **Splash Screen:** Hiển thị màn hình chờ.
-2. **Initialization:** Thiết lập các state và điều hướng ban đầu.
-3. **Check State:** Kiểm tra trong `useAppStore` xem người dùng có đang đọc dở cuốn sách nào không (`reading.onScreen`).
-   - Nếu có: Điều hướng trực tiếp vào màn hình đọc (`/reading`).
-   - Nếu không: Vào màn hình chính (`/`).
+### 4.1. App Launch & Initialization
+1. **Splash Screen:** Shown during assets/fonts loading.
+2. **State Restoring:** Zustand reads MMKV state.
+3. **State Verification:** Verifies if a book was previously being read (`reading.onScreen`).
+   - If true: Navigates directly to the reader route `/reading`.
+   - If false: Navigates to `/` (home book library).
 
-### 4.2. Luồng Tải Sách
-1. Người dùng vào màn hình "Tải truyện" (`app/add-book/index.tsx`).
-2. Hook orchestration `useAddBook` gọi service import (`services/book-import.service.ts`) để lấy danh sách sách khả dụng.
-3. Người dùng chọn tải sách:
-   - File `.zip` được tải về qua `downloadFile`.
-   - File được giải nén vào thư mục sách của ứng dụng qua `unzip`.
-   - File zip gốc bị xóa sau khi giải nén thành công.
-4. Danh sách sách ở màn hình chính được cập nhật.
+### 4.2. Book Download Flow
+1. User opens the "Add Book" screen (`app/add-book/index.tsx`).
+2. Hook `useAddBook` calls `book-import.service.ts` to fetch available books.
+3. User selects a book to download:
+   - File `.zip` is downloaded to device cache via `downloadFile`.
+   - Extracted to app local folder using `unzip`.
+   - ZIP file is deleted automatically upon success.
+4. Library list is updated to reflect new downloaded books.
 
-### 4.3. Luồng Đọc và Xử lý AI
-1. Màn hình `Reading` khởi tạo, lấy `bookId` từ params.
-2. Hook `useReadingContent` được kích hoạt:
-   - Kiểm tra `readingAIMode` từ Store.
-   - **Mode None:** Đọc nội dung file chương từ bộ nhớ máy.
-   - **Mode Translate/Summary:**
-     - Gửi nội dung chương đến Copilot API.
-     - Gửi prompt tương ứng (Dịch/Tóm tắt) để AI xử lý.
-     - Nhận về văn bản đã xử lý.
-3. Nội dung (Gốc hoặc AI) được hiển thị lên màn hình.
+### 4.3. Reading & AI Processing
+1. `Reading` screen initialized with `bookId`.
+2. Hook `useReadingContent` runs:
+   - Resolves active `readingAIMode`.
+   - **Mode None:** Reads raw chapter content directly from device FileSystem.
+   - **AI Modes (Translate/Summary):**
+     - Queries SQLite database for existing cached version.
+     - Cache Hit: Returns cached HTML text.
+     - Cache Miss: Fetches raw text, constructs OpenAI request, processes it, saves HTML to SQLite, and returns.
+3. WebView displays the finalized HTML page.
 
-## 5. Yêu cầu Cấu hình
-Để ứng dụng hoạt động đầy đủ, người dùng cần cấu hình các thông số sau trong phần Settings:
-- **Supabase Anon Key:** Để tải sách.
-- **Copilot API URL/Model:** Để sử dụng tính năng Dịch và Tóm tắt.
+## 5. Configuration Requirements
+To run all functionalities, ensure these parameters are configured in Settings:
+- **Books API URL:** Supabase Function endpoint to load book metadata and files. (Codebase provides default).
+- **AI API URL / Model:** Target OpenAI-compatible URL/model (defaults to `copilot.tungxuan.io.vn` and `gpt-4o`).
+- **AI Min Chunk Size:** Minimum characters count to divide text chunks before sending to the AI model.

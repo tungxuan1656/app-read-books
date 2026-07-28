@@ -4,7 +4,7 @@ Use this template when dispatching a spec document reviewer subagent.
 
 **Purpose:** Verify the spec is complete, consistent, and ready for implementation planning.
 
-**Dispatch after:** Spec document is written to docs/superpowers/specs/
+**Dispatch after:** Durable guidance is written to the relevant `docs/frontend/*` or `docs/features/*` leaf, or incorporated into an ExecPlan
 
 ```
 Task tool (general-purpose):

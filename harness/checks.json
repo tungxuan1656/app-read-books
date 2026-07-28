@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "checks": [
+    {
+      "id": "lint-pass",
+      "argv": ["pnpm", "run", "lint"],
+      "cwd": ".",
+      "quick": true,
+      "requiredByDefault": true,
+      "timeoutMs": 60000,
+      "declaredEffects": {
+        "network": false,
+        "writes": false,
+        "services": false,
+        "installs": false,
+        "secrets": false
+      }
+    },
+    {
+      "id": "tsc-pass",
+      "argv": ["pnpm", "run", "tsc-check"],
+      "cwd": ".",
+      "quick": true,
+      "requiredByDefault": true,
+      "timeoutMs": 120000,
+      "declaredEffects": {
+        "network": false,
+        "writes": false,
+        "services": false,
+        "installs": false,
+        "secrets": false
+      }
+    }
+  ]
+}
