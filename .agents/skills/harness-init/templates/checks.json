@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "checks": [
+    {
+      "id": "example-check",
+      "description": "Brief user-visible description of what this checks",
+      "steps": [
+        "Step to reproduce or verify",
+        "Expected outcome"
+      ],
+      "passes": false
+    }
+  ]
+}

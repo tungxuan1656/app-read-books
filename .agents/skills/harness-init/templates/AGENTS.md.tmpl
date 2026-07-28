@@ -1,0 +1,113 @@
+# {{REPO_NAME}} — agent map
+
+## Scope
+
+Repository purpose: {{PURPOSE}}
+
+This is a brief map for agents working in the repository. Read it after the initial recon and
+before changing code, then follow more specific local documentation.
+
+## Sources of truth
+
+- `harness/manifest.json` is the feature inventory and lifecycle source.
+- Behavior, title, and Tier 2/3 acceptance are only in `docs/specs/<id>.md`.
+- `harness/work/<id>.json` contains only the execution result, evidence, next action, and completion object.
+- `harness/checks.json` is the allowlisted check inventory.
+- `harness/progress.md` is a brief operations log, not a second manifest.
+- `ARCHITECTURE.md` and `docs/references/` are repo-local knowledge when present.
+
+## Canonical map
+
+- Application code/source: inspect the repository-specific directories below this map.
+- Specification: `docs/specs/<id>.md`.
+- Execution plan: `docs/plans/YYYY-MM-DD--plan--<subject-id>--<intent>.md` using the self-contained 12-section template.
+- Local reference: `docs/references/<topic>.md`.
+- Manifest and checks: `harness/manifest.json`, `harness/checks.json`.
+- Structural schema: `harness/schemas/*.schema.json` (Draft 2020-12).
+- Validator: `harness/scripts/validate.mjs`.
+- Check runner: `harness/scripts/run-checks.mjs`.
+- Optional repository bootstrap: root `init.mjs`; never create or call `init.sh`.
+- Feature work: `harness/work/<id>.json`.
+- Run receipts: only in `harness/work/receipts/`.
+
+## Required workflow
+
+1. Recon the tree, git state, `AGENTS.md`, architecture, specs, plans, and references.
+2. Identify the feature in the manifest and read the canonical spec before implementation.
+3. Keep changes within the feature scope and do not weaken existing gates.
+4. Run `node harness/scripts/validate.mjs .` before advancing the lifecycle.
+5. Run `node harness/scripts/run-checks.mjs . --profile quick` for a safe check.
+6. Use the full check only with explicit approval for each effect.
+7. Record specific command/path/receipt evidence in the work JSON.
+8. Update `nextAction` when unfinished; do not invent evidence.
+
+Configured verification command: {{VERIFICATION_COMMAND}}
+
+## Invariant ownership
+
+- IDs are lowercase kebab-case, unique, and in strictly increasing manifest order.
+- Prerequisites must exist and cannot point to themselves; active/blocked/completed work requires hard
+  prerequisites to be completed.
+- Sequential allows at most one active or blocked feature.
+- Every manifest entry is a tracked Tier 2/3 feature and has exactly `spec: docs/specs/<id>.md`.
+- Acceptance IDs in work must match the spec exactly; work must not repeat the prose.
+- `met: true` requires specific, reproducible evidence; completed requires a valid completion object,
+  every acceptance met, and evidence.
+- Status is proposed, planned, active, blocked, completed, cancelled, or superseded.
+  Use blocked only for a real blocker, not to bypass eligibility.
+
+## Anti-cheat contract
+
+Do not mark a result as met just because a file exists, the code appears correct, a command was
+tried, or output was hidden. Do not change acceptance wording/IDs, remove a check, silence stderr,
+ignore exit status, use shell injection, use `|| true`/`; true`, or modify the validator to turn an
+unmet condition into a met one. Failed or missing checks must remain visible. Without proof, set
+`met: false` and explain the next action.
+
+Do not delete or loosen an acceptance/check to make an item pass. If an acceptance is incorrect,
+edit the owning file (docs/specs/<id>.md) in the same change and state the reason clearly.
+
+## checks.json discipline
+
+`harness/checks.json` is the feature checklist. Each check has a `passes` field that starts `false`.
+
+Rules:
+- **Only change `passes`** from `false` to `true` — never edit `id`, `description`, or `steps`.
+- **Never delete a check** — a deleted check cannot prove the feature works.
+- Only set `passes: true` after running the verification command and confirming the feature
+  works end-to-end as a user would experience it.
+- If a check cannot be verified, leave `passes: false` and record the reason in `harness/progress.md`.
+
+## Recon checklist
+
+- Confirm the repository root and package boundary before making changes.
+- Read this map, then read the nearest local map in the subtree to be changed.
+- Inspect `ARCHITECTURE.md` if present; do not infer architecture from filenames.
+- Find constraints and prior decisions in `docs/references/`.
+- Read the feature spec and related plan before implementation.
+- Inspect manifest status, prerequisite order, and existing work evidence.
+- Inspect the check and effect before running a command that may change state.
+- Prefer the narrowest command that produces the evidence required by the spec.
+
+## Evidence and receipts
+
+- Evidence states the exact command, exit status, path, or receipt.
+- A receipt proves that a check ran; by itself, it does not prove acceptance.
+- Keep child output visible and preserve meaningful stderr when a check fails.
+- Do not put receipts in source, docs, or arbitrary temporary directories.
+- Do not report a dry-run as a real run or a planned command as having run.
+- If a gate cannot run, record the blocker and next action; do not guess.
+
+## Review boundaries
+
+- Review unknown-key, prerequisite, lifecycle, and acceptance-correspondence errors first.
+- A validator failure is a stop condition, not an invitation to bypass.
+- Keep local assumptions in a reference or spec with a specific path.
+- Update the map only when the canonical tree or operating contract changes.
+
+## Change notes
+
+Prefer small, easy-to-review commits that reference files/commands. Keep existing files; the
+creator is missing-only and does not overwrite. If you encounter the old `.agents/harness` or
+`cairn` layout, stop and obtain explicit approval with `--migrate-old-layout`. That action adds
+canonical v2 files and leaves old data for deliberate review.
