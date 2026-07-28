@@ -8,7 +8,7 @@
 
 ## 2) Domain Naming
 
-- Keep domain terms explicit: `Book`, `Chapter`, `Reading`, `TTS`, `AIAction`.
+- Keep domain terms explicit: `Book`, `Chapter`, `Reading`, `AIAction`.
 - Avoid vague names (`Data`, `Payload`, `Result`) unless a boundary type explicitly requires them.
 
 ## 3) Example

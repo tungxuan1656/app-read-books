@@ -35,7 +35,7 @@
 - DTO for transport payloads.
 - `Request` for input payloads.
 - `Response` for output payloads.
-- Domain entities should use clear domain names (`Book`, `ReadingState`, `TTSQueueItem`).
+- Domain entities should use clear domain names (`Book`, `ReadingState`, `AIAction`).
 
 ## 6) Comments
 

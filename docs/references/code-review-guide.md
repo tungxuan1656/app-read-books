@@ -24,7 +24,6 @@
 - Heavy loops/IO kept off UI-critical path.
 - Long lists and rendering behavior remain responsive.
 - Proper cleanup for listeners/timers/subscriptions.
-- No memory leak risk in TTS/playback flows.
 
 ## 5) Data and Cache Review
 
@@ -41,7 +40,7 @@
 ## 7) Reviewer Checklist
 
 - [ ] Behavior validated against acceptance intent.
-- [ ] No obvious regression in reading/download/TTS critical paths.
+- [ ] No obvious regression in reading/download critical paths.
 - [ ] Layering rule respected (UI vs hook vs service vs store).
 - [ ] Error handling is explicit.
 - [ ] Type safety maintained (`tsc-check` passes).

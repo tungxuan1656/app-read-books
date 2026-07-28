@@ -24,7 +24,6 @@ utils/
   - network calls
   - filesystem operations
   - sqlite cache access
-  - audio/tts integration
 - Hooks orchestrate:
   - loading state
   - user-facing messages

@@ -10,7 +10,7 @@
 
 - Run `pnpm run tsc-check` for every code change.
 - Run targeted tests for affected modules.
-- For critical flow changes (reading, download, TTS), run manual smoke checks on
+- For critical flow changes (reading, download), run manual smoke checks on
   at least one platform (iOS simulator or Android emulator).
 
 ## 3) What to Test First
@@ -32,7 +32,6 @@
 - [ ] App startup + initial route works.
 - [ ] Open book and switch chapters.
 - [ ] AI mode (none/translate/summary) loads expected content.
-- [ ] TTS starts, plays, and stops correctly.
 - [ ] Cache manager actions complete without crash.
 
 ## 5) Failure Reporting

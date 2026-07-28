@@ -112,5 +112,5 @@ fastlane ios distribute
 ## Reference Docs
 
 - `docs/PROJECT_DOCS.md`: product and architecture overview
-- `docs/standards/README.md`: engineering standards index
-- `docs/standards/testing-and-validation-pattern.md`: validation workflow
+- `docs/references/README.md`: engineering standards index
+- `docs/references/testing-and-validation-pattern.md`: validation workflow

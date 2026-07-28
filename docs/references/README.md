@@ -16,7 +16,7 @@ All standards are aligned to the current stack:
 - `component-structure-pattern.md`
 - `naming-and-conventions-pattern.md`
 - `type-naming-pattern.md`
-- `api-react-query-pattern.md` (service + hook + cache pattern for this project)
+- `service-hook-pattern.md` (service + hook + cache pattern for this project)
 - `zustand-store-pattern.md`
 - `form-pattern.md`
 - `dialog-and-form-pattern.md`

@@ -102,7 +102,7 @@ useReadingContent (hook)
 
 ## References
 
-- `docs/standards/` — coding and pattern standards
+- `docs/references/` — coding and pattern standards
 - `docs/PROJECT_DOCS.md` — product description (Vietnamese)
 - `harness/manifest.json` — feature inventory
 - `harness/checks.json` — automated quality gates
