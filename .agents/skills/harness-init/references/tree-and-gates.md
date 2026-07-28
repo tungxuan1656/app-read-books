@@ -28,17 +28,12 @@ from a manifest entry; receipts are created by the runner only after execution.
 
 The creator must confirm that the target exists and is a directory, then check:
 
-1. `.agents/harness` and `cairn` are the only two recognized old layouts.
-2. If the root `harness` is absent, scaffold the canonical tree.
-3. If the root `harness` exists but `manifest.json` is not an object with
+1. If the root `harness` is absent, scaffold the canonical tree.
+2. If the root `harness` exists but `manifest.json` is not an object with
    `schemaVersion: 1` and a `features` array, it is malformed/unrecognized and
    the creator must stop.
-4. A standalone schemaVersion file outside `harness/manifest.json` does not
+3. A standalone schemaVersion file outside `harness/manifest.json` does not
    count as a layout.
-
-Old layouts are processed only with `--migrate-old-layout`. This is an
-intentional action that only adds the canonical tree and preserves old data for
-owner review; it does not delete or silently convert content.
 
 ## Manifest and work gates
 

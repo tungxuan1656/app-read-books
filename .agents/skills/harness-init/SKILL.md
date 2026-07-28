@@ -12,9 +12,7 @@ This skill scaffolds the canonical harness for a Node.js 20+ repository. It is
 run by the **user**, not called automatically by an agent. It does not install
 dependencies, run application migrations, or add data models.
 
-**Key guarantees:** missing-only (never overwrites), dry-run before real run,
-`--migrate-old-layout` required to touch known old layouts (`.agents/harness`,
-`cairn`).
+**Key guarantees:** missing-only (never overwrites), dry-run before real run.
 
 ## Usage
 

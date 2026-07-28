@@ -26,13 +26,12 @@ Required metadata:
 
 Options:
   --dry-run
-  --migrate-old-layout
   --with-init --start-argv '<json array>' --smoke-argv '<json array>'
   --readiness-url <http(s) URL>`);
 }
 
 function parseArgs(args) {
-  const options = {dryRun: false, migrateOldLayout: false, withInit: false};
+  const options = {dryRun: false, withInit: false};
   const valueOptions = new Map([
     ['--target', 'target'],
     ['--repo-name', 'repoName'],
@@ -49,7 +48,6 @@ function parseArgs(args) {
     const arg = args[index];
     if (arg === '--help') return {help: true};
     if (arg === '--dry-run') options.dryRun = true;
-    else if (arg === '--migrate-old-layout') options.migrateOldLayout = true;
     else if (arg === '--with-init') options.withInit = true;
     else if (valueOptions.has(arg)) {
       const key = valueOptions.get(arg);
@@ -129,15 +127,6 @@ function isCanonicalManifest(document) {
 }
 
 function detectLayout(target) {
-  const oldLayouts = [];
-  for (const relative of ['.agents/harness', 'cairn']) {
-    try {
-      fs.lstatSync(path.join(target, relative));
-      oldLayouts.push(relative);
-    } catch {
-      // absent
-    }
-  }
   const harness = path.join(target, 'harness');
   let rootHarness = 'absent';
   try {
@@ -153,7 +142,7 @@ function detectLayout(target) {
   } else if (rootHarness === 'other') {
     throw new Error('existing root harness path is not a directory; refusing to overwrite it');
   }
-  return {oldLayouts, validCanonical: rootHarness === 'directory'};
+  return {validCanonical: rootHarness === 'directory'};
 }
 
 function render(template, options) {
@@ -251,10 +240,6 @@ function main() {
   }
   if (!stat.isDirectory()) throw new Error('target must be an existing directory');
   const layout = detectLayout(target);
-  if (layout.oldLayouts.length > 0 && !options.migrateOldLayout) {
-    throw new Error(`detected known old layout(s): ${layout.oldLayouts.join(', ')}; rerun with --migrate-old-layout to deliberately add canonical v2 files (old data is preserved)`);
-  }
-  if (layout.oldLayouts.length > 0) console.log(`MIGRATE explicit: ${layout.oldLayouts.join(', ')} -> canonical v2 additions; old data preserved`);
   const files = planFiles(target, options);
   const writes = execute(target, options, files);
   console.log(`${options.dryRun ? 'Dry-run' : 'Real-run'} complete: ${writes} create action(s), ${files.length - writes} skip action(s).`);
