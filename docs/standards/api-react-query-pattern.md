@@ -33,9 +33,8 @@ utils/
 ## 3) Caching Strategy
 
 - AI processed chapter cache:
-  - `services/database.service.ts`
-  - `services/content-processor.ts`
-  - `utils/content-cache.helpers.ts`
+  - `services/database.service.ts` — SQLite CRUD (`processed_chapters`)
+  - `services/content-processor.ts` — cache-first processing, in-flight dedup
 - File-level cache and cleanup:
   - `utils/file-system.helpers.ts`
 - Always check cache before expensive remote processing.

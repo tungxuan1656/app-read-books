@@ -26,8 +26,9 @@
 
 ### 2.3. Cài đặt (Settings)
 - Quản lý các cấu hình quan trọng:
-  - **Copilot API:** API URL, Model, Prompts cho dịch và tóm tắt.
-  - **Supabase:** Anon Key để tải sách.
+  - **AI (OpenAI-compatible):** API URL (`OPENAI_API_URL`), Model (`OPENAI_MODEL`), Custom Headers, Extra Body, AI Actions (prompts dịch và tóm tắt).
+  - **Sách:** Books API URL (`BOOKS_API_URL`) để lấy danh sách sách từ Supabase Function.
+  - **Prefetch:** Số chương tải trước (`PREFETCH_COUNT`, mặc định 3).
 - Cấu hình giao diện đọc (Typography): Font chữ, kích thước, chiều cao dòng.
 
 ## 3. Kiến trúc và Công nghệ
@@ -37,14 +38,14 @@
 - **Language:** TypeScript.
 - **State Management:** Zustand (kết hợp với MMKV để persist data).
 - **Navigation:** Expo Router.
-- **Storage:** MMKV (cho settings/state), Expo File System (cho file sách).
-- **AI Integration:** Copilot-compatible chat completion API thông qua provider nội bộ.
+- **Storage:** MMKV (cho settings/state), Expo File System (cho file sách), SQLite (`expo-sqlite`) cho cache chương đã xử lý AI.
+- **AI Integration:** OpenAI-compatible chat completion API (mặc định: `copilot.tungxuan.io.vn`).
 - **UI Components:** React Native Gesture Handler, Bottom Sheet.
 
 ### 3.2. Cấu trúc Thư mục Chính
 - `app/`: Chứa các màn hình và cấu hình routing (Expo Router).
 - `components/`: Các UI component tái sử dụng.
-- `controllers/`: Quản lý state (Store) và storage.
+- `controllers/stores/`: Zustand stores theo domain (books, reading, settings, typography, prefetch, ui-runtime).
 - `services/`: Các service xử lý logic nghiệp vụ (Download, AI providers, AI actions, Database).
 - `hooks/`: Custom hooks cho logic đọc sách, navigation, v.v.
 - `utils/`: Các hàm tiện ích hỗ trợ.
@@ -86,5 +87,6 @@
 
 ## 5. Yêu cầu Cấu hình
 Để ứng dụng hoạt động đầy đủ, người dùng cần cấu hình các thông số sau trong phần Settings:
-- **Supabase Anon Key:** Để tải sách.
-- **Copilot API URL/Model:** Để sử dụng tính năng Dịch và Tóm tắt.
+- **Books API URL:** URL Supabase Function để tải danh sách và file sách. Mặc định đã có giá trị từ codebase.
+- **AI API URL / Model:** Để sử dụng tính năng Dịch và Tóm tắt. Mặc định trỏ đến `copilot.tungxuan.io.vn` với model `gpt-4o`.
+- **AI Min Chunk Size:** Kích thước tối thiểu để tách nội dung trước khi gửi AI (mặc định 1300 ký tự).

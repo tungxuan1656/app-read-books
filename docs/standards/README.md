@@ -23,7 +23,6 @@ All standards are aligned to the current stack:
 - `i18n-label-pattern.md`
 - `expo-router-navigation-pattern.md`
 - `cache-and-storage-pattern.md`
-- `tts-audio-pattern.md`
 - `color-guide.md`
 - `typography-guide.md`
 - `testing-and-validation-pattern.md`

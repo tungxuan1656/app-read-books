@@ -3,7 +3,7 @@
 ## 1) Canonical Pattern (Current)
 
 - Do not use a monolithic app store.
-- Create one store per domain in `controllers/stores`.
+- Create one store per domain in `controllers/stores/`.
 - Store file naming must be `<name>.store.ts`.
 - Each store must export:
   - `use<Name>Store` (selector-enhanced hook)
@@ -41,7 +41,7 @@ Usage:
 
 ```ts
 const settings = useSettingsStore.use.settings()
-settingsActions.updateSetting('COPILOT_MODEL', 'gpt-4.1')
+settingsActions.updateSetting('OPENAI_MODEL', 'gpt-4.1')
 ```
 
 ## 4) Persistence Pattern (Per Store Key)
