@@ -1,5 +1,54 @@
 {
   "schemaVersion": 1,
   "mode": "sequential",
-  "features": []
+  "features": [
+    {
+      "id": "settings-management",
+      "order": 1,
+      "status": "completed",
+      "owners": ["developer"],
+      "dependsOn": [],
+      "spec": "docs/specs/settings-management.md"
+    },
+    {
+      "id": "book-import",
+      "order": 2,
+      "status": "completed",
+      "owners": ["developer"],
+      "dependsOn": ["settings-management"],
+      "spec": "docs/specs/book-import.md"
+    },
+    {
+      "id": "book-library",
+      "order": 3,
+      "status": "completed",
+      "owners": ["developer"],
+      "dependsOn": ["book-import"],
+      "spec": "docs/specs/book-library.md"
+    },
+    {
+      "id": "book-reader",
+      "order": 4,
+      "status": "completed",
+      "owners": ["developer"],
+      "dependsOn": ["book-library"],
+      "spec": "docs/specs/book-reader.md"
+    },
+    {
+      "id": "ai-reading",
+      "order": 5,
+      "status": "completed",
+      "owners": ["developer"],
+      "dependsOn": ["book-reader", "settings-management"],
+      "spec": "docs/specs/ai-reading.md"
+    },
+    {
+      "id": "chapter-prefetch",
+      "order": 6,
+      "status": "completed",
+      "owners": ["developer"],
+      "dependsOn": ["ai-reading"],
+      "spec": "docs/specs/chapter-prefetch.md"
+    }
+  ]
 }

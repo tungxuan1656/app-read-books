@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "book-import",
+  "acceptanceResults": [
+    {
+      "id": "a1",
+      "met": true,
+      "evidence": "Verified in services/book-import.service.ts (fetchBooks list queries BOOKS_API_URL)."
+    },
+    {
+      "id": "a2",
+      "met": true,
+      "evidence": "Verified in services/download.service.ts (downloadFile utilizes Expo FileSystem to download the ZIP file)."
+    },
+    {
+      "id": "a3",
+      "met": true,
+      "evidence": "Verified in services/book-import.service.ts (importBook calls unzip from react-native-zip-archive, parses references, and deletes the zip file via FileSystem.deleteAsync)."
+    }
+  ],
+  "nextAction": null,
+  "completion": {
+    "verifiedAt": "2026-07-28T10:05:00Z",
+    "completedAt": "2026-07-28T10:05:00Z",
+    "cancellationSummary": null,
+    "supersededBy": null
+  }
+}

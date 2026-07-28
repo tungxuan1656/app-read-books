@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "book-library",
+  "acceptanceResults": [
+    {
+      "id": "a1",
+      "met": true,
+      "evidence": "Verified in app/index.tsx (Home renders FlatList of bookIds and HomeBookItem) and components/home-book-item.tsx."
+    },
+    {
+      "id": "a2",
+      "met": true,
+      "evidence": "Verified in components/item-swipeable.tsx (ItemSwipeable) and components/home-book-item.tsx (onDeleteBook deletes the book directory via FileSystem and updates books.store)."
+    },
+    {
+      "id": "a3",
+      "met": true,
+      "evidence": "Verified in components/sheet-book-info.tsx (SheetBookInfo displays metadata, author, description, and list of references/chapters)."
+    }
+  ],
+  "nextAction": null,
+  "completion": {
+    "verifiedAt": "2026-07-28T10:10:00Z",
+    "completedAt": "2026-07-28T10:10:00Z",
+    "cancellationSummary": null,
+    "supersededBy": null
+  }
+}

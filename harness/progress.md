@@ -5,8 +5,8 @@ This log records brief, dated operational updates. The canonical feature state i
 
 ## Current focus
 
-- No tracked features have been admitted yet.
-- Run `node harness/scripts/validate.mjs .` after adding a feature to the manifest.
+- Core feature specifications and work logs have been added and validated.
+- Run `node harness/scripts/validate.mjs .` to verify the manifest, specs, and work files.
 - Run `node harness/scripts/run-checks.mjs . --profile quick` to verify lint + tsc.
 
 ## Manual acceptance checks (device-dependent, cannot be automated via CLI)
@@ -26,10 +26,22 @@ These checks require a physical device or simulator and are verified manually:
 
 ## Updates
 
+### 2026-07-28 — Feature Specifications Admission
+
+- Created and documented 6 core feature specifications under `docs/specs/` and `harness/work/`.
+- Features admitted:
+  1. `settings-management` (Zustand settings store, persistence, sanitization/migration)
+  2. `book-import` (Supabase endpoint query, downloading ZIP, extraction/parsing and cleaning)
+  3. `book-library` (Home screen book list rendering, swipe-to-delete, metadata Bottom Sheet)
+  4. `book-reader` (Local chapter HTML render, next/prev navigation, scroll offset restore)
+  5. `ai-reading` (OpenAI provider chat completion, translation/summary modes, SQLite cache)
+  6. `chapter-prefetch` (Batch-checking SQLite cache, background sequential processing)
+- Registered all 6 features in `harness/manifest.json` as `completed` status with proper dependencies.
+- Harness validation: **passed** (`node harness/scripts/validate.mjs .` ➜ exit 0).
+
 ### 2026-07-28 — Harness bootstrap
 
 - Deleted old `AGENTS.md` (verbose rule-set format) and `docs/setup-eslint-nativewind.md` (surplus setup guide for other projects).
 - Scaffolded canonical v1.0 harness via `harness-init` skill.
 - `harness/checks.json`: 2 automatable CLI checks (lint, tsc). Manual checks documented above.
-- `harness/manifest.json`: empty — no features tracked yet.
 - Harness validation: **passed** (`node harness/scripts/validate.mjs .` → exit 0).
