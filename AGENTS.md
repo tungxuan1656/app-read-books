@@ -1,19 +1,33 @@
 # AGENTS.md
 
-React Native (Expo SDK 54) app for reading books/novels with AI translation/summarization via OpenAI-compatible endpoint
+rn-read-books is a single-user offline reading app. Users import books once from a remote catalog and read with optional AI translate or summary via a configurable OpenAI-compatible service.
 
-Detected stack: `Expo SDK 54 · React Native 0.81 · TypeScript 5.9 · single pnpm workspace`
+## Start here
+
+- Architecture → [ARCHITECTURE.md](./ARCHITECTURE.md) — topology, layer map, dependency direction, invariants
+- Business behavior → [docs/product/overview.md](./docs/product/overview.md) — vision, personas, scope, features, flows, rules
+- Design → [docs/design/navigation.md](./docs/design/navigation.md) · [docs/design/screens.md](./docs/design/screens.md) · [docs/design/design-system.md](./docs/design/design-system.md)
+- Subsystem rules → [docs/references/README.md](./docs/references/README.md) — hooks, services, stores, navigation, storage
+- Docs routing → [docs/index.md](./docs/index.md) — Task → Read table for all docs
+- Work state → [feature_index.json](./feature_index.json) · [progress.md](./progress.md)
 
 ## Repository map
 
-- `ARCHITECTURE.md` — architecture and layer map
-- `docs/specs/<id>.md` — feature specifications
-- `docs/references/` — engineering standards and patterns
-- `docs/plans/` + `docs/product/overview.md` — plans index and product overview
+**Business (portable, no stack terms):**
+- `docs/product/` — `overview.md`, `domain-model.md`, `glossary.md`, `flows.md`, `business-rules.md`, `integrations.md`, `decisions.md`
+- `docs/product/functional-specs/` — `book-import.md`, `book-library.md`, `book-reader.md`, `ai-reading.md`, `chapter-prefetch.md`, `settings-management.md`
+- `docs/design/` — `navigation.md`, `screens.md`, `design-system.md`
+
+**Tech (stack-specific):**
+- `ARCHITECTURE.md` — layer map and invariants (sole owner of topology)
+- `docs/specs/<id>.md` — checkable behavior per feature
+- `docs/references/` — engineering standards (see `docs/references/README.md` index)
+- `docs/decisions/decisions.md` — tech ADR log (append-only)
+- `docs/plans/` — plans index
 
 ## Assess the task
 
-Before creating or updating feature, plan, or progress artifacts, assess the task's project scale, complexity, and impact. Use no feature for lightweight work, an inline feature plan for bounded tracked work, and a separate linked plan only for substantial work.
+Before creating or updating feature, plan, or progress artifacts, assess project scale, complexity, and impact. Use no feature for lightweight work, an inline feature plan for bounded tracked work, and a separate linked plan only for substantial work.
 
 For work that does not need a feature, read only the relevant sources and run proportional verification without updating feature or progress state.
 
@@ -62,7 +76,7 @@ A feature is done only when:
 - [ ] The feature file records verification evidence.
 - [ ] `progress.md` records the result and next action.
 
-## End feature session
+## End session
 
 1. Update the feature status and handoff.
 2. When state materially changed, add a new block below the final template note in `progress.md`; do not edit older blocks.
