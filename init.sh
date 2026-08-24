@@ -8,7 +8,7 @@ MAX_JOBS="${HARNESS_JOBS:-4}"
 STATUS=0
 
 FORMAT_TASKS=(
-  # "pnpm run format" # SKIP explicit: no format script in package.json; prettier 3.8.1 enforced via eslint-plugin-prettier/recommended (eslint.config.mjs:2,27)
+  # "pnpm run format" # SKIP explicit: no format script in package.json; prettier 3.8.1 enforced via eslint-plugin-prettier/recommended (eslint.config.mjs:2,103 — import + prettier/prettier: warn)
 )
 
 LINT_TASKS=(

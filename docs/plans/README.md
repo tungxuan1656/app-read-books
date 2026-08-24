@@ -1,6 +1,6 @@
 # Plans — rn-read-books
 
-> Repairs the route `docs/plans/README.md` referenced in `AGENTS.md:22`. This file is the index for in-repo implementation plans. The feature index (`feature_index.json`) and progress log (`progress.md`) remain the canonical feature lifecycle sources.
+> Repairs the route `docs/plans/README.md` referenced in `AGENTS.md §Repository map and §Plans.` This file is the index for in-repo implementation plans. The feature index (`feature_index.json`) and progress log (`progress.md`) remain the canonical feature lifecycle sources.
 
 ## Purpose
 
@@ -10,7 +10,7 @@ Active plans live here. Terminal (completed/cancelled/superseded) plans are mark
 
 ## Naming convention
 
-Per `AGENTS.md:22–23`, plan files use:
+Per `AGENTS.md §Plans`, plan files use:
 
 ```
 YYYY-MM-DD--plan--<subject-id>--<intent>.md
@@ -146,6 +146,6 @@ Do not require either optional skill. Record selected approach in the feature or
 ## References
 
 - Skill source: `.agents/skills/writing-plans/SKILL.md`
-- Agent map route: `AGENTS.md:22–23`
+- Agent map route: `AGENTS.md §Repository map and §Plans`
 - Spec source: `docs/specs/<id>.md`
 - Checks: `./init.sh` (`pnpm run lint && pnpm run tsc-check`)
