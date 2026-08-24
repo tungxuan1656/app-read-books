@@ -132,5 +132,5 @@ useReadingContent (hook)
 
 - Product overview → `docs/product/overview.md`
 - Engineering standards → `docs/references/README.md`
-- Feature inventory → `harness/manifest.json`
-- Quality gates → `harness/checks.json`
+- Feature inventory → `feature_index.json`
+- Quality gates → `./init.sh`

@@ -138,4 +138,4 @@ Other rules:
   - [`book-reader`](../specs/book-reader.md) — HTML render, chapter nav, scroll offset
   - [`ai-reading`](../specs/ai-reading.md) — provider payload, mode switch, SQLite cache
   - [`chapter-prefetch`](../specs/chapter-prefetch.md) — trigger, batch cache check, sequential run, cancel on change
-- **Feature inventory:** [`harness/manifest.json`](../../harness/manifest.json)
+- **Feature inventory:** [`feature_index.json`](../../feature_index.json)

@@ -49,8 +49,8 @@ Read the relevant standard before you start work. Follow existing project patter
 
 ## Quality Gates
 
-- `pnpm run lint` — ESLint (configured, see `harness/checks.json`)
-- `pnpm run tsc-check` — TypeScript
+- `pnpm run lint` — ESLint (configured, see `./init.sh`)
+- `pnpm run tsc-check` — TypeScript (see `./init.sh`)
 - Route layer guardrail: direct `fetch` in `app/*` is blocked by lint.
 
 ## Links
@@ -58,6 +58,6 @@ Read the relevant standard before you start work. Follow existing project patter
 - Product overview → `docs/product/overview.md`
 - Architecture → `ARCHITECTURE.md`
 - Feature specs → `docs/specs/<id>.md`
-- Feature inventory → `harness/manifest.json`
-- Checks → `harness/checks.json`
-- Manual device checks → `harness/progress.md`
+- Feature inventory → `feature_index.json`
+- Checks → `./init.sh`
+- Manual device checks → `progress.md` (see `testing-and-validation-pattern.md` §5)

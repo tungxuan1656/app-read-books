@@ -55,12 +55,11 @@ assets/
 @types/
   *.d.ts
 
-harness/
-  manifest.json
-  checks.json
-  progress.md
-  schemas/
-  scripts/
+features/
+  feat-<id>.md
+feature_index.json
+init.sh
+progress.md
 ```
 
 ## 2) Layer Responsibilities

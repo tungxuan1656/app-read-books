@@ -1,6 +1,6 @@
 # Decisions Log — rn-read-books
 
-> **Append-only.** Add a new dated entry for each consequential decision. Do not rewrite or delete history. Mark reconstructed rationale as such. This file records historical lifecycle; the harness (`harness/manifest.json`, `harness/work/`) remains the canonical current lifecycle source.
+> **Append-only.** Add a new dated entry for each consequential decision. Do not rewrite or delete history. Mark reconstructed rationale as such. This file records historical lifecycle; the feature index (`feature_index.json`) and progress log (`progress.md`) remain the canonical current lifecycle sources.
 
 ## How to use
 

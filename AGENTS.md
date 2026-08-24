@@ -1,99 +1,75 @@
-# rn-read-books — agent map
+# AGENTS.md
 
-## Scope
+React Native (Expo SDK 54) app for reading books/novels with AI translation/summarization via OpenAI-compatible endpoint
 
-Repository purpose: React Native (Expo SDK 54) app for reading books/novels with AI-powered translation and summarization via OpenAI-compatible endpoint (configurable URL/model; endpoint `copilot.tungxuan.io.vn` remains but named OpenAI-compatible since fecf228).
+Detected stack: `Expo SDK 54 · React Native 0.81 · TypeScript 5.9 · single pnpm workspace`
 
-This is a brief map for agents working in the repository. Read it after the initial recon and before changing code, then follow more specific local documentation.
+## Repository map
 
-## Sources of truth
+- `ARCHITECTURE.md` — architecture and layer map
+- `docs/specs/<id>.md` — feature specifications
+- `docs/references/` — engineering standards and patterns
+- `docs/plans/` + `docs/product/overview.md` — plans index and product overview
 
-- `harness/manifest.json` is the feature inventory and lifecycle source.
-- Behavior, title, and Tier 2/3 acceptance are only in `docs/specs/<id>.md`.
-- `harness/work/<id>.json` contains only the execution result, evidence, next action, and completion object.
-- `harness/checks.json` is the allowlisted check inventory.
-- `harness/progress.md` is a brief operations log, not a second manifest.
-- `ARCHITECTURE.md` and `docs/references/` are repo-local knowledge when present.
+## Assess the task
 
-## Canonical map
+Before creating or updating feature, plan, or progress artifacts, assess the task's project scale, complexity, and impact. Use no feature for lightweight work, an inline feature plan for bounded tracked work, and a separate linked plan only for substantial work.
 
-- Application code/source: inspect the repository-specific directories below this map.
-- Specification: `docs/specs/<id>.md`.
-- Execution plan: `docs/plans/README.md` — index; plans use `YYYY-MM-DD--plan--<subject-id>--<intent>.md` with 12-section template from `.agents/skills/writing-plans/SKILL.md`.
-- Local reference: `docs/references/<topic>.md`.
-- Manifest and checks: `harness/manifest.json`, `harness/checks.json`.
-- Structural schema: `harness/schemas/*.schema.json` (Draft 2020-12).
-- Validator: `harness/scripts/validate.mjs`.
-- Check runner: `harness/scripts/run-checks.mjs`.
-- Feature work: `harness/work/<id>.json`.
-- Run receipts: only in `harness/work/receipts/`.
+For work that does not need a feature, read only the relevant sources and run proportional verification without updating feature or progress state.
 
-## Required workflow
+## Start feature work
 
-1. Recon the tree, git state, `AGENTS.md`, architecture, specs, plans, and references.
-2. Identify the feature in the manifest and read the canonical spec before implementation.
-3. Keep changes within the feature scope and do not weaken existing gates.
-4. Run `node harness/scripts/validate.mjs .` before advancing the lifecycle.
-5. Run `node harness/scripts/run-checks.mjs . --profile quick` for a safe check.
-6. Use the full check only with explicit approval for each effect.
-7. Record specific command/path/receipt evidence in the work JSON.
-8. Update `nextAction` when unfinished; do not invent evidence.
+1. Run `./init.sh`.
+2. Read `feature_index.json`.
+3. Read the selected feature file in `features/`.
+4. Read the latest relevant block in `progress.md`.
+5. Load only the documents linked by the selected feature.
 
-Configured verification command: pnpm run lint && pnpm run tsc-check
+If baseline verification fails, record the failure. Fix it only when the current scope includes it.
 
-## Invariant ownership
+## Working rules
 
-- IDs are lowercase kebab-case, unique, and in strictly increasing manifest order.
-- Prerequisites must exist and cannot point to themselves; active/blocked/completed work requires hard prerequisites to be completed.
-- Sequential allows at most one active or blocked feature.
-- Every manifest entry is a tracked Tier 2/3 feature and has exactly `spec: docs/specs/<id>.md`.
-- Acceptance IDs in work must match the spec exactly; work must not repeat the prose.
-- `met: true` requires specific, reproducible evidence; completed requires a valid completion object, every acceptance met, and evidence.
-- Status is proposed, planned, active, blocked, completed, cancelled, or superseded. Use blocked only for a real blocker, not to bypass eligibility.
+- Keep at most one feature `active`. Zero active features means the repository is idle.
+- Use only `todo`, `active`, `blocked`, or `done` as feature status.
+- Start `todo` work only after the user selects or approves it.
+- Keep feature work inside the active feature's scope and acceptance criteria.
+- Complete every dependency before activating its dependent feature.
+- Record scope, acceptance, evidence, and handoff in the feature file.
+- Record a feature result in `progress.md` only when the result, blocker, handoff, or next action materially changes. Do not copy feature scope there.
+- Update `init.sh` when verification commands or workspace modules change.
 
-## Anti-cheat contract
+## Plans
 
-Do not mark a result as met just because a file exists, the code appears correct, a command was tried, or output was hidden. Do not change acceptance wording/IDs, remove a check, silence stderr, ignore exit status, use shell injection, use `|| true`/`; true`, or modify the validator to turn an unmet condition into a met one. Failed or missing checks must remain visible. Without proof, set `met: false` and explain the next action.
+| Mode | Use when | Signals for external plan |
+|---|---|---|
+| No feature | <20 lines, 1 file, no API/DB/complexity change | — |
+| Inline plan (`features/feat-<id>.md`) | 1-3 files, 1 workspace, <200 lines, single concern, <1 day | — |
+| External plan (`docs/plans/feat-<id>.md`) | Substantial work | >=4 files or >=2 workspaces, DB migration or breaking API, needs phases/rollback, or needs multi-agent file ownership |
 
-Do not delete or loosen an acceptance/check to make an item pass. If an acceptance is incorrect, edit the owning file (docs/specs/<id>.md) in the same change and state the reason clearly.
+Do not create `docs/plans/feat-<id>.md` for bounded work.
 
-## checks.json discipline
+## Escalation
 
-`harness/checks.json` is the feature checklist. Each check has a `passes` field that starts `false`.
+- Read the relevant project document before making an architecture or product decision.
+- Ask the user when requirements, scope, ownership, or a repeated verification failure remain unclear.
 
-Rules:
-- **Only change `passes`** from `false` to `true` — never edit `id`, `description`, or `steps`.
-- **Never delete a check** — a deleted check cannot prove the feature works.
-- Only set `passes: true` after running the verification command and confirming the feature works end-to-end as a user would experience it.
-- If a check cannot be verified, leave `passes: false` and record the reason in `harness/progress.md`.
+## Feature done
 
-## Recon checklist
+A feature is done only when:
 
-- Confirm the repository root and package boundary before making changes.
-- Read this map, then read the nearest local map in the subtree to be changed.
-- Inspect `ARCHITECTURE.md` if present; do not infer architecture from filenames.
-- Find constraints and prior decisions in `docs/references/`.
-- Read the feature spec and related plan before implementation.
-- Inspect manifest status, prerequisite order, and existing work evidence.
-- Inspect the check and effect before running a command that may change state.
-- Prefer the narrowest command that produces the evidence required by the spec.
+- [ ] Every acceptance criterion passes.
+- [ ] `./init.sh` passes.
+- [ ] The feature file records verification evidence.
+- [ ] `progress.md` records the result and next action.
 
-## Evidence and receipts
+## End feature session
 
-- Evidence states the exact command, exit status, path, or receipt.
-- A receipt proves that a check ran; by itself, it does not prove acceptance.
-- Keep child output visible and preserve meaningful stderr when a check fails.
-- Do not put receipts in source, docs, or arbitrary temporary directories.
-- Do not report a dry-run as a real run or a planned command as having run.
-- If a gate cannot run, record the blocker and next action; do not guess.
+1. Update the feature status and handoff.
+2. When state materially changed, add a new block below the final template note in `progress.md`; do not edit older blocks.
+3. Record blockers and one next action when they exist.
 
-## Review boundaries
+## Verification
 
-- Review unknown-key, prerequisite, lifecycle, and acceptance-correspondence errors first.
-- A validator failure is a stop condition, not an invitation to bypass.
-- Keep local assumptions in a reference or spec with a specific path.
-- Update the map only when the canonical tree or operating contract changes.
+- Full: `./init.sh`
 
-## Change notes
-
-Prefer small, easy-to-review commits that reference files/commands. Keep existing files; the creator is missing-only and does not overwrite. If you encounter the old `.agents/harness` or `cairn` layout, stop and obtain explicit approval with `--migrate-old-layout`. That action adds canonical v2 files and leaves old data for deliberate review.
+<!-- harness-slim 1.4.0 · generated 2026-08-24 · managed sections above; check drift with skill CHANGELOG.md -->

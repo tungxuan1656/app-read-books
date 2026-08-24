@@ -1,0 +1,45 @@
+{
+  "_harness": {
+    "skill": "harness-slim",
+    "version": "1.4.0",
+    "generatedAt": "2026-08-24"
+  },
+  "features": [
+    {
+      "id": "settings-management",
+      "title": "Settings management",
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "book-import",
+      "title": "Book import",
+      "status": "done",
+      "depends_on": ["settings-management"]
+    },
+    {
+      "id": "book-library",
+      "title": "Book library",
+      "status": "done",
+      "depends_on": ["book-import"]
+    },
+    {
+      "id": "book-reader",
+      "title": "Book reader",
+      "status": "done",
+      "depends_on": ["book-library"]
+    },
+    {
+      "id": "ai-reading",
+      "title": "AI reading",
+      "status": "done",
+      "depends_on": ["book-reader", "settings-management"]
+    },
+    {
+      "id": "chapter-prefetch",
+      "title": "Chapter prefetch",
+      "status": "done",
+      "depends_on": ["ai-reading"]
+    }
+  ]
+}

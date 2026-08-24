@@ -1,12 +1,12 @@
 # Plans — rn-read-books
 
-> Repairs the route `docs/plans/README.md` referenced in `AGENTS.md:22`. This file is the index for in-repo implementation plans. The harness (`harness/manifest.json`, `harness/work/*.json`, `harness/checks.json`) remains the canonical feature lifecycle source.
+> Repairs the route `docs/plans/README.md` referenced in `AGENTS.md:22`. This file is the index for in-repo implementation plans. The feature index (`feature_index.json`) and progress log (`progress.md`) remain the canonical feature lifecycle sources.
 
 ## Purpose
 
 `docs/plans/` holds implementation plans for multi-step work (features, refactors, migrations). Plans are detailed, task-level guides for an engineer with no prior context. They map files to touch, code to write, tests, and verification.
 
-Active plans live here. Terminal (completed/cancelled/superseded) plans are marked closed per template and retained for history. Do not use plans as a second manifest — use `harness/manifest.json` for lifecycle truth.
+Active plans live here. Terminal (completed/cancelled/superseded) plans are marked closed per template and retained for history. Do not use plans as a second manifest — use `feature_index.json` for lifecycle truth.
 
 ## Naming convention
 
@@ -17,7 +17,7 @@ YYYY-MM-DD--plan--<subject-id>--<intent>.md
 ```
 
 - `YYYY-MM-DD` — creation date.
-- `<subject-id>` — kebab-case feature or subject id (matches `harness/manifest.json` when applicable).
+- `<subject-id>` — kebab-case feature or subject id (matches `feature_index.json` when applicable).
 - `<intent>` — short kebab-case intent (e.g., `initial`, `migration`, `follow-up`).
 
 Example: `2026-05-28--plan--openai-migration--initial.md`
@@ -29,8 +29,8 @@ If the repo chooses not to keep plans in-repo, route via the `.agents/skills/wri
 ## Lifecycle
 
 - **Active:** file present in `docs/plans/`, linked from spec or work record when applicable.
-- **Terminal:** marked closed per template (status section in plan). File stays in place for audit; harness `harness/work/<id>.json` records completion evidence.
-- **Source of truth for status:** `harness/manifest.json` + `harness/work/*.json`. Plans are guidance; harness gates advancement.
+- **Terminal:** marked closed per template (status section in plan). File stays in place for audit; `progress.md` records completion evidence.
+- **Source of truth for status:** `feature_index.json` + `progress.md`. Plans are guidance; feature gates advancement.
 
 ## Template — sourced from `.agents/skills/writing-plans/SKILL.md`
 
@@ -148,4 +148,4 @@ Do not require either optional skill. Record selected approach in the feature or
 - Skill source: `.agents/skills/writing-plans/SKILL.md`
 - Agent map route: `AGENTS.md:22–23`
 - Spec source: `docs/specs/<id>.md`
-- Checks: `harness/checks.json` (`pnpm run lint && pnpm run tsc-check`)
+- Checks: `./init.sh` (`pnpm run lint && pnpm run tsc-check`)
