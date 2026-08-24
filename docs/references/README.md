@@ -49,8 +49,9 @@ Read the relevant standard before you start work. Follow existing project patter
 
 ## Quality Gates
 
-- `pnpm run lint` — ESLint (configured, see `./init.sh`)
+- `pnpm run lint:fix` — ESLint with autofix (`pnpm run lint` for check-only, see `./init.sh`)
 - `pnpm run tsc-check` — TypeScript (see `./init.sh`)
+- `pnpm exec jest --watchAll=false` — Jest (3 suites 13 tests; `pnpm test` is watch mode, see `./init.sh`)
 - Route layer guardrail: direct `fetch` in `app/*` is blocked by lint.
 
 ## Links

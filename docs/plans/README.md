@@ -148,4 +148,4 @@ Do not require either optional skill. Record selected approach in the feature or
 - Skill source: `.agents/skills/writing-plans/SKILL.md`
 - Agent map route: `AGENTS.md §Repository map and §Plans`
 - Spec source: `docs/specs/<id>.md`
-- Checks: `./init.sh` (`pnpm run lint && pnpm run tsc-check`)
+- Checks: `./init.sh` (`pnpm run lint:fix && pnpm run tsc-check && pnpm exec jest --watchAll=false`)

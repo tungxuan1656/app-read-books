@@ -3,16 +3,16 @@
 ## 1) Baseline Commands
 
 - Type check: `pnpm run tsc-check`
-- Lint: `pnpm run lint`
-- Tests: `pnpm test` (targeted tests for changed modules)
+- Lint: `pnpm run lint` (autofix via `pnpm run lint:fix`; `init.sh` runs `lint:fix`)
+- Tests: `pnpm exec jest --watchAll=false` (targeted: `pnpm exec jest <path> --watchAll=false`; `pnpm test` is watch mode `jest --watchAll` — avoid in CI)
 
-Both `pnpm run lint` and `pnpm run tsc-check` are configured and required. See `./init.sh`.
+Both `pnpm run lint:fix` and `pnpm run tsc-check` are configured and required. See `./init.sh`.
 
 ## 2) Required Validation Before Merge
 
-- Run `pnpm run lint`.
+- Run `pnpm run lint` (or `pnpm run lint:fix` to autofix).
 - Run `pnpm run tsc-check` for every code change.
-- Run targeted tests for affected modules.
+- Run `pnpm exec jest --watchAll=false` (targeted: `pnpm exec jest <path> --watchAll=false`) for affected modules.
 - For critical flow changes (reading, download), run manual smoke checks on at least one platform (iOS simulator or Android emulator).
 
 ## 3) What to Test First
@@ -33,7 +33,7 @@ Both `pnpm run lint` and `pnpm run tsc-check` are configured and required. See `
 
 Use this before and after architecture refactors:
 
-1. Run automated checks: `pnpm run lint`, `pnpm run tsc-check`, targeted tests.
+1. Run automated checks: `pnpm run lint`, `pnpm run tsc-check`, `pnpm exec jest --watchAll=false` (targeted).
 2. Run manual smoke checks (see section 5).
 3. Run architecture regression checks:
    - No direct `fetch` calls inside `app/*`
