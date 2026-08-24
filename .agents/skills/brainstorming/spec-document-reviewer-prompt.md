@@ -4,10 +4,11 @@ Use this template when dispatching a spec document reviewer subagent.
 
 **Purpose:** Verify the spec is complete, consistent, and ready for implementation planning.
 
-**Dispatch after:** Durable guidance is written to the relevant `docs/frontend/*` or `docs/features/*` leaf, or incorporated into an ExecPlan
+**Dispatch after:** The accepted design is recorded in its repository-selected
+canonical artifact.
 
 ```
-Task tool (general-purpose):
+Subagent (general-purpose):
   description: "Review spec document"
   prompt: |
     You are a spec document reviewer. Verify this spec is complete and ready for planning.

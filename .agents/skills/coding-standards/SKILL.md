@@ -1,7 +1,8 @@
 ---
 name: coding-standards
-description: Baseline coding conventions for this React/Vite TypeScript frontend: naming, readability, immutability, lint/import consistency, and code-quality review.
-origin: ECC
+description: Baseline cross-project coding conventions for naming, readability, immutability, and code-quality review. Use detailed frontend or backend skills for framework-specific patterns. Use when reviewing code quality or naming with no framework-specific skill that applies.
+metadata:
+  origin: ECC
 ---
 
 # Coding Standards & Best Practices
@@ -10,8 +11,8 @@ Baseline coding conventions applicable across projects.
 
 This skill is the shared floor, not the detailed framework playbook.
 
-- Use `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/frontend/*`, `docs/features/*`, and exact nearby source files for React, state, forms, rendering, and UI architecture.
-- This repository is a React/Vite client; do not assume backend, database, migration, shadcn/ui, or Telegram Mini App surfaces unless they are explicitly added to the repo.
+- Use `frontend-patterns` for React, state, forms, rendering, and UI architecture.
+- Use `backend-patterns` or `api-design` for repository/service layers, endpoint design, validation, and server-specific concerns.
 - Use `rules/common/coding-style.md` when you need the shortest reusable rule layer instead of a full skill walkthrough.
 
 ## When to Activate
@@ -323,7 +324,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: false,
         error: 'Validation failed',
-        details: error.errors
+        details: error.issues
       }, { status: 400 })
     }
   }
@@ -415,8 +416,9 @@ export async function searchMarkets(
 import { useMemo, useCallback } from 'react'
 
 // PASS: GOOD: Memoize expensive computations
+// Copy before sorting - Array.prototype.sort mutates in place
 const sortedMarkets = useMemo(() => {
-  return markets.sort((a, b) => b.volume - a.volume)
+  return [...markets].sort((a, b) => b.volume - a.volume)
 }, [markets])
 
 // PASS: GOOD: Memoize callbacks
