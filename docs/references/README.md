@@ -31,7 +31,7 @@ Product behavior is owned by `docs/product/overview.md`. System topology and inv
 ### Quality and delivery
 - `testing-and-validation-pattern.md` — checks, validation workflow, and smoke checklist
 - `code-review-guide.md` — review priorities and checklist
-- `i18n-label-pattern.md` — label rules (Status: Proposed, not yet implemented)
+- `i18n-label-pattern.md` — label rules — **Proposed, not yet implemented** (no code; do not use unless i18n accepted)
 
 ## Retired
 

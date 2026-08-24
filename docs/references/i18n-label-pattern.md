@@ -30,7 +30,7 @@ i18n/
 Key style:
 
 - `common.actions.save`
-- `settings.labels.copilotApiUrl`
+- `settings.labels.openaiApiUrl`
 - `reading.errors.loadFailed`
 
 Rules for the migration:

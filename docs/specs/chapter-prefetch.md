@@ -25,9 +25,9 @@ After the current chapter is ready, the app prefetches the next `PREFETCH_COUNT`
 
 ## Notes
 
-- Evidence: `hooks/use-chapter-prefetch.ts`, `app/reading/index.tsx` (`useChapterPrefetch` call), `services/database.service.ts` (`getChaptersCacheStatus`), `services/reading.service.ts`, `controllers/stores/prefetch.store.ts`.
-- Open question: Prefetch is sequential — with `PREFETCH_COUNT=3` and chunked AI calls per chapter, total time is sum of chapters; should it cap parallelism or respect a global queue?
-- Open question: `PREFETCH_COUNT` is a string; non-numeric value (`+PREFETCH_COUNT` → `NaN`) yields `end = NaN` — current code would no-op; should sanitize clamp to `1..10`?
+- Evidence: `hooks/use-chapter-prefetch.ts`, `app/reading/index.tsx` (`useChapterPrefetch` call), `services/database.service.ts` (`getChaptersCacheStatus`), `services/reading.service.ts`, `controllers/stores/prefetch.store.ts`, `controllers/settings-schema.ts` (`sanitizeSettings` clamp).
+- Resolved — sequential vs parallel: sequential (one chapter at a time, but each chapter parallelizes its own chunks via `Promise.all`) is intentional per `docs/product/decisions.md` D4 and BR-08 — avoids stale writes if mode/chapter changes, reduces quota waste. No global queue needed for N≤3.
+- Gap — `PREFETCH_COUNT` string handling: `controllers/settings-schema.ts` `sanitizeSettings` currently stores `PREFETCH_COUNT` as string via `toStringValue` with no `1..10` clamp; `hooks/use-chapter-prefetch.ts:37` parses via `+PREFETCH_COUNT` and computes `end = min(start + count -1, total)`. Non-numeric → `NaN` → `start > end` → no-op prefetch. This diverges from `BR-08` (invalid → `3`). Observed behavior is no-op; clamp to `1..10` is the intended BR-08 rule and should be added to `sanitizeSettings` when next touched.
 
 ## Acceptance criteria
 - [a1] Background prefetch triggers when current chapter content is fully loaded and ready.

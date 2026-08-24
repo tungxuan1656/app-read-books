@@ -16,15 +16,16 @@ Reader renders raw HTML chapters from local storage, tracks the current chapter 
 | Area | Contract |
 |---|---|
 | Chapter file | `Paths.document/books/<bookId>/chapters/chapter-<N>.html` |
-| Store: position | `useBooksStore.id2BookReadingChapter[bookId]: number` (1-based, default 1) |
-| Store: scroll | `useReadingStore.reading: { bookId, onScreen, offset }` (`@types/settings.ts` → `ReadingState`) |
+| Store: position | `useBooksStore.id2BookReadingChapter[bookId]: number` (1-based, default 1) — per-book |
+| Store: scroll | `useReadingStore.reading: { bookId, onScreen, offset }` (`@types/settings.ts` → `ReadingState`) — single global slot; `bookId` records which book the offset belongs to |
+| Restore guard | `app/reading/index.tsx` restores `useReadingStore.getState().reading.offset` after 200 ms **without** checking `reading.bookId === bookId`; `hooks/use-reading-navigation.ts` sets `reading.bookId` on mount and clears `onScreen` on unmount. Effective behavior: startup resume (`_layout.tsx` pushes `/reading` only when `onScreen=true`) is correct; switching books via Library may briefly restore offset from previous book before `chapter.index` reset (`scrollTo 0`). For true per-book offsets, guard restore with `if (reading.bookId === bookId)` — product-owner decision; current global-slot behavior is documented. |
 | Render | `ContentDisplay` uses `RenderHTML` with `typography` (`font`, `fontSize`, `lineHeight`, `letterSpacing`) |
 | Navigation bounds | Caller must prevent `chapter < 1` or `> references.length`; store actions handle clamping (verify in `books.store`). |
 
 ## Notes
 
-- Evidence: `hooks/use-reading-content.ts` (load + `getChapterHtml`), `hooks/use-reading-navigation.ts` (next/prev, `handleScroll`, `saveOffset`), `app/reading/index.tsx` (offset save/restore, `useChapterPrefetch` trigger), `components/content-display.tsx`, `utils/book.helpers.ts` (`getBookChapterContent`).
-- Open question: Scroll restore is global (`reading.offset`) not per-book — does reopening a different book restore the wrong offset? Check if `reading.bookId` guards it.
+- Evidence: `hooks/use-reading-content.ts` (load + `getChapterHtml`), `hooks/use-reading-navigation.ts` (next/prev, `handleScroll`, `saveOffset`), `app/reading/index.tsx` (offset save/restore, `useChapterPrefetch` trigger), `components/content-display.tsx`, `utils/book.helpers.ts` (`getBookChapterContent`), `controllers/stores/reading.store.ts` (`defaultReading`, `readingActions.updateReading`).
+- Resolved — scroll restore: global `reading.offset` + `reading.bookId` slot (see Contract Restore guard row). No separate per-book map; `updateReading({ offset })` debounced 500 ms in `handleScroll`, `nextChapter/previousChapter` also via `books.store` per-book index. Behavior documented above; change to per-book map requires product/tech ADR.
 
 ## Acceptance criteria
 - [a1] App reads raw HTML chapter contents from local directory and renders them correctly.

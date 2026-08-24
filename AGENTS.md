@@ -13,17 +13,10 @@ rn-read-books is a single-user offline reading app. Users import books once from
 
 ## Repository map
 
-**Business (portable, no stack terms):**
-- `docs/product/` — `overview.md`, `domain-model.md`, `glossary.md`, `flows.md`, `business-rules.md`, `integrations.md`, `decisions.md`
-- `docs/product/functional-specs/` — `book-import.md`, `book-library.md`, `book-reader.md`, `ai-reading.md`, `chapter-prefetch.md`, `settings-management.md`
-- `docs/design/` — `navigation.md`, `screens.md`, `design-system.md`
+Canonical routing lives in [docs/index.md](./docs/index.md) — Task → Read table owns file ownership. Summary below, do not duplicate details here.
 
-**Tech (stack-specific):**
-- `ARCHITECTURE.md` — layer map and invariants (sole owner of topology)
-- `docs/specs/<id>.md` — checkable behavior per feature
-- `docs/references/` — engineering standards (see `docs/references/README.md` index)
-- `docs/decisions/decisions.md` — tech ADR log (append-only)
-- `docs/plans/` — plans index
+**Business (portable, no stack terms):** `docs/product/` (`overview`, `domain-model`, `glossary`, `flows`, `business-rules`, `integrations`, `decisions`) + `docs/product/functional-specs/` (6 features) + `docs/design/` (`navigation`, `screens`, `design-system`)
+**Tech (stack-specific):** `ARCHITECTURE.md` (sole owner of topology) · `docs/specs/<id>.md` (checkable contracts) · `docs/references/` (see `docs/references/README.md` index) · `docs/decisions/decisions.md` (tech ADRs) · `docs/plans/` (plans index)
 
 ## Assess the task
 

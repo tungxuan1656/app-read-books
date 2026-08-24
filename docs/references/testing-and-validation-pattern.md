@@ -48,9 +48,9 @@ Manual acceptance checks (device-dependent, cannot be automated via CLI). This t
 | ID | Description | Gate |
 |---|---|---|
 | reading-none-mode | Reading screen shows raw chapter HTML in None mode | App launch + chapter open |
-| reading-translate-mode | Translate mode calls Copilot API and renders translated HTML | Copilot API configured |
-| reading-summary-mode | Summary mode calls Copilot API and renders summary text | Copilot API configured |
-| book-download-unzip | Add-book screen downloads zip, unzips, updates library | Supabase Anon Key configured |
+| reading-translate-mode | Translate mode calls OpenAI-compatible API and renders translated HTML | `OPENAI_API_URL` + `OPENAI_MODEL` configured |
+| reading-summary-mode | Summary mode calls OpenAI-compatible API and renders summary text | `OPENAI_API_URL` + `OPENAI_MODEL` configured |
+| book-download-unzip | Add-book screen downloads zip, unzips, updates library | `BOOKS_API_URL` reachable (Supabase function) |
 | reading-position-restore | Scroll offset persists and restores on reopen | Any book, any chapter |
 | prefetch-cache-hit | SQLite cache hit: next chapter loads instantly after prefetch | Translate/Summary mode |
 | settings-persist-mmkv | All settings survive app restart via MMKV | Full app restart |

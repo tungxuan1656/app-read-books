@@ -46,8 +46,8 @@ Chapters can be read in three modes: `none` (raw HTML), `translate`, or `summary
 ## Notes
 
 - Evidence: `services/ai.service.ts` / `ai-providers/openai.provider.ts` / `provider-shared.ts`, `services/content-processor.ts`, `services/database.service.ts`, `services/reading.service.ts`, `hooks/use-reading-content.ts`, `controllers/settings-schema.ts`.
-- Open question: `processChapterContent` stores `simpleMdToHtml(processedText)` — does `cleanProviderResponse` already return HTML, risking double conversion?
-- Open question: `AI_MIN_CHUNK_SIZE` is a string setting; very large files with no `<br><br>` never chunk — is that intended?
+- Resolved — HTML pipeline: `openai.provider.ts` `processContent` does per-chunk `sanitizeAiHtmlContent` + final `cleanProviderResponse` (strips `<div>`/`<p>`, collapses `<br>`) which returns HTML-fragment; `content-processor.ts` then applies `simpleMdToHtml` once to convert any markdown remnants (`**bold**`→`<strong>`, `\n\n`→`<br><br>`). Single conversion — no double-HTML risk; `cleanProviderResponse` does not produce Markdown.
+- Resolved — chunking fallback: `provider-shared.ts` `splitContentIntoChunks` returns `[content]` when `parts.length <= 1` (no `<br><br>`). Intended: long chapters without split key are sent as one `callOpenAIAPI` request; server token limit governs truncation. With `<br><br>` present, `groupPartsIntoChunks` picks smallest `numChunks ≤10` where `avgChunkSize ≥ minChunkSize` (from `AI_MIN_CHUNK_SIZE`, fallback `1300`). Very large single-chunk payloads rely on retry (3× `2^attempt`) — not chunked further by design.
 
 ## Acceptance criteria
 - [a1] OpenAI compatible provider handles chat completion payload requests using custom prompts.

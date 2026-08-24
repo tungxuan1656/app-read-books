@@ -16,12 +16,13 @@ The app discovers remotely exported books and imports a selected book as a local
 
 | Item | Value |
 |---|---|
-| Constant | `BOOKS_API_URL` — duplicated in 3 places (service fallback `GET_EXPORTED_BOOKS_URL`, settings default, settings-config placeholder). Canonical URL: `https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books` |
+| Constant | `BOOKS_API_URL` — canonical source is `controllers/settings-schema.ts` `DEFAULT_SETTINGS.BOOKS_API_URL` = `https://iqtndkcyrsmptlrepaks.supabase.co/functions/v1/get-exported-books`. Mirrored in `services/book-import.service.ts` `GET_EXPORTED_BOOKS_URL` (fallback) and `constants/setting-configs.ts` (UI placeholder). Update all three together; `DEFAULT_SETTINGS` is the source of truth. |
 | Request | `POST` to `booksApiUrl \|\| GET_EXPORTED_BOOKS_URL`, headers `{ "Content-Type": "application/json" }`, no body, no auth header |
 | Response envelope | `ExportedBooksResponse` (`@types/book-import.ts`): `{ success: boolean, data: ExportedBook[], message?: string }` where `ExportedBook { id, bookId, exportUrl, fileSize, exportFormat, exportedAt, updatedAt, book: BookMeta }` and `BookMeta { id, name, slug, author, chapterCount, status, synopsis, lastUpdated }` |
 | Success | `response.ok && result.success` → `ok(result.data ?? [])` |
 | Failure | `!response.ok \|\| !result.success` → `fail('FETCH_EXPORTED_BOOKS_FAILED', result.message \|\| 'Không thể tải danh sách truyện có sẵn.')`; network/parse exception → `fail('FETCH_EXPORTED_BOOKS_FAILED', toErrorMessage(...))` |
 | Import failure | Any step throws → `fail('IMPORT_BOOK_FAILED', toErrorMessage(error, 'Có lỗi xảy ra khi tải truyện.'))` |
+| Idempotency | `unzip(downloadUri, getFolderBooks())` overwrites `books/<bookId>/` silently if same `bookId` re-imported — intentional per `docs/product/integrations.md` §1 Idempotency. Confirm-before-overwrite is product-owner decision; current behavior is replace-with-same-content. |
 
 ### Filesystem
 
@@ -37,8 +38,8 @@ The app discovers remotely exported books and imports a selected book as a local
 ## Notes
 
 - Evidence: `services/book-import.service.ts` (`fetchExportedBooks`, `importBookFromExportUrl`), `@types/book-import.ts`, `services/download.service.ts`, `hooks/use-add-book.ts`, `utils/file-system.helpers.ts`.
-- The endpoint expects POST with no body — double-check if empty JSON `{}` is ever required by the Supabase function.
-- Open question: ZIP extraction overwrites silently if book ID collides — should import check for existing `books/<bookId>` and confirm overwrite?
+- Resolved — POST shape: Supabase function expects `POST` with `Content-Type: application/json` and no body (current `fetch` sends no `body`). Empty JSON `{}` is also accepted by the function but not sent — either succeeds; current no-body is canonical per service evidence.
+- Resolved — overwrite: silent overwrite on `bookId` collision is intentional idempotent behavior (see Contract Idempotency row); change requires product-owner approval.
 
 ## Acceptance criteria
 - [a1] App queries the available books list from the remote Supabase function endpoint.

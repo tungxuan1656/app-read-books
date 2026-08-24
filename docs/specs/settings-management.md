@@ -42,7 +42,7 @@ Legacy keys mapped in `sanitizeSettings`: `COPILOT_CUSTOM_HEADERS` → `AI_CUSTO
 
 - Evidence: `controllers/settings-schema.ts` (defaults, `sanitizeSettings`, `migratePersistedSettings`, sanitization of legacy keys), `controllers/mmkv.ts` (`MMKVStateStorage`), `controllers/stores/settings.store.ts` and `typography.store.ts`.
 - `AI_PROVIDER` is locked to `openai`; picker UI exists but value is normalized away — intentional until new providers are added.
-- Open question: Should `BOOKS_API_URL` validation enforce HTTPS / Supabase shape, or accept any POST endpoint? Current code accepts any non-empty string.
+- Resolved — `BOOKS_API_URL` validation: `sanitizeSettings` accepts any non-empty string via `toStringValue`; no HTTPS/Supabase-shape enforcement — intentional for configurability (any `POST` endpoint allowed). Invalid URL surfaces as `FETCH_EXPORTED_BOOKS_FAILED` at fetch time; enforcement would require product/tech decision.
 
 ## Acceptance criteria
 - [a1] App settings schema defines default API URLs, prefetch count, AI provider, prompts, and typography rules.
