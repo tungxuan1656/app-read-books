@@ -2,10 +2,9 @@
 
 ## Scope
 
-Repository purpose: React Native (Expo SDK 54) app for reading books/novels with AI-powered translation and summarization via Copilot API
+Repository purpose: React Native (Expo SDK 54) app for reading books/novels with AI-powered translation and summarization via OpenAI-compatible endpoint (configurable URL/model; endpoint `copilot.tungxuan.io.vn` remains but named OpenAI-compatible since fecf228).
 
-This is a brief map for agents working in the repository. Read it after the initial recon and
-before changing code, then follow more specific local documentation.
+This is a brief map for agents working in the repository. Read it after the initial recon and before changing code, then follow more specific local documentation.
 
 ## Sources of truth
 
@@ -20,13 +19,12 @@ before changing code, then follow more specific local documentation.
 
 - Application code/source: inspect the repository-specific directories below this map.
 - Specification: `docs/specs/<id>.md`.
-- Execution plan: `docs/plans/YYYY-MM-DD--plan--<subject-id>--<intent>.md` using the self-contained 12-section template.
+- Execution plan: `docs/plans/README.md` — index; plans use `YYYY-MM-DD--plan--<subject-id>--<intent>.md` with 12-section template from `.agents/skills/writing-plans/SKILL.md`.
 - Local reference: `docs/references/<topic>.md`.
 - Manifest and checks: `harness/manifest.json`, `harness/checks.json`.
 - Structural schema: `harness/schemas/*.schema.json` (Draft 2020-12).
 - Validator: `harness/scripts/validate.mjs`.
 - Check runner: `harness/scripts/run-checks.mjs`.
-- Optional repository bootstrap: root `init.mjs`; never create or call `init.sh`.
 - Feature work: `harness/work/<id>.json`.
 - Run receipts: only in `harness/work/receipts/`.
 
@@ -46,26 +44,18 @@ Configured verification command: pnpm run lint && pnpm run tsc-check
 ## Invariant ownership
 
 - IDs are lowercase kebab-case, unique, and in strictly increasing manifest order.
-- Prerequisites must exist and cannot point to themselves; active/blocked/completed work requires hard
-  prerequisites to be completed.
+- Prerequisites must exist and cannot point to themselves; active/blocked/completed work requires hard prerequisites to be completed.
 - Sequential allows at most one active or blocked feature.
 - Every manifest entry is a tracked Tier 2/3 feature and has exactly `spec: docs/specs/<id>.md`.
 - Acceptance IDs in work must match the spec exactly; work must not repeat the prose.
-- `met: true` requires specific, reproducible evidence; completed requires a valid completion object,
-  every acceptance met, and evidence.
-- Status is proposed, planned, active, blocked, completed, cancelled, or superseded.
-  Use blocked only for a real blocker, not to bypass eligibility.
+- `met: true` requires specific, reproducible evidence; completed requires a valid completion object, every acceptance met, and evidence.
+- Status is proposed, planned, active, blocked, completed, cancelled, or superseded. Use blocked only for a real blocker, not to bypass eligibility.
 
 ## Anti-cheat contract
 
-Do not mark a result as met just because a file exists, the code appears correct, a command was
-tried, or output was hidden. Do not change acceptance wording/IDs, remove a check, silence stderr,
-ignore exit status, use shell injection, use `|| true`/`; true`, or modify the validator to turn an
-unmet condition into a met one. Failed or missing checks must remain visible. Without proof, set
-`met: false` and explain the next action.
+Do not mark a result as met just because a file exists, the code appears correct, a command was tried, or output was hidden. Do not change acceptance wording/IDs, remove a check, silence stderr, ignore exit status, use shell injection, use `|| true`/`; true`, or modify the validator to turn an unmet condition into a met one. Failed or missing checks must remain visible. Without proof, set `met: false` and explain the next action.
 
-Do not delete or loosen an acceptance/check to make an item pass. If an acceptance is incorrect,
-edit the owning file (docs/specs/<id>.md) in the same change and state the reason clearly.
+Do not delete or loosen an acceptance/check to make an item pass. If an acceptance is incorrect, edit the owning file (docs/specs/<id>.md) in the same change and state the reason clearly.
 
 ## checks.json discipline
 
@@ -74,8 +64,7 @@ edit the owning file (docs/specs/<id>.md) in the same change and state the reaso
 Rules:
 - **Only change `passes`** from `false` to `true` — never edit `id`, `description`, or `steps`.
 - **Never delete a check** — a deleted check cannot prove the feature works.
-- Only set `passes: true` after running the verification command and confirming the feature
-  works end-to-end as a user would experience it.
+- Only set `passes: true` after running the verification command and confirming the feature works end-to-end as a user would experience it.
 - If a check cannot be verified, leave `passes: false` and record the reason in `harness/progress.md`.
 
 ## Recon checklist
@@ -107,7 +96,4 @@ Rules:
 
 ## Change notes
 
-Prefer small, easy-to-review commits that reference files/commands. Keep existing files; the
-creator is missing-only and does not overwrite. If you encounter the old `.agents/harness` or
-`cairn` layout, stop and obtain explicit approval with `--migrate-old-layout`. That action adds
-canonical v2 files and leaves old data for deliberate review.
+Prefer small, easy-to-review commits that reference files/commands. Keep existing files; the creator is missing-only and does not overwrite. If you encounter the old `.agents/harness` or `cairn` layout, stop and obtain explicit approval with `--migrate-old-layout`. That action adds canonical v2 files and leaves old data for deliberate review.

@@ -17,7 +17,7 @@ A React Native reading app built with Expo that supports local book libraries, c
 - **Language**: TypeScript 5.9
 - **State**: Zustand + MMKV persistence
 - **Storage/Cache**: Expo File System + Expo SQLite
-- **AI**: Copilot-compatible chat completion API via internal provider abstraction
+- **AI**: OpenAI-compatible chat completion API via internal provider abstraction
 - **UI**: NativeWind, Reanimated, Gesture Handler, Bottom Sheet
 - **Quality**: ESLint 9 + TypeScript `noEmit` check
 - **Delivery**: Fastlane (Android/iOS lanes)
@@ -26,11 +26,11 @@ A React Native reading app built with Expo that supports local book libraries, c
 
 - `app/`: Expo Router screens and route layouts
 - `components/`: reusable UI primitives and reading controls
-- `controllers/`: app store/actions and MMKV integration
+- `controllers/`: per-domain Zustand stores (`stores/`) + MMKV adapter (`mmkv.ts`) + schema (`settings-schema.ts`)
 - `hooks/`: orchestration hooks for reading, prefetch, and flows
 - `services/`: business logic (AI, reading pipeline, downloads, database)
 - `utils/`: helper modules for books, cache, and content
-- `docs/`: architecture and engineering standards
+- `docs/`: product, architecture, and engineering standards
 - `fastlane/`: Android/iOS build and distribution automation
 
 ## Prerequisites
@@ -75,10 +75,9 @@ pnpm android
 ## Architecture Notes
 
 - Routing is file-based via Expo Router (`app/`)
-- Global state is centralized in `controllers/store.ts`
-- Persistent settings/state use MMKV (`controllers/mmkv.ts`)
+- Global state uses per-domain stores in `controllers/stores/`: `books`, `reading`, `settings`, `typography` (MMKV persisted) + `prefetch`, `ui-runtime` (transient); persisted via `controllers/mmkv.ts` with schema in `controllers/settings-schema.ts`
 - Reading pipeline is handled by `hooks/use-reading-content.ts` and `services/reading.service.ts`
-- AI providers follow abstraction in `services/ai.service.ts` and `services/ai-providers/`
+- AI providers follow abstraction in `services/ai.service.ts` and `services/ai-providers/` (OpenAI-compatible provider)
 - Caching/prefetch uses `services/database.service.ts` and `hooks/use-chapter-prefetch.ts`
 
 ## Validation
@@ -109,8 +108,10 @@ fastlane ios upload
 fastlane ios distribute
 ```
 
-## Reference Docs
+## Doc Map
 
-- `docs/PROJECT_DOCS.md`: product and architecture overview
-- `docs/references/README.md`: engineering standards index
-- `docs/references/testing-and-validation-pattern.md`: validation workflow
+- Architecture and topology → `ARCHITECTURE.md`
+- Product overview → `docs/product/overview.md`
+- Engineering standards → `docs/references/README.md`
+- Feature specs → `docs/specs/<id>.md`
+- Plans index → `docs/plans/README.md`

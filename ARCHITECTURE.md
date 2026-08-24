@@ -1,13 +1,13 @@
 # Architecture — rn-read-books
 
-React Native (Expo SDK 54) app for reading books/novels with AI-powered translation and summarization.
+React Native (Expo SDK 54) app for reading books/novels with AI-powered translation and summarization via OpenAI-compatible endpoint.
 
 ## Stack
 
 | Concern | Technology |
 |---|---|
 | Framework | React Native + Expo SDK 54 |
-| Language | TypeScript |
+| Language | TypeScript 5.9 |
 | Navigation | Expo Router (file-based, `app/`) |
 | State | Zustand + MMKV persistence |
 | Storage: settings/state | MMKV (`react-native-mmkv`) |
@@ -40,6 +40,25 @@ constants/         App-level constants, font sources
 @types/            Shared TypeScript declarations
 ```
 
+This file is the sole owner of the layer map, dependency direction, and invariants. See `docs/references/architecture-ownership-map.md` for subsystem ownership details only — it must not duplicate invariants or layer definitions.
+
+## Dependency Direction
+
+Allowed:
+
+- `app/*` → `hooks/*` → `services/*` → storage/network (FileSystem, SQLite, fetch)
+- `app/*` → `components/*`
+- `hooks/*` → `controllers/stores/*` → `controllers/mmkv.ts` + `controllers/settings-schema.ts`
+- `services/*` → `controllers/settings-schema.ts` (read config), `utils/*`
+
+Forbidden:
+
+- `app/*` ✕ direct `fetch`/remote API calls (all IO through `services/`)
+- `app/*` ✕ business workflows (download, AI orchestration, cache mutation)
+- `hooks/*` ✕ raw `fetch` (use `services/`)
+- `components/*` ✕ `services/*` or stores (receive props/callbacks only)
+- `services/*` ✕ `hooks/*` or `app/*` imports
+
 ## Key Stores (`controllers/stores/`)
 
 | Store | Persisted | Description |
@@ -66,6 +85,7 @@ useReadingContent (hook)
 ```
 
 ### Prefetch
+
 - `useChapterPrefetch` runs after current chapter is ready
 - Batch-checks SQLite for next N chapters (configurable via `PREFETCH_COUNT`)
 - Processes only missing chapters, sequentially
@@ -74,23 +94,31 @@ useReadingContent (hook)
 ## Startup Routing
 
 `_layout.tsx` (after fonts loaded):
+
 - Reads `reading.onScreen` from `useReadingStore`
 - If `true` → `router.push('/reading', { bookId })` then hide splash
 - If `false` → hide splash, show `/` (home)
 
-## Settings Keys (`AppSettings`)
+## Settings Keys (`AppSettings` — `controllers/settings-schema.ts`)
 
 | Key | Default | Description |
 |---|---|---|
-| `OPENAI_API_URL` | `https://copilot.tungxuan.io.vn/v1/chat/completions` | AI endpoint |
-| `OPENAI_MODEL` | `gpt-4o` | AI model |
-| `AI_CUSTOM_HEADERS` | `""` | Extra request headers (JSON) |
-| `AI_EXTRA_BODY` | `{"thinking":…}` | Extra request body fields |
+| `OPENAI_API_URL` | `https://copilot.tungxuan.io.vn/v1/chat/completions` | OpenAI-compatible endpoint |
+| `OPENAI_MODEL` | `gpt-4o` | Model name |
+| `AI_CUSTOM_HEADERS` | `""` | Extra request headers (JSON string) |
+| `AI_EXTRA_BODY` | `{"thinking":…}` | Extra request body fields (merged) |
 | `BOOKS_API_URL` | Supabase Function URL | Book list + download endpoint |
 | `PREFETCH_COUNT` | `"3"` | Chapters to prefetch ahead |
 | `AI_PROVIDER` | `"openai"` | Provider key (currently only openai) |
 | `AI_PROCESS_ACTIONS` | `[translate, summary]` | Configurable AI action prompts |
 | `AI_MIN_CHUNK_SIZE` | `"1300"` | Min characters before chunking |
+
+## Integrations
+
+| Integration | Contract | Config source | Spec |
+|---|---|---|---|
+| Supabase book API | POST JSON to `BOOKS_API_URL`; response `{ success, data, message }`; list → download ZIP → unzip → parse references | `controllers/settings-schema.ts` → `DEFAULT_SETTINGS.BOOKS_API_URL`, `sanitizeSettings` | `docs/specs/book-import.md` |
+| OpenAI-compatible AI | POST chat completion to `OPENAI_API_URL` with `OPENAI_MODEL`; merges `AI_CUSTOM_HEADERS` (JSON) into headers and `AI_EXTRA_BODY` (JSON) into body; chunks by `AI_MIN_CHUNK_SIZE`; provider `openai` via `services/ai-providers/openai.provider.ts` | `controllers/settings-schema.ts` → `OPENAI_API_URL`, `OPENAI_MODEL`, `AI_CUSTOM_HEADERS`, `AI_EXTRA_BODY`, `AI_MIN_CHUNK_SIZE`, `AI_PROCESS_ACTIONS` | `docs/specs/ai-reading.md` |
 
 ## Invariants
 
@@ -100,9 +128,9 @@ useReadingContent (hook)
 - Every store change that affects persistence needs a `sanitize`/`migrate` path in `settings-schema.ts`.
 - SQLite `processed_chapters` is the only AI cache layer — no duplicates in MMKV.
 
-## References
+## Related Docs
 
-- `docs/references/` — coding and pattern standards
-- `docs/PROJECT_DOCS.md` — product description (Vietnamese)
-- `harness/manifest.json` — feature inventory
-- `harness/checks.json` — automated quality gates
+- Product overview → `docs/product/overview.md`
+- Engineering standards → `docs/references/README.md`
+- Feature inventory → `harness/manifest.json`
+- Quality gates → `harness/checks.json`
