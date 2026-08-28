@@ -11,7 +11,6 @@ app/
   settings/index.tsx
   setting-editor/index.tsx
   references/index.tsx
-  common/
 
 components/
   *.tsx
@@ -56,25 +55,18 @@ assets/
 @types/
   *.d.ts
 
-harness/
-  manifest.json
-  checks.json
-  progress.md
-  schemas/
-  scripts/
+features/
+  feat-<id>.md
+feature_index.json
+init.sh
+progress.md
 ```
 
 ## 2) Layer Responsibilities
 
-- `app/`: route screens only (UI composition + route behavior).
-- `components/`: reusable UI blocks.
-- `hooks/`: screen-level orchestration logic and lifecycle handling.
-- `services/`: business logic, IO, AI processing, cache integration.
-- `controllers/`: app-level state (Zustand stores), persistence schema, migration.
-- `constants/`: app constants, style tokens.
-- `utils/`: pure helpers and filesystem-level helpers.
-- `@types/`: shared project type declarations.
-- `harness/`: canonical feature tracking and quality gates.
+Single owner: `ARCHITECTURE.md` — Layer Map and Dependency Direction.
+
+Do not duplicate layer definitions here. Read `ARCHITECTURE.md` for allowed and forbidden dependencies and the full layer map.
 
 ## 3) Placement Rules
 

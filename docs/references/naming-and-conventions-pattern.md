@@ -1,4 +1,4 @@
-# Naming & Conventions Pattern
+# Naming and Conventions Pattern
 
 ## 1) File Naming
 
@@ -32,10 +32,42 @@
 
 ## 5) Type Naming
 
-- DTO for transport payloads.
-- `Request` for input payloads.
-- `Response` for output payloads.
-- Domain entities should use clear domain names (`Book`, `ReadingState`, `AIAction`).
+### Boundary suffixes
+
+- Remote transport shape: suffix `DTO`.
+- Input payload to API/provider/service boundary: suffix `Request`.
+- Output payload from API/provider/service boundary: suffix `Response`.
+
+### Domain naming
+
+- Keep domain terms clear: `Book`, `Chapter`, `Reading`, `AIAction`.
+- Avoid vague names (`Data`, `Payload`, `Result`) unless a boundary type requires them.
+
+### Store types
+
+- Store slices use clear names: `Typography`, `Settings`, `Reading`.
+- Keep interface names singular and meaningful.
+
+### Example
+
+```ts
+export type BookDTO = {
+  id: string
+  name: string
+  references: string[]
+}
+
+export type ProcessChapterRequest = {
+  bookId: string
+  chapterNumber: number
+  actionKey: string
+}
+
+export type ProcessChapterResponse = {
+  content: string
+  cached: boolean
+}
+```
 
 ## 6) Comments
 
@@ -48,5 +80,6 @@
 
 - [ ] New file follows kebab-case.
 - [ ] Import order is consistent.
-- [ ] No ambiguous type names like `Data`, `Payload`, `Result`.
+- [ ] Boundary types use DTO/Request/Response consistently.
+- [ ] Domain models have clear names; no ambiguous `Data` or `Payload`.
 - [ ] Comments are actionable and in English.

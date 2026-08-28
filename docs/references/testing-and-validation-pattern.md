@@ -3,15 +3,17 @@
 ## 1) Baseline Commands
 
 - Type check: `pnpm run tsc-check`
-- Tests: `pnpm test`
-- Lint: `pnpm run lint` (when ESLint is fully configured in this repo)
+- Lint: `pnpm run lint` (autofix via `pnpm run lint:fix`; `init.sh` runs `lint:fix`)
+- Tests: `pnpm exec jest --watchAll=false` (targeted: `pnpm exec jest <path> --watchAll=false`; `pnpm test` is watch mode `jest --watchAll` — avoid in CI)
+
+Both `pnpm run lint:fix` and `pnpm run tsc-check` are configured and required. See `./init.sh`.
 
 ## 2) Required Validation Before Merge
 
+- Run `pnpm run lint` (or `pnpm run lint:fix` to autofix).
 - Run `pnpm run tsc-check` for every code change.
-- Run targeted tests for affected modules.
-- For critical flow changes (reading, download), run manual smoke checks on
-  at least one platform (iOS simulator or Android emulator).
+- Run `pnpm exec jest --watchAll=false` (targeted: `pnpm exec jest <path> --watchAll=false`) for affected modules.
+- For critical flow changes (reading, download), run manual smoke checks on at least one platform (iOS simulator or Android emulator).
 
 ## 3) What to Test First
 
@@ -20,24 +22,45 @@
   - error propagation
   - cancellation behavior
 - Services with side effects:
-  - cache hit/miss
+  - cache hit and miss
   - fallback paths
-  - retry/timeout handling
+  - retry and timeout handling
 - Store actions:
   - partial updates
   - persistence-sensitive fields
 
-## 4) Manual Smoke Checklist
+## 4) Verification Workflow (Refactor Baseline)
 
-- [ ] App startup + initial route works.
-- [ ] Open book and switch chapters.
-- [ ] AI mode (none/translate/summary) loads expected content.
-- [ ] Cache manager actions complete without crash.
+Use this before and after architecture refactors:
 
-## 5) Failure Reporting
+1. Run automated checks: `pnpm run lint`, `pnpm run tsc-check`, `pnpm exec jest --watchAll=false` (targeted).
+2. Run manual smoke checks (see section 5).
+3. Run architecture regression checks:
+   - No direct `fetch` calls inside `app/*`
+   - Route files contain composition and navigation only
+   - Service functions return normalized result or error shape where added
+   - Store persistence changes include versioned migration in `controllers/settings-schema.ts`
 
-- Include:
-  - command run
-  - concise error summary
-  - impacted module/flow
-  - reproduction steps
+## 5) Manual Smoke Checklist
+
+Manual acceptance checks (device-dependent, cannot be automated via CLI). This table is the canonical copy:
+
+| ID | Description | Gate |
+|---|---|---|
+| reading-none-mode | Reading screen shows raw chapter HTML in None mode | App launch + chapter open |
+| reading-translate-mode | Translate mode calls OpenAI-compatible API and renders translated HTML | `OPENAI_API_URL` + `OPENAI_MODEL` configured |
+| reading-summary-mode | Summary mode calls OpenAI-compatible API and renders summary text | `OPENAI_API_URL` + `OPENAI_MODEL` configured |
+| book-download-unzip | Add-book screen downloads zip, unzips, updates library | `BOOKS_API_URL` reachable (Supabase function) |
+| reading-position-restore | Scroll offset persists and restores on reopen | Any book, any chapter |
+| prefetch-cache-hit | SQLite cache hit: next chapter loads instantly after prefetch | Translate/Summary mode |
+| settings-persist-mmkv | All settings survive app restart via MMKV | Full app restart |
+| startup-resume-reading | App resumes to /reading when reading.onScreen is set | Force-quit + reopen |
+
+## 6) Failure Reporting
+
+Include:
+
+- command run
+- concise error summary
+- impacted module or flow
+- reproduction steps

@@ -1,22 +1,24 @@
 # Architecture Ownership Map
 
 ## Goal
-Define clear ownership boundaries to keep screens lean and enforce service-first architecture.
 
-## Layer Ownership
-- `app/*`: Route composition, navigation, screen wiring, and UI-only concerns.
-- `components/*`: Reusable presentational and interaction components.
-- `hooks/*`: Screen orchestration, lifecycle control, cancellation, and store/service coordination.
-- `services/*`: Business logic, network IO, file/database IO, provider integrations.
-- `controllers/stores/*`: App-level Zustand state, persistence adapters, and schema migrations.
-- `utils/*`: Pure helpers and non-domain shared utilities.
+Define clear subsystem ownership to keep screens lean and enforce service-first architecture.
+
+## Layer Map
+
+Single owner: `ARCHITECTURE.md` — Layer Map, Dependency Direction, and Invariants.
+
+This file owns subsystem-to-file mapping only. Do not duplicate layer definitions or invariants here.
 
 ## Rules
-- Route files MUST NOT call remote APIs directly.
-- Route files MUST NOT contain business workflows (download pipeline, AI processing orchestration, cache mutation flow).
-- Hooks SHOULD be the only place that composes UI events + store actions + services.
-- Services SHOULD return stable result contracts (`ok/data` or `ok/error`) for UI orchestration.
-- Persistence schema changes MUST include migration handling in `controllers/settings-schema.ts`.
+
+- Route files must not call remote APIs directly.
+- Route files must not contain business workflows (download pipeline, AI processing, cache mutation).
+- Hooks should be the only place that composes UI events + store actions + services.
+- Services should return stable result contracts (`ok/data` or `ok/error`) for UI orchestration.
+- Persistence schema changes must include migration handling in `controllers/settings-schema.ts`.
+
+For full allowed and forbidden dependencies, see `ARCHITECTURE.md`.
 
 ## Current Module Mapping
 
