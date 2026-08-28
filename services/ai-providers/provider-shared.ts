@@ -12,29 +12,130 @@ export const splitContentIntoChunks = (
   maxChunks: number = 10,
 ): string[] => {
   const splitKey = '<br><br>'
-  const parts = content.split(splitKey)
 
-  if (parts.length <= 1) {
+  // Helper: try to split by a delimiter and group into chunks
+  // using the same avgChunkSize >= minChunkSize loop as the primary path.
+  // Returns null if delimiter not found (parts.length <= 1).
+  const tryDelimiter = (delimiter: string): string[] | null => {
+    const parts = content.split(delimiter)
+    if (parts.length <= 1) {
+      return null
+    }
+
+    const groupPartsIntoChunks = (numChunks: number): string[] => {
+      const chunks: string[] = []
+      const partsPerChunk = Math.ceil(parts.length / numChunks)
+      for (let i = 0; i < parts.length; i += partsPerChunk) {
+        const chunkParts = parts.slice(i, i + partsPerChunk)
+        // Re-join with delimiter preserved so closing tags / breaks stay intact
+        chunks.push(chunkParts.join(delimiter))
+      }
+      return chunks
+    }
+
+    for (let numChunks = maxChunks; numChunks >= 1; numChunks--) {
+      const chunks = groupPartsIntoChunks(numChunks)
+      const avgChunkSize =
+        chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
+      if (avgChunkSize >= minChunkSize || numChunks === 1) {
+        return chunks
+      }
+    }
+    return null
+  }
+
+  // 1. Primary delimiter: keep existing behavior for backward compat
+  const primaryResult = tryDelimiter(splitKey)
+  if (primaryResult) {
+    return primaryResult
+  }
+
+  // 2. Fallback delimiters: try in order, first that yields >1 parts wins
+  const fallbackDelimiters = [
+    '</p>',
+    '</div>',
+    '\n\n',
+    '<br>',
+    '<br/>',
+    '<br />',
+    '\n',
+  ]
+  for (const delimiter of fallbackDelimiters) {
+    const result = tryDelimiter(delimiter)
+    if (result) {
+      return result
+    }
+  }
+
+  // 3. Hard length-based chunking (no delimiter found)
+  if (content.length <= minChunkSize) {
     return [content]
   }
 
-  const groupPartsIntoChunks = (numChunks: number): string[] => {
+  // Slice by character length, trying to break at a safe boundary
+  // within 150 chars before the ideal cut to avoid mid-word/tag cuts.
+  const sliceIntoChunks = (numChunks: number): string[] => {
     const chunks: string[] = []
-    const partsPerChunk = Math.ceil(parts.length / numChunks)
+    const chunkSize = Math.ceil(content.length / numChunks)
+    let start = 0
 
-    for (let i = 0; i < parts.length; i += partsPerChunk) {
-      const chunkParts = parts.slice(i, i + partsPerChunk)
-      chunks.push(chunkParts.join(splitKey))
+    for (let i = 0; i < numChunks; i++) {
+      if (start >= content.length) break
+
+      // Last chunk takes the remainder
+      if (i === numChunks - 1) {
+        chunks.push(content.slice(start))
+        break
+      }
+
+      let end = start + chunkSize
+      if (end >= content.length) {
+        chunks.push(content.slice(start))
+        break
+      }
+
+      // Search for a safe boundary within 150 chars before the ideal cut
+      const windowStart = Math.max(start, end - 150)
+      const windowStr = content.slice(windowStart, end)
+
+      // Find last occurrence of each safe boundary candidate
+      const candidates: { index: number; length: number }[] = []
+      const lastSpace = windowStr.lastIndexOf(' ')
+      if (lastSpace !== -1) candidates.push({ index: lastSpace, length: 1 })
+      const lastNewline = windowStr.lastIndexOf('\n')
+      if (lastNewline !== -1) candidates.push({ index: lastNewline, length: 1 })
+      const lastGt = windowStr.lastIndexOf('>')
+      if (lastGt !== -1) candidates.push({ index: lastGt, length: 1 })
+      const lastDot = windowStr.lastIndexOf('.')
+      if (lastDot !== -1) candidates.push({ index: lastDot, length: 1 })
+      const lastPClose = windowStr.lastIndexOf('</p>')
+      if (lastPClose !== -1) candidates.push({ index: lastPClose, length: 4 })
+
+      if (candidates.length > 0) {
+        // Pick the boundary closest to the ideal cut (largest index)
+        let best = candidates[0]!
+        for (const c of candidates) {
+          if (c.index > best.index) best = c
+        }
+        const safeEnd = windowStart + best.index + best.length
+        // Ensure we make progress (avoid zero-length or tiny steps)
+        if (safeEnd > start) {
+          end = safeEnd
+        }
+      }
+
+      chunks.push(content.slice(start, end))
+      start = end
     }
 
     return chunks
   }
 
   for (let numChunks = maxChunks; numChunks >= 1; numChunks--) {
-    const chunks = groupPartsIntoChunks(numChunks)
+    const chunks = sliceIntoChunks(numChunks)
+    if (chunks.length === 0) continue
     const avgChunkSize =
       chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length
-
     if (avgChunkSize >= minChunkSize || numChunks === 1) {
       return chunks
     }
@@ -126,8 +227,35 @@ export const getSharedExtraBody = (
 
 export const cleanProviderResponse = (response: string): string => {
   let cleaned = response.trim()
-  cleaned = cleaned.replace(/<\/?div[^>]*>/gi, '')
-  cleaned = cleaned.replace(/<\/?p[^>]*>/gi, '')
-  cleaned = cleaned.replace(/(<br>){3,}/gi, '<br><br>')
+
+  // If no <br> exists, preserve paragraph boundaries from <p>/<div> before stripping.
+  // This handles AI responses like "<p>A</p><p>B</p>" which would otherwise become "AB".
+  if (!/<br\s*\/?>/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<\/p>\s*<p[^>]*>/gi, '<br><br>')
+    cleaned = cleaned.replace(/<\/div>\s*<div[^>]*>/gi, '<br><br>')
+    cleaned = cleaned.replace(/<\/p>/gi, '<br><br>')
+    cleaned = cleaned.replace(/<\/div>/gi, '<br><br>')
+    cleaned = cleaned.replace(/<p[^>]*>/gi, '')
+    cleaned = cleaned.replace(/<div[^>]*>/gi, '')
+  } else {
+    cleaned = cleaned.replace(/<\/?div[^>]*>/gi, '')
+    cleaned = cleaned.replace(/<\/?p[^>]*>/gi, '')
+  }
+
+  // Auto add line spacing when response has line breaks but no visual spacing.
+  // Only when no <br> already exists, convert \n to <br><br> for readability.
+  if (!/<br\s*\/?>/i.test(cleaned) && cleaned.includes('\n')) {
+    cleaned = cleaned
+      .replace(/\r\n/g, '\n')
+      .replace(/\n\s*\n/g, '<br><br>')
+      .replace(/\n/g, '<br><br>')
+  }
+
+  // Collapse 3+ consecutive <br> (including variants) to <br><br>
+  cleaned = cleaned.replace(/(<br\s*\/?>){3,}/gi, '<br><br>')
+  // Remove leading/trailing <br> that may have been introduced from closing tags
+  cleaned = cleaned.replace(/^(?:<br\s*\/?>\s*)+/gi, '')
+  cleaned = cleaned.replace(/(?:<br\s*\/?>\s*)+$/gi, '')
+
   return cleaned.trim()
 }

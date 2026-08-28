@@ -79,6 +79,16 @@ export function simpleMdToHtml(md: string) {
   // Thay thế hai lần xuống dòng liên tiếp bằng </p><> để tạo đoạn văn mới
   html = html.replace(/\n\n/g, '<br><br>')
 
+  // Fallback: if no <br> exists but content has line breaks, convert them for display.
+  // Guard ensures we don't double-insert when provider already normalized.
+  if (!/<br\s*\/?>/i.test(html) && html.includes('\n')) {
+    html = html
+      .replace(/\r\n/g, '\n')
+      .replace(/\n\s*\n/g, '<br><br>')
+      .replace(/\n/g, '<br><br>')
+  }
+  html = html.replace(/(<br\s*\/?>){3,}/gi, '<br><br>')
+
   return html
 }
 
