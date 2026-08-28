@@ -67,18 +67,23 @@ export const formatContentForTTS = (content: string): string => {
 
 export function simpleMdToHtml(md: string) {
   let html = md
-  // 1. Chuyển đổi In Đậm (**bold**)
-  // Tìm **nội dung** và thay thế bằng <strong>nội dung</strong>
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-
-  // 2. Chuyển đổi In Nghiêng (*italic* hoặc _italic_)
-  // Tìm *nội dung* hoặc _nội dung_ và thay thế bằng <em>nội dung</em>
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
 
-  // 3. Chuyển đổi Xuống dòng thành Thẻ <br> hoặc <p></p>
-  // Thay thế hai lần xuống dòng liên tiếp bằng </p><> để tạo đoạn văn mới
-  html = html.replace(/\n\n/g, '<br><br>')
+  // Preserve logic: if html already has <br>, only normalize double newlines
+  // Otherwise handle all newline cases via single guard like cleanProviderResponse does
+  const HAS_BR = /<br\s*\/?>/i
+  const BR_3_PLUS = /(<br\s*\/?>){3,}/gi
 
+  if (!HAS_BR.test(html) && html.includes('\n')) {
+    html = html
+      .replace(/\r\n/g, '\n')
+      .replace(/\n\s*\n/g, '<br><br>')
+      .replace(/\n/g, '<br><br>')
+  } else {
+    html = html.replace(/\n\n/g, '<br><br>')
+  }
+  html = html.replace(BR_3_PLUS, '<br><br>')
   return html
 }
 

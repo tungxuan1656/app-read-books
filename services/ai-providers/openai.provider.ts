@@ -34,7 +34,8 @@ export const createOpenAIProvider = (): AIProvider => {
           { role: 'user', content: `Đây là nội dung cần xử lý:\n\n${content}` },
         ]
         const result = await callOpenAIAPI(messages)
-        return result
+        const sanitized = sanitizeAiHtmlContent(result)
+        return cleanProviderResponse(sanitized)
       }
 
       const promises = chunks.map(async (chunk, index) => {
