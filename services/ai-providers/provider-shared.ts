@@ -6,6 +6,11 @@ export interface ProviderMessage {
   content: string
 }
 
+const HAS_BR = /<br\s*\/?>/i
+const BR_3_PLUS = /(<br\s*\/?>){3,}/gi
+const BR_LEADING = /^(?:<br\s*\/?>\s*)+/gi
+const BR_TRAILING = /(?:<br\s*\/?>\s*)+$/gi
+
 export const splitContentIntoChunks = (
   content: string,
   minChunkSize: number,
@@ -16,19 +21,40 @@ export const splitContentIntoChunks = (
   // Helper: try to split by a delimiter and group into chunks
   // using the same avgChunkSize >= minChunkSize loop as the primary path.
   // Returns null if delimiter not found (parts.length <= 1).
-  const tryDelimiter = (delimiter: string): string[] | null => {
-    const parts = content.split(delimiter)
+  const tryDelimiter = (delimiter: string | RegExp): string[] | null => {
+    const parts = content.split(delimiter as unknown as string)
     if (parts.length <= 1) {
       return null
     }
 
+    const isTerminator =
+      typeof delimiter === 'string' && delimiter.startsWith('</')
+    const isBrRegex = delimiter instanceof RegExp
+
+    let effectiveParts: string[]
+    let joinStr: string
+    if (isTerminator) {
+      effectiveParts = parts
+        .map((p, i) => (i < parts.length - 1 ? p + delimiter : p))
+        .filter((p) => p.length > 0)
+      joinStr = ''
+    } else if (isBrRegex) {
+      effectiveParts = parts
+      joinStr = '<br>'
+    } else {
+      effectiveParts = parts
+      joinStr = delimiter as string
+    }
+
     const groupPartsIntoChunks = (numChunks: number): string[] => {
       const chunks: string[] = []
-      const partsPerChunk = Math.ceil(parts.length / numChunks)
-      for (let i = 0; i < parts.length; i += partsPerChunk) {
-        const chunkParts = parts.slice(i, i + partsPerChunk)
+      const partsPerChunk = Math.ceil(effectiveParts.length / numChunks)
+      for (let i = 0; i < effectiveParts.length; i += partsPerChunk) {
+        const chunkParts = effectiveParts.slice(i, i + partsPerChunk)
         // Re-join with delimiter preserved so closing tags / breaks stay intact
-        chunks.push(chunkParts.join(delimiter))
+        // Terminator delimiters already appended to parts, join with ''.
+        // BR regex normalizes to canonical '<br>'.
+        chunks.push(chunkParts.join(joinStr))
       }
       return chunks
     }
@@ -41,7 +67,8 @@ export const splitContentIntoChunks = (
         return chunks
       }
     }
-    return null
+    // Unreachable: loop always returns at numChunks === 1
+    throw new Error('unreachable: tryDelimiter loop did not return')
   }
 
   // 1. Primary delimiter: keep existing behavior for backward compat
@@ -51,13 +78,12 @@ export const splitContentIntoChunks = (
   }
 
   // 2. Fallback delimiters: try in order, first that yields >1 parts wins
-  const fallbackDelimiters = [
+  // BR variants collapsed to single RegExp to handle mixed "a<br />b<br/>c" in one pass
+  const fallbackDelimiters: (string | RegExp)[] = [
     '</p>',
     '</div>',
     '\n\n',
-    '<br>',
-    '<br/>',
-    '<br />',
+    HAS_BR,
     '\n',
   ]
   for (const delimiter of fallbackDelimiters) {
@@ -141,7 +167,8 @@ export const splitContentIntoChunks = (
     }
   }
 
-  return [content]
+  // Unreachable: loop always returns at numChunks === 1
+  throw new Error('unreachable: splitContentIntoChunks loop did not return')
 }
 
 export const getSharedMinChunkSize = (): number => {
@@ -230,7 +257,7 @@ export const cleanProviderResponse = (response: string): string => {
 
   // If no <br> exists, preserve paragraph boundaries from <p>/<div> before stripping.
   // This handles AI responses like "<p>A</p><p>B</p>" which would otherwise become "AB".
-  if (!/<br\s*\/?>/i.test(cleaned)) {
+  if (!HAS_BR.test(cleaned)) {
     cleaned = cleaned.replace(/<\/p>\s*<p[^>]*>/gi, '<br><br>')
     cleaned = cleaned.replace(/<\/div>\s*<div[^>]*>/gi, '<br><br>')
     cleaned = cleaned.replace(/<\/p>/gi, '<br><br>')
@@ -244,7 +271,7 @@ export const cleanProviderResponse = (response: string): string => {
 
   // Auto add line spacing when response has line breaks but no visual spacing.
   // Only when no <br> already exists, convert \n to <br><br> for readability.
-  if (!/<br\s*\/?>/i.test(cleaned) && cleaned.includes('\n')) {
+  if (!HAS_BR.test(cleaned) && cleaned.includes('\n')) {
     cleaned = cleaned
       .replace(/\r\n/g, '\n')
       .replace(/\n\s*\n/g, '<br><br>')
@@ -252,10 +279,11 @@ export const cleanProviderResponse = (response: string): string => {
   }
 
   // Collapse 3+ consecutive <br> (including variants) to <br><br>
-  cleaned = cleaned.replace(/(<br\s*\/?>){3,}/gi, '<br><br>')
+  cleaned = cleaned.replace(BR_3_PLUS, '<br><br>')
   // Remove leading/trailing <br> that may have been introduced from closing tags
-  cleaned = cleaned.replace(/^(?:<br\s*\/?>\s*)+/gi, '')
-  cleaned = cleaned.replace(/(?:<br\s*\/?>\s*)+$/gi, '')
+  // Intentional: strip leading/trailing <br> introduced from closing tags
+  cleaned = cleaned.replace(BR_LEADING, '')
+  cleaned = cleaned.replace(BR_TRAILING, '')
 
   return cleaned.trim()
 }
